@@ -18,10 +18,13 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 // NOTIF-IMPORTS-BEGIN
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as fln;
@@ -54,17 +57,41 @@ class C {
   /// Diatur oleh InfinityApp sesuai pilihan tema (Terang/Gelap/Ikut sistem).
   static bool isDark = false;
 
-  // Warna aksen terang: sama di kedua mode.
+  /// Indeks warna aksen pilihan user (lihat [accents]).
+  static int accentIndex = 0;
+
+  /// (nama, aksen terang, aksen tua mode terang, aksen mode gelap).
+  /// Aksen tua dipakai untuk tombol bertulisan putih dan teks berwarna.
+  static const List<(String, Color, Color, Color)> accents = [
+    ('Hijau', Color(0xFF00AA13), Color(0xFF007A0E), Color(0xFF1E9E33)),
+    ('Tosca', Color(0xFF14B8A6), Color(0xFF0F766E), Color(0xFF139C8C)),
+    ('Biru', Color(0xFF3B82F6), Color(0xFF1D4ED8), Color(0xFF4589F3)),
+    ('Indigo', Color(0xFF6366F1), Color(0xFF4338CA), Color(0xFF7878F2)),
+    ('Ungu', Color(0xFFA855F7), Color(0xFF7E22CE), Color(0xFFA066F2)),
+    ('Oranye', Color(0xFFF97316), Color(0xFFC2410C), Color(0xFFE2661A)),
+    ('Pink', Color(0xFFEC4899), Color(0xFFBE185D), Color(0xFFE5568F)),
+    ('Grafit', Color(0xFF475569), Color(0xFF334155), Color(0xFF7C8BA1)),
+  ];
+
+  static (String, Color, Color, Color) get _acc =>
+      accents[accentIndex.clamp(0, accents.length - 1)];
+
+  /// Warna merek (header, tombol, navigasi). Bisa diganti di Tampilan.
+  static Color get accent => _acc.$2;
+  static Color get accentDark => isDark ? _acc.$4 : _acc.$3;
+
+  // Warna arti (tetap, tidak ikut aksen): pemasukan hijau, pengeluaran merah.
   static const Color green = Color(0xFF00AA13);
   static const Color red = Color(0xFFEE2737);
   static const Color blue = Color(0xFF00AED6);
   static const Color amber = Color(0xFFFFA000);
   static const Color warning = Color(0xFFF59E0B);
 
-  // Warna aksen untuk teks/tombol. Di mode gelap dibuat lebih terang supaya
-  // kontras teks >= 4.5:1 di atas kartu gelap dan teks putih di atasnya >= 3:1.
-  static Color get greenDark =>
+  // Di mode gelap dibuat lebih terang supaya kontras teks >= 4.5:1 di atas
+  // kartu gelap dan teks putih di atasnya >= 3:1.
+  static Color get income =>
       isDark ? const Color(0xFF1E9E33) : const Color(0xFF007A0E);
+  static Color get greenDark => income;
   static Color get redDark =>
       isDark ? const Color(0xFFEC5258) : const Color(0xFFD61F2E);
   static Color get blueDark =>
@@ -297,7 +324,7 @@ enum TxType {
 
   Color get color => switch (this) {
         TxType.expense => C.redDark,
-        TxType.income => C.greenDark,
+        TxType.income => C.income,
         TxType.transfer => C.blueDark,
       };
 }
@@ -357,7 +384,7 @@ enum BudgetStatus {
   final String message;
 
   Color get color => switch (this) {
-        BudgetStatus.safe => C.greenDark,
+        BudgetStatus.safe => C.income,
         BudgetStatus.tight => C.amberDark,
         BudgetStatus.broke => C.redDark,
       };
@@ -763,6 +790,15 @@ class AppSettings {
 
   /// 'system' | 'light' | 'dark'
   String themeMode = 'system';
+  int accentIndex = 0;
+
+  // Header Beranda
+  String displayName = 'Infinity';
+  String? avatarPath;
+
+  /// 'time' (sapaan sesuai jam) | 'custom' | 'motivation'
+  String greetingMode = 'time';
+  String greetingText = '';
 
   // Keamanan
   bool biometric = false;
@@ -792,6 +828,11 @@ class AppSettings {
         if (includeSecrets) 'pin': pin,
         'hideBalance': hideBalance,
         'themeMode': themeMode,
+        'accentIndex': accentIndex,
+        'displayName': displayName,
+        'avatarPath': avatarPath,
+        'greetingMode': greetingMode,
+        'greetingText': greetingText,
         'biometric': biometric,
         'secureScreenV2': secureScreen,
         'captureMode': captureMode,
@@ -829,6 +870,13 @@ class AppSettings {
     s.hideBalance = j['hideBalance'] == true;
     final tm = _s(j['themeMode']);
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
+    s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
+    final dn = _s(j['displayName'])?.trim();
+    s.displayName = (dn == null || dn.isEmpty) ? 'Infinity' : dn;
+    s.avatarPath = _s(j['avatarPath']);
+    final gm = _s(j['greetingMode']);
+    s.greetingMode = (gm == 'custom' || gm == 'motivation') ? gm! : 'time';
+    s.greetingText = _s(j['greetingText']) ?? '';
     s.biometric = j['biometric'] == true;
     // V2: bawaan sekarang mati (screenshot boleh). Setelan lama diabaikan.
     s.secureScreen = j['secureScreenV2'] == true;
@@ -920,6 +968,19 @@ class HomeWidgetBridge {
 /// Kalau kode native belum dipasang (misalnya di DartPad), semua jadi no-op.
 class NativeBridge {
   static const MethodChannel _ch = MethodChannel('infinity/native');
+
+  /// Notifikasi pintasan 4 ikon (native, gaya Money Manager).
+  static Future<void> showQuickBar() async {
+    try {
+      await _ch.invokeMethod<void>('showQuickBar');
+    } catch (_) {}
+  }
+
+  static Future<void> hideQuickBar() async {
+    try {
+      await _ch.invokeMethod<void>('hideQuickBar');
+    } catch (_) {}
+  }
 
   /// Sembunyikan isi app di daftar aplikasi terbaru & blokir screenshot.
   static Future<void> setSecure(bool on) async {
@@ -1179,6 +1240,11 @@ class AppStore extends ChangeNotifier {
     settings.biometric = old.biometric;
     settings.secureScreen = old.secureScreen;
     settings.themeMode = old.themeMode;
+    settings.accentIndex = old.accentIndex;
+    settings.displayName = old.displayName;
+    settings.avatarPath = old.avatarPath;
+    settings.greetingMode = old.greetingMode;
+    settings.greetingText = old.greetingText;
   }
 
   String exportJson() => const JsonEncoder.withIndent('  ')
@@ -2185,8 +2251,10 @@ QuickInput? parseQuickInput(String text) {
 // APP SHELL
 // =============================================================================
 
-/// Pilihan tema dari setelan: 'system' | 'light' | 'dark'.
-final ValueNotifier<String> themePref = ValueNotifier<String>('system');
+/// Pilihan tampilan dari setelan, format "mode:aksen", mis. "system:0".
+final ValueNotifier<String> themePref = ValueNotifier<String>('system:0');
+
+String themeKey(AppSettings s) => '${s.themeMode}:${s.accentIndex}';
 
 class InfinityApp extends StatefulWidget {
   const InfinityApp({super.key});
@@ -2202,6 +2270,7 @@ class _InfinityAppState extends State<InfinityApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     themePref.addListener(_apply);
     C.isDark = _wantDark();
+    C.accentIndex = _wantAccent();
   }
 
   @override
@@ -2217,15 +2286,23 @@ class _InfinityAppState extends State<InfinityApp> with WidgetsBindingObserver {
   bool _wantDark() {
     final sys = WidgetsBinding.instance.platformDispatcher.platformBrightness ==
         Brightness.dark;
-    return themePref.value == 'dark' || (themePref.value == 'system' && sys);
+    final mode = themePref.value.split(':').first;
+    return mode == 'dark' || (mode == 'system' && sys);
+  }
+
+  int _wantAccent() {
+    final parts = themePref.value.split(':');
+    return parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
   }
 
   /// Warna C.* dibaca langsung oleh banyak widget, jadi saat tema berganti
   /// semua elemen dibangun ulang.
   void _apply() {
     final dark = _wantDark();
-    if (dark == C.isDark || !mounted) return;
+    final acc = _wantAccent();
+    if ((dark == C.isDark && acc == C.accentIndex) || !mounted) return;
     C.isDark = dark;
+    C.accentIndex = acc;
     void visit(Element e) {
       e.markNeedsBuild();
       e.visitChildren(visit);
@@ -2238,9 +2315,9 @@ class _InfinityAppState extends State<InfinityApp> with WidgetsBindingObserver {
   ThemeData _theme() {
     final dark = C.isDark;
     final scheme = ColorScheme.fromSeed(
-      seedColor: C.green,
+      seedColor: C.accent,
       brightness: dark ? Brightness.dark : Brightness.light,
-      primary: C.greenDark,
+      primary: C.accentDark,
       onPrimary: Colors.white,
       error: C.redDark,
       surface: C.surface,
@@ -2320,7 +2397,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     if (store.settings.notifEnabled) {
       unawaited(Notifier.instance.requestPermission());
     }
-    themePref.value = store.settings.themeMode;
+    themePref.value = themeKey(store.settings);
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
     _scheduleNotifications();
@@ -2359,15 +2436,13 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     });
   }
 
-  void _syncTheme() => themePref.value = store.settings.themeMode;
+  void _syncTheme() => themePref.value = themeKey(store.settings);
 
   void _syncQuickBar() {
     final want = store.settings.quickBar && store.settings.notifEnabled;
     if (_quickShown == want) return;
     _quickShown = want;
-    unawaited(want
-        ? Notifier.instance.showQuickBar()
-        : Notifier.instance.hideQuickBar());
+    unawaited(want ? NativeBridge.showQuickBar() : NativeBridge.hideQuickBar());
   }
 
   /// Tombol pintasan di panel notifikasi.
@@ -2385,7 +2460,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     switch (action.id) {
       case 'qb_quick':
         // Tampilkan ulang supaya kolom balasan di notifikasi bersih lagi.
-        unawaited(Notifier.instance.showQuickBar());
+        unawaited(NativeBridge.showQuickBar());
         final text = action.input?.trim() ?? '';
         final t = text.isEmpty ? null : store.quickExpense(text);
         if (t == null) {
@@ -2400,6 +2475,10 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
         _openFromWidget(TxType.expense);
       case 'qb_history':
         setState(() => _tab = 1);
+      case 'qb_search':
+        setState(() => _tab = 1);
+        WidgetsBinding.instance.addPostFrameCallback(
+            (_) => historySearchRequest.value++);
       case 'qb_template':
         setState(() => _tab = 0);
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2428,7 +2507,19 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
 
   /// Tombol widget: infinity://add?type=expense|income|transfer
   void _handleWidgetUri(Uri? uri) {
-    if (uri == null || uri.host != 'add') return;
+    if (uri == null) return;
+    // Ikon notifikasi pintasan: infinity://history | search | template
+    final quick = switch (uri.host) {
+      'history' => 'qb_history',
+      'search' => 'qb_search',
+      'template' => 'qb_template',
+      _ => null,
+    };
+    if (quick != null) {
+      _handleQuick(QuickAction(quick));
+      return;
+    }
+    if (uri.host != 'add') return;
     final type = switch (uri.queryParameters['type']) {
       'income' => TxType.income,
       'transfer' => TxType.transfer,
@@ -2532,7 +2623,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
             floatingActionButton: _tab <= 1
                 ? FloatingActionButton.extended(
                     onPressed: () => openTxForm(context, store),
-                    backgroundColor: C.greenDark,
+                    backgroundColor: C.accentDark,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(22)),
@@ -2545,7 +2636,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
               selectedIndex: _tab,
               onDestinationSelected: (i) => setState(() => _tab = i),
               backgroundColor: C.surface,
-              indicatorColor: C.green.withValues(alpha: 0.18),
+              indicatorColor: C.accent.withValues(alpha: 0.18),
               destinations: const [
                 NavigationDestination(
                     icon: Icon(Icons.home_outlined),
@@ -2578,7 +2669,7 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: C.greenDark,
+      backgroundColor: C.accentDark,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2633,7 +2724,7 @@ Future<bool> confirmDialog(
             child: const Text('Batal')),
         FilledButton(
           style: FilledButton.styleFrom(
-              backgroundColor: destructive ? C.redDark : C.greenDark,
+              backgroundColor: destructive ? C.redDark : C.accentDark,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20))),
           onPressed: () => Navigator.pop(ctx, true),
@@ -2750,7 +2841,7 @@ InputDecoration fieldDeco(String label,
         borderSide: BorderSide(color: C.line)),
     focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: accent ?? C.greenDark, width: 2)),
+        borderSide: BorderSide(color: accent ?? C.accentDark, width: 2)),
   );
 }
 
@@ -2902,7 +2993,7 @@ class Segmented<T> extends StatelessWidget {
   Widget _item(T v) {
     final isSel = v == selected;
     final fg = isSel ? Colors.white : C.muted;
-    final bg = isSel ? (colorOf?.call(v) ?? C.greenDark) : Colors.transparent;
+    final bg = isSel ? (colorOf?.call(v) ?? C.accentDark) : Colors.transparent;
     final icon = iconOf?.call(v);
     return Expanded(
       child: Semantics(
@@ -3064,7 +3155,7 @@ class PrimaryButton extends StatelessWidget {
       duration: const Duration(milliseconds: 250),
       height: 54,
       decoration: BoxDecoration(
-        color: onPressed == null ? C.muted : (color ?? C.greenDark),
+        color: onPressed == null ? C.muted : (color ?? C.accentDark),
         borderRadius: BorderRadius.circular(22),
       ),
       child: Material(
@@ -3112,10 +3203,10 @@ class EmptyState extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: C.green.withValues(alpha: 0.12),
+              color: C.accent.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: C.greenDark, size: 30),
+            child: Icon(icon, color: C.accentDark, size: 30),
           ),
           const SizedBox(height: 12),
           Text(title,
@@ -3724,7 +3815,7 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
       amountColor = C.redDark;
     case TxType.income:
       amountText = '+${money(t.amount, cur)}';
-      amountColor = C.greenDark;
+      amountColor = C.income;
     case TxType.transfer:
       amountText = money(t.amount, cur);
       amountColor = C.blueDark;
@@ -3858,7 +3949,7 @@ List<Widget> groupedTxWidgets(
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                   color: net > 0
-                      ? C.greenDark
+                      ? C.income
                       : (net < 0 ? C.redDark : C.muted))),
         ],
       ),
@@ -3874,18 +3965,291 @@ List<Widget> groupedTxWidgets(
 // TAB 1: BERANDA
 // =============================================================================
 
+// --------------------------------------------------------------- sapaan
+
+const List<String> _motivations = [
+  'Catat yang kecil, karena yang kecil itu yang sering bocor.',
+  'Uang yang dicatat lebih gampang diatur daripada uang yang diingat-ingat.',
+  'Hari ini hemat sedikit, akhir bulan napas lebih lega.',
+  'Bukan soal pelit, tapi soal tahu uangmu pergi ke mana.',
+  'Tabungan tumbuh dari kebiasaan, bukan dari sisa.',
+  'Bayar dirimu dulu: sisihkan tabungan sebelum belanja.',
+  'Jajan boleh, asal masih masuk anggaran.',
+  'Satu transaksi dicatat, satu langkah lebih sadar.',
+  'Dompet tenang dimulai dari catatan yang rapi.',
+  'Bandingkan pengeluaranmu dengan bulan lalu, bukan dengan orang lain.',
+  'Diskon bukan alasan beli kalau barangnya tidak dibutuhkan.',
+  'Dana darurat itu bukan rencana cadangan, itu rencana utama.',
+  'Konsisten sebulan lebih berharga daripada semangat sehari.',
+  'Tunda belanja 24 jam, lihat apakah masih ingin.',
+  'Utang kecil yang dibiarkan bisa jadi beban besar.',
+  'Langganan yang jarang dipakai? Saatnya dicek ulang.',
+  'Target jelas bikin menabung terasa ada artinya.',
+  'Pemasukan naik tidak berarti gaya hidup harus ikut naik.',
+  'Akhir pekan hemat, awal minggu lebih tenang.',
+  'Pelan-pelan asal rutin, saldo akan ikut bertambah.',
+  'Ngopi di rumah sesekali juga tetap enak.',
+  'Cek saldo itu bukan menakutkan, itu menenangkan.',
+  'Rencana belanja bulanan menyelamatkan dari belanja impulsif.',
+  'Investasi terbaik pertama: kebiasaan mencatat.',
+  'Uang receh yang terkumpul tetap uang.',
+  'Sebelum checkout, tanya dulu: butuh atau ingin?',
+  'Sedikit demi sedikit, lama-lama jadi dana liburan.',
+  'Kamu tidak harus sempurna, cukup lebih baik dari kemarin.',
+  'Gaji datang dan pergi, catatanmu yang bikin dia bertahan.',
+  'Tetap semangat, tiap catatan hari ini membantu kamu bulan depan.',
+];
+
+String _timeGreeting() {
+  final h = DateTime.now().hour;
+  if (h < 11) return 'Selamat pagi! Yuk mulai catat cuanmu ☀️';
+  if (h < 15) return 'Selamat siang! Udah makan belum? 🍜';
+  if (h < 18) return 'Selamat sore! Cek dompet dulu yuk 👀';
+  return 'Selamat malam! Rekap hari ini, yuk 🌙';
+}
+
+/// Kalimat di bawah nama: sesuai jam, teks sendiri, atau motivasi harian
+/// (berganti tiap hari, sama sepanjang hari itu).
+String greetingFor(AppSettings s) {
+  switch (s.greetingMode) {
+    case 'custom':
+      final t = s.greetingText.trim();
+      return t.isEmpty ? _timeGreeting() : t;
+    case 'motivation':
+      final now = DateTime.now();
+      final day = now.difference(DateTime(now.year)).inDays + now.year * 7;
+      return _motivations[day % _motivations.length];
+    default:
+      return _timeGreeting();
+  }
+}
+
+class Avatar extends StatelessWidget {
+  const Avatar({super.key, required this.path, this.size = 40});
+  final String? path;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = path;
+    final file = p == null ? null : File(p);
+    final has = file != null && file.existsSync();
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: has
+          ? Image.file(file, key: ValueKey(p), fit: BoxFit.cover,
+              width: size, height: size,
+              errorBuilder: (_, __, ___) => Icon(Icons.person_rounded,
+                  color: C.accentDark, size: size * 0.6))
+          : Icon(Icons.all_inclusive_rounded,
+              color: C.accentDark, size: size * 0.6),
+    );
+  }
+}
+
+/// Ambil foto dari galeri, kecilkan, simpan di folder app. Null kalau batal.
+Future<String?> pickAvatarImage() async {
+  final x = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85);
+  if (x == null) return null;
+  final dir = await getApplicationDocumentsDirectory();
+  final dest =
+      '${dir.path}/avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+  await File(x.path).copy(dest);
+  return dest;
+}
+
+void _deleteFileQuiet(String? path) {
+  if (path == null) return;
+  try {
+    final f = File(path);
+    if (f.existsSync()) f.deleteSync();
+  } catch (_) {}
+}
+
+class ProfileSheet extends StatefulWidget {
+  const ProfileSheet({super.key, required this.store});
+  final AppStore store;
+
+  @override
+  State<ProfileSheet> createState() => _ProfileSheetState();
+}
+
+class _ProfileSheetState extends State<ProfileSheet> {
+  late final TextEditingController _name;
+  late final TextEditingController _text;
+  late String _mode;
+  String? _avatar;
+  bool _busy = false;
+
+  AppSettings get _s => widget.store.settings;
+
+  @override
+  void initState() {
+    super.initState();
+    _name = TextEditingController(
+        text: _s.displayName == 'Infinity' ? '' : _s.displayName);
+    _text = TextEditingController(text: _s.greetingText);
+    _mode = _s.greetingMode;
+    _avatar = _s.avatarPath;
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _text.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pick() async {
+    setState(() => _busy = true);
+    try {
+      final p = await pickAvatarImage();
+      if (p != null && mounted) setState(() => _avatar = p);
+    } catch (_) {
+      if (mounted) snack(context, 'Gagal mengambil foto.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  void _save() {
+    final old = _s.avatarPath;
+    if (old != _avatar) _deleteFileQuiet(old);
+    final name = _name.text.trim();
+    widget.store.updateSettings((x) {
+      x.displayName = name.isEmpty ? 'Infinity' : name;
+      x.avatarPath = _avatar;
+      x.greetingMode = _mode;
+      x.greetingText = _text.text.trim();
+    });
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final preview = AppSettings()
+      ..greetingMode = _mode
+      ..greetingText = _text.text;
+    return SheetFrame(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text('Atur Beranda',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              ),
+              IconButton(
+                tooltip: 'Tutup',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration:
+                    BoxDecoration(color: C.accentDark, shape: BoxShape.circle),
+                child: Avatar(path: _avatar, size: 64),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    FilledButton.tonalIcon(
+                      onPressed: _busy ? null : _pick,
+                      icon: const Icon(Icons.photo_library_rounded),
+                      label: Text(_avatar == null ? 'Pilih foto' : 'Ganti foto'),
+                    ),
+                    if (_avatar != null)
+                      TextButton(
+                        onPressed: () => setState(() => _avatar = null),
+                        child: const Text('Pakai logo'),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _name,
+            textCapitalization: TextCapitalization.words,
+            maxLength: 30,
+            decoration: fieldDeco('Nama di Beranda', icon: Icons.badge_rounded)
+                .copyWith(hintText: 'Infinity', counterText: ''),
+          ),
+          const SizedBox(height: 14),
+          const SmallLabel('Kalimat di bawah nama'),
+          const SizedBox(height: 8),
+          Segmented<String>(
+            values: const ['time', 'custom', 'motivation'],
+            selected: _mode,
+            labelOf: (v) => switch (v) {
+              'custom' => 'Tulis sendiri',
+              'motivation' => 'Motivasi',
+              _ => 'Sapaan jam',
+            },
+            dense: true,
+            onChanged: (v) => setState(() => _mode = v),
+          ),
+          if (_mode == 'custom') ...[
+            const SizedBox(height: 10),
+            TextField(
+              controller: _text,
+              maxLength: 80,
+              textCapitalization: TextCapitalization.sentences,
+              onChanged: (_) => setState(() {}),
+              decoration: fieldDeco('Kalimatmu', icon: Icons.edit_rounded)
+                  .copyWith(hintText: 'mis. Semangat nabung buat nikah 💍'),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: C.bg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: C.line),
+            ),
+            child: Text(
+                _mode == 'motivation'
+                    ? 'Contoh hari ini: "${greetingFor(preview)}"\nBerganti otomatis setiap hari.'
+                    : greetingFor(preview),
+                style: TextStyle(fontSize: 13, color: C.muted)),
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(label: 'Simpan', onPressed: _save),
+        ],
+      ),
+    );
+  }
+}
+
 class DashboardTab extends StatelessWidget {
   const DashboardTab({super.key, required this.store, required this.onSeeAll});
   final AppStore store;
   final VoidCallback onSeeAll;
 
-  String _greeting() {
-    final h = DateTime.now().hour;
-    if (h < 11) return 'Selamat pagi! Yuk mulai catat cuanmu ☀️';
-    if (h < 15) return 'Selamat siang! Udah makan belum? 🍜';
-    if (h < 18) return 'Selamat sore! Cek dompet dulu yuk 👀';
-    return 'Selamat malam! Rekap hari ini, yuk 🌙';
-  }
+  String _greeting() => greetingFor(store.settings);
 
   void _push(BuildContext context, Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
@@ -3953,41 +4317,48 @@ class DashboardTab extends StatelessWidget {
     final hide = store.settings.hideBalance;
     return Container(
       decoration: BoxDecoration(
-        color: C.greenDark,
+        color: C.accentDark,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
       padding: EdgeInsets.fromLTRB(
-          16, MediaQuery.paddingOf(context).top + 14, 16, 20),
+          16, MediaQuery.paddingOf(context).top + 8, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14)),
-                child: Icon(Icons.all_inclusive_rounded,
-                    color: C.greenDark, size: 26),
-              ),
-              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Infinity',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900)),
-                    Text(_greeting(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 12)),
-                  ],
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => showSheet<void>(
+                      context, ProfileSheet(store: store)),
+                  child: Row(
+                    children: [
+                      Avatar(path: store.settings.avatarPath, size: 38),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(store.settings.displayName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900)),
+                            Text(_greeting(),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11.5,
+                                    height: 1.25)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               IconButton(
@@ -4001,12 +4372,12 @@ class DashboardTab extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
             decoration: BoxDecoration(
               color: C.surface,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(22),
               boxShadow: [
                 BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
@@ -4046,14 +4417,14 @@ class DashboardTab extends StatelessWidget {
                   child: Text(
                     hide ? 'Rp ••••••••' : money(total),
                     style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 24,
                         fontWeight: FontWeight.w900,
                         color: total < 0 ? C.redDark : C.carbon),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 SizedBox(
-                  height: 96,
+                  height: 54,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: store.accounts.length,
@@ -4062,15 +4433,15 @@ class DashboardTab extends StatelessWidget {
                         _accountTile(context, store.accounts[i], hide),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Divider(height: 1, color: C.line),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     _quickAction(Icons.north_east_rounded, 'Bayar', C.redDark,
                         () => openTxForm(context, store)),
                     _quickAction(Icons.south_west_rounded, 'Terima',
-                        C.greenDark,
+                        C.income,
                         () => openTxForm(context, store, type: TxType.income)),
                     _quickAction(Icons.swap_horiz_rounded, 'Transfer',
                         C.blueDark,
@@ -4095,41 +4466,39 @@ class DashboardTab extends StatelessWidget {
       onTap: () => showSheet<void>(
           context, AccountEditorSheet(store: store, account: a)),
       child: Container(
-        width: 136,
-        padding: const EdgeInsets.all(10),
+        width: 150,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: a.colorValue.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              children: [
-                CatIcon(icon: a.type.icon, color: a.colorValue, size: 28),
-                const Spacer(),
-                if (a.currency != 'IDR')
-                  Text(a.currency,
+            CatIcon(icon: a.type.icon, color: a.colorValue, size: 30),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(a.currency == 'IDR' ? a.name : '${a.name} · ${a.currency}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: C.muted)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(a.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    fontSize: 11, color: C.muted, fontWeight: FontWeight.w600)),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(hide ? '•••••' : money(bal, a.currency),
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: bal < 0 ? C.redDark : C.carbon)),
+                          fontSize: 11,
+                          color: C.muted,
+                          fontWeight: FontWeight.w600)),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(hide ? '•••••' : money(bal, a.currency),
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: bal < 0 ? C.redDark : C.carbon)),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -4148,13 +4517,13 @@ class DashboardTab extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                    color: color, borderRadius: BorderRadius.circular(16)),
-                child: Icon(icon, color: Colors.white, size: 22),
+                    color: color, borderRadius: BorderRadius.circular(14)),
+                child: Icon(icon, color: Colors.white, size: 20),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(label,
                   style: TextStyle(
                       fontSize: 12,
@@ -4224,7 +4593,7 @@ class DashboardTab extends StatelessWidget {
                   style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 13,
-                      color: isIncome ? C.greenDark : C.redDark)),
+                      color: isIncome ? C.income : C.redDark)),
             ],
           ),
           Row(
@@ -4634,6 +5003,9 @@ enum HistoryFilter {
 
 enum HistoryView { list, calendar }
 
+/// Dinaikkan saat tombol Cari di notifikasi pintasan ditekan.
+final ValueNotifier<int> historySearchRequest = ValueNotifier<int>(0);
+
 class HistoryTab extends StatefulWidget {
   const HistoryTab({super.key, required this.store});
   final AppStore store;
@@ -4650,9 +5022,26 @@ class _HistoryTabState extends State<HistoryTab> {
   HistoryFilter _filter = HistoryFilter.month;
   DateTime _calMonth = DateTime(DateTime.now().year, DateTime.now().month);
   DateTime _selectedDay = dayOnly(DateTime.now());
+  final _searchFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    historySearchRequest.addListener(_focusSearch);
+  }
+
+  void _focusSearch() {
+    if (!mounted) return;
+    setState(() => _view = HistoryView.list);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocus.requestFocus();
+    });
+  }
 
   @override
   void dispose() {
+    historySearchRequest.removeListener(_focusSearch);
+    _searchFocus.dispose();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -4699,6 +5088,7 @@ class _HistoryTabState extends State<HistoryTab> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _searchCtrl,
+                    focusNode: _searchFocus,
                     onChanged: (v) => setState(() => _query = v),
                     textInputAction: TextInputAction.search,
                     decoration: fieldDeco('Cari transaksi',
@@ -4770,7 +5160,7 @@ class _HistoryTabState extends State<HistoryTab> {
               child: _SummaryBox(
                   label: 'Pemasukan',
                   value: income,
-                  color: C.greenDark,
+                  color: C.accentDark,
                   icon: Icons.south_west_rounded)),
           const SizedBox(width: 10),
           Expanded(
@@ -4835,12 +5225,12 @@ class _HistoryTabState extends State<HistoryTab> {
             margin: const EdgeInsets.all(2),
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
             decoration: BoxDecoration(
-              color: selected ? C.green.withValues(alpha: 0.12) : C.surface,
+              color: selected ? C.accent.withValues(alpha: 0.12) : C.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                   color: selected
-                      ? C.greenDark
-                      : (isToday ? C.green.withValues(alpha: 0.5) : C.line),
+                      ? C.accentDark
+                      : (isToday ? C.accent.withValues(alpha: 0.5) : C.line),
                   width: selected ? 2 : 1),
             ),
             child: Column(
@@ -4857,7 +5247,7 @@ class _HistoryTabState extends State<HistoryTab> {
                     child: Text('+${compactMoney(i)}',
                         style: TextStyle(
                             fontSize: 9,
-                            color: C.greenDark,
+                            color: C.income,
                             fontWeight: FontWeight.w800)),
                   ),
                 if (e > 0)
@@ -5122,7 +5512,7 @@ class _StatsTabState extends State<StatsTab> {
                   child: _SummaryBox(
                       label: 'Pemasukan',
                       value: income,
-                      color: C.greenDark,
+                      color: C.income,
                       icon: Icons.south_west_rounded)),
               const SizedBox(width: 10),
               Expanded(
@@ -5147,7 +5537,7 @@ class _StatsTabState extends State<StatsTab> {
                           style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
-                              color: net >= 0 ? C.greenDark : C.redDark)),
+                              color: net >= 0 ? C.income : C.redDark)),
                     ],
                   ),
                 ),
@@ -5496,6 +5886,57 @@ class MoreTab extends StatelessWidget {
                   onChanged: (v) =>
                       store.updateSettings((x) => x.themeMode = v),
                 ),
+                const SizedBox(height: 14),
+                const SmallLabel('Warna utama'),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (var i = 0; i < C.accents.length; i++)
+                      Semantics(
+                        button: true,
+                        selected: i == s.accentIndex,
+                        label: C.accents[i].$1,
+                        child: GestureDetector(
+                          onTap: () => store
+                              .updateSettings((x) => x.accentIndex = i),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: C.isDark
+                                      ? C.accents[i].$4
+                                      : C.accents[i].$3,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: i == s.accentIndex
+                                          ? C.carbon
+                                          : Colors.transparent,
+                                      width: 3),
+                                ),
+                                child: i == s.accentIndex
+                                    ? const Icon(Icons.check_rounded,
+                                        color: Colors.white, size: 20)
+                                    : null,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(C.accents[i].$1,
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: C.muted,
+                                      fontWeight: i == s.accentIndex
+                                          ? FontWeight.w800
+                                          : FontWeight.w500)),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -5534,7 +5975,7 @@ class MoreTab extends StatelessWidget {
               children: [
                 _tile(context,
                     icon: Icons.repeat_rounded,
-                    color: C.green,
+                    color: C.accent,
                     title: 'Transaksi Berulang',
                     subtitle:
                         '${store.recurring.where((r) => r.active).length} aktif',
@@ -5963,6 +6404,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       backgroundColor: C.surface,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      sheetAnimationStyle: AnimationStyle.noAnimation,
       builder: (_) => CategoryPanel(
           store: store,
           type: _type,
@@ -5984,6 +6426,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       backgroundColor: C.surface,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      sheetAnimationStyle: AnimationStyle.noAnimation,
       builder: (_) => AccountPanel(
         store: store,
         selectedId: to ? _toId : _fromId,
@@ -6118,6 +6561,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
                       autofocus: !widget.isEditing,
                       keyboardType: TextInputType.numberWithOptions(
                           decimal: fromDecimals),
+                      textInputAction: TextInputAction.next,
+                      // Selesai isi nominal -> langsung pilih kategori.
+                      onSubmitted: (_) {
+                        if (!isTransfer) _pickCategory();
+                      },
                       inputFormatters: [
                         AmountFormatter(decimals: fromDecimals)
                       ],
@@ -6278,18 +6726,18 @@ class _TxFormSheetState extends State<TxFormSheet> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: C.green.withValues(alpha: 0.12),
+                  color: C.accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: [
                     Icon(Icons.check_circle_rounded,
-                        color: C.greenDark, size: 20),
+                        color: C.accentDark, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(_info!,
                           style: TextStyle(
-                              color: C.greenDark,
+                              color: C.accentDark,
                               fontWeight: FontWeight.w700,
                               fontSize: 13)),
                     ),
@@ -6870,7 +7318,7 @@ class TransactionDetailSheet extends StatelessWidget {
             icon: const Icon(Icons.edit_rounded),
             label: const Text('Edit'),
             style: FilledButton.styleFrom(
-              backgroundColor: C.greenDark,
+              backgroundColor: C.accentDark,
               minimumSize: const Size.fromHeight(50),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20)),
@@ -7060,7 +7508,7 @@ class _CalculatorSheetState extends State<CalculatorSheet> {
   @override
   Widget build(BuildContext context) {
     final preview = evalExpression(_expr);
-    final opBg = C.green.withValues(alpha: 0.15);
+    final opBg = C.accent.withValues(alpha: 0.15);
     return SheetFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -7094,20 +7542,20 @@ class _CalculatorSheetState extends State<CalculatorSheet> {
           Row(children: [
             _key('C', fg: C.redDark),
             _key('⌫'),
-            _key('÷', bg: opBg, fg: C.greenDark),
-            _key('×', bg: opBg, fg: C.greenDark),
+            _key('÷', bg: opBg, fg: C.accentDark),
+            _key('×', bg: opBg, fg: C.accentDark),
           ]),
           Row(children: [
             _key('7'),
             _key('8'),
             _key('9'),
-            _key('−', bg: opBg, fg: C.greenDark),
+            _key('−', bg: opBg, fg: C.accentDark),
           ]),
           Row(children: [
             _key('4'),
             _key('5'),
             _key('6'),
-            _key('+', bg: opBg, fg: C.greenDark),
+            _key('+', bg: opBg, fg: C.accentDark),
           ]),
           Row(children: [
             _key('1'),
@@ -7143,7 +7591,7 @@ class AccountsPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () =>
             showSheet<void>(context, AccountEditorSheet(store: store)),
-        backgroundColor: C.greenDark,
+        backgroundColor: C.accentDark,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Akun baru'),
@@ -7497,8 +7945,8 @@ class CategoriesPage extends StatelessWidget {
             surfaceTintColor: Colors.transparent,
             scrolledUnderElevation: 0,
             bottom: TabBar(
-              labelColor: C.greenDark,
-              indicatorColor: C.greenDark,
+              labelColor: C.accentDark,
+              indicatorColor: C.accentDark,
               tabs: [Tab(text: 'Pengeluaran'), Tab(text: 'Pemasukan')],
             ),
           ),
@@ -7511,7 +7959,7 @@ class CategoriesPage extends StatelessWidget {
                       store: store,
                       type: idx == 0 ? TxType.expense : TxType.income));
             },
-            backgroundColor: C.greenDark,
+            backgroundColor: C.accentDark,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.add_rounded),
             label: const Text('Kategori baru'),
@@ -7907,7 +8355,7 @@ class RecurringPage extends StatelessWidget {
       appBar: pageBar('Transaksi Berulang'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => openRecurringForm(context, store),
-        backgroundColor: C.greenDark,
+        backgroundColor: C.accentDark,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Tambah'),
@@ -7975,7 +8423,7 @@ class RecurringPage extends StatelessWidget {
                             children: [
                               Switch(
                                 value: r.active,
-                                activeTrackColor: C.greenDark,
+                                activeTrackColor: C.accentDark,
                                 onChanged: (v) {
                                   store.toggleRecurring(r.id, v);
                                   if (v) {
@@ -8029,7 +8477,7 @@ class TemplatesPage extends StatelessWidget {
       appBar: pageBar('Template Catat Cepat'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => openTemplateForm(context, store),
-        backgroundColor: C.greenDark,
+        backgroundColor: C.accentDark,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Template baru'),
@@ -8309,7 +8757,7 @@ class NotificationsPage extends StatelessWidget {
                     _switch(
                       title: 'Pintasan di panel notifikasi',
                       subtitle:
-                          'Tombol Catat, Template, Riwayat yang selalu ada di panel notifikasi',
+                          'Ikon Riwayat, Cari, Template, dan Tambah yang selalu ada di panel notifikasi',
                       value: s.quickBar,
                       onChanged: on
                           ? (v) => store.updateSettings((x) => x.quickBar = v)
@@ -8462,7 +8910,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
               height: 22,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                  color: C.greenDark, shape: BoxShape.circle),
+                  color: C.accentDark, shape: BoxShape.circle),
               child: Text(n,
                   style: const TextStyle(
                       color: Colors.white,
@@ -8706,7 +9154,7 @@ class _PinPadState extends State<PinPad> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.all_inclusive_rounded, color: C.greenDark, size: 44),
+          Icon(Icons.all_inclusive_rounded, color: C.accentDark, size: 44),
           const SizedBox(height: 12),
           Text(widget.title,
               textAlign: TextAlign.center,
@@ -8730,8 +9178,8 @@ class _PinPadState extends State<PinPad> {
                   height: 16,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: i < _pin.length ? C.greenDark : Colors.transparent,
-                    border: Border.all(color: C.greenDark, width: 2),
+                    color: i < _pin.length ? C.accentDark : Colors.transparent,
+                    border: Border.all(color: C.accentDark, width: 2),
                   ),
                 ),
             ],
@@ -8958,7 +9406,7 @@ class SecurityPage extends StatelessWidget {
                         icon: active
                             ? Icons.lock_rounded
                             : Icons.lock_open_rounded,
-                        color: active ? C.green : C.muted),
+                        color: active ? C.accent : C.muted),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -9183,7 +9631,7 @@ class _BackupPageState extends State<BackupPage> {
                         icon: const Icon(Icons.restore_rounded),
                         label: const Text('Pulihkan'),
                         style: FilledButton.styleFrom(
-                            backgroundColor: C.greenDark,
+                            backgroundColor: C.accentDark,
                             minimumSize: const Size.fromHeight(50),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20))),

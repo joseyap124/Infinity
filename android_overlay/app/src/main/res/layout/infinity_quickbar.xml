@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/qb_history"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:contentDescription="Riwayat"
+        android:padding="12dp"
+        android:src="@drawable/qb_history" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="24dp"
+        android:background="@color/qb_divider" />
+
+    <ImageView
+        android:id="@+id/qb_search"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:contentDescription="Cari"
+        android:padding="12dp"
+        android:src="@drawable/qb_search" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="24dp"
+        android:background="@color/qb_divider" />
+
+    <ImageView
+        android:id="@+id/qb_template"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:contentDescription="Template"
+        android:padding="12dp"
+        android:src="@drawable/qb_template" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="24dp"
+        android:background="@color/qb_divider" />
+
+    <ImageView
+        android:id="@+id/qb_add"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:contentDescription="Tambah"
+        android:padding="10dp"
+        android:src="@drawable/qb_add" />
+</LinearLayout>

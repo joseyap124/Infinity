@@ -51,6 +51,14 @@ class MainActivity : FlutterFragmentActivity() {
                         result.success(null)
                     }
                     "fetchCaptured" -> result.success(CaptureStore.drain(this))
+                    "showQuickBar" -> {
+                        QuickBar.show(this)
+                        result.success(null)
+                    }
+                    "hideQuickBar" -> {
+                        QuickBar.hide(this)
+                        result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             }

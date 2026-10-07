@@ -8,4 +8,6 @@
     <color name="w_btn_green">#FF1E9E33</color>
     <color name="w_btn_red">#FFD9434A</color>
     <color name="w_btn_blue">#FF1497B5</color>
+    <color name="qb_icon">#FFE6E7EA</color>
+    <color name="qb_divider">#FF44474E</color>
 </resources>

@@ -9,4 +9,6 @@
     <color name="w_btn_red">#FFD61F2E</color>
     <color name="w_btn_blue">#FF007A94</color>
     <color name="ic_bg">#FF16181D</color>
+    <color name="qb_icon">#FF3A3D44</color>
+    <color name="qb_divider">#FFD5D8DD</color>
 </resources>
