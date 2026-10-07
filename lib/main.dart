@@ -55,6 +55,10 @@ Future<void> main() async {
 // DESIGN TOKENS
 // =============================================================================
 
+/// Diisi saat build: --dart-define=APP_VERSION=1.x (lihat workflow).
+const String kAppVersion =
+    String.fromEnvironment('APP_VERSION', defaultValue: 'dev');
+
 class C {
   /// Diatur oleh InfinityApp sesuai pilihan tema (Terang/Gelap/Ikut sistem).
   static bool isDark = false;
@@ -6405,7 +6409,7 @@ class MoreTab extends StatelessWidget {
               children: [
                 Icon(Icons.all_inclusive_rounded, color: C.muted),
                 SizedBox(height: 4),
-                Text('Infinity · data tersimpan di perangkat ini',
+                Text('Infinity v$kAppVersion · data tersimpan di perangkat ini',
                     style: TextStyle(fontSize: 12, color: C.muted)),
               ],
             ),

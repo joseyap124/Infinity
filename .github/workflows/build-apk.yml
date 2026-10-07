@@ -14,6 +14,11 @@ on:
 permissions:
   contents: write
 
+# Satu build sekaligus, supaya nomor versi tidak bentrok.
+concurrency:
+  group: build-apk
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -61,16 +66,34 @@ jobs:
           set -o pipefail
           flutter analyze lib --no-fatal-infos --no-fatal-warnings 2>&1 | tee "$RUNNER_TEMP/analyze.txt"
 
+      # Versi naik 1 setiap rilis yang terbit: v1.1, v1.2, v1.3, ...
+      # (build yang gagal tidak memakan nomor).
+      - name: Tentukan nomor versi
+        id: ver
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LAST=$(gh release list -R "${{ github.repository }}" --limit 200 --json tagName \
+            --jq '[.[].tagName | select(test("^v1\\.[0-9]+$")) | ltrimstr("v1.") | tonumber] | max // 0')
+          echo "version=1.$((LAST + 1))" >> "$GITHUB_OUTPUT"
+          echo "title=$(git log -1 --pretty=%s)" >> "$GITHUB_OUTPUT"
+          echo "Versi baru: 1.$((LAST + 1))"
+
       - name: Build APK
         shell: bash
         run: |
           set -o pipefail
-          flutter build apk --release --split-per-abi 2>&1 | tee "$RUNNER_TEMP/build.txt"
+          flutter build apk --release --split-per-abi \
+            --build-name=${{ steps.ver.outputs.version }} \
+            --build-number=${{ github.run_number }} \
+            --dart-define=APP_VERSION=${{ steps.ver.outputs.version }} 2>&1 | tee "$RUNNER_TEMP/build.txt"
 
       - name: Ganti nama APK
         run: |
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk Infinity.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk Infinity-hp-lama-32bit.apk
+          V=${{ steps.ver.outputs.version }}
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "Infinity-v$V.apk"
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "Infinity-v$V-hp-lama-32bit.apk"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -80,12 +103,17 @@ jobs:
       - name: Terbitkan APK di halaman Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: Infinity build ${{ github.run_number }}
-          body: Pasang Infinity.apk di HP Android. Infinity-hp-lama-32bit.apk hanya untuk HP lama yang tidak bisa memasang versi biasa.
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Infinity v${{ steps.ver.outputs.version }}
+          body: |
+            Pasang `Infinity-v${{ steps.ver.outputs.version }}.apk` di HP Android, menimpa versi lama (data tetap aman).
+            File `-hp-lama-32bit` hanya untuk HP lama yang gagal memasang versi biasa.
+
+            Perubahan: ${{ steps.ver.outputs.title }}
+            (build #${{ github.run_number }}, commit ${{ github.sha }})
           files: |
-            Infinity.apk
-            Infinity-hp-lama-32bit.apk
+            Infinity-v${{ steps.ver.outputs.version }}.apk
+            Infinity-v${{ steps.ver.outputs.version }}-hp-lama-32bit.apk
 
       # Kalau gagal, simpan log ke branch ci-logs supaya bisa dibaca lewat git.
       - name: Simpan log kegagalan
