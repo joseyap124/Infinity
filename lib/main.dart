@@ -7047,10 +7047,14 @@ class _CategoryPanelState extends State<CategoryPanel> {
   Widget build(BuildContext context) {
     final tops = store.topCategories(widget.type);
     final open = _open;
+    // Setinggi isinya saja (maks. 50% layar) supaya kategori dekat jempol.
+    final rows = (tops.length / 3).ceil().clamp(2, 99);
+    final h = math.min(MediaQuery.sizeOf(context).height * 0.5,
+        57.0 + rows * 68.0);
     return SafeArea(
       top: false,
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.55,
+        height: h,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
