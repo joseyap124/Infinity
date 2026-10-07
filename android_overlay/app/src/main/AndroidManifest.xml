@@ -57,6 +57,16 @@
                 android:resource="@xml/infinity_widget_info"/>
         </receiver>
 
+        <!-- Pintasan panel notifikasi muncul lagi setelah restart / update -->
+        <receiver
+            android:name=".QuickBarBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
+        </receiver>
+
         <!-- Jadwal notifikasi (dipasang ulang setelah HP restart) -->
         <receiver
             android:exported="false"

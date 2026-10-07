@@ -105,10 +105,12 @@ class MainActivity : FlutterFragmentActivity() {
                         }
                     }
                     "showQuickBar" -> {
+                        QuickBar.setEnabled(this, true)
                         QuickBar.show(this)
                         result.success(null)
                     }
                     "hideQuickBar" -> {
+                        QuickBar.setEnabled(this, false)
                         QuickBar.hide(this)
                         result.success(null)
                     }

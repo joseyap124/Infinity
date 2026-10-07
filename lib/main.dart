@@ -2499,12 +2499,22 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
 
   void _syncTheme() => themePref.value = themeKey(store.settings);
 
+  /// Pintasan tidak bergantung pada saklar pengingat: cukup setelannya aktif
+  /// dan izin notifikasi Android diberikan.
   void _syncQuickBar() {
-    final want = store.settings.quickBar && store.settings.notifEnabled;
+    final want = store.settings.quickBar;
     if (_quickShown == want) return;
     _quickShown = want;
-    unawaited(want ? NativeBridge.showQuickBar() : NativeBridge.hideQuickBar());
+    if (want) {
+      unawaited(() async {
+        await Notifier.instance.requestPermission();
+        await NativeBridge.showQuickBar();
+      }());
+    } else {
+      unawaited(NativeBridge.hideQuickBar());
+    }
   }
+
 
   /// Tombol pintasan di panel notifikasi.
   void _handleQuick(QuickAction? action) {
@@ -4306,6 +4316,92 @@ class _ProfileSheetState extends State<ProfileSheet> {
   }
 }
 
+class AccentPickerSheet extends StatelessWidget {
+  const AccentPickerSheet({super.key, required this.store});
+  final AppStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    final sel = store.settings.accentIndex;
+    Widget swatch(int i) => Semantics(
+          button: true,
+          selected: i == sel,
+          label: C.accents[i].$1,
+          child: GestureDetector(
+            onTap: () {
+              store.updateSettings((x) => x.accentIndex = i);
+              Navigator.pop(context);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: C.isDark ? C.accents[i].$4 : C.accents[i].$3,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: i == sel ? C.carbon : Colors.transparent,
+                        width: 3),
+                  ),
+                  child: i == sel
+                      ? const Icon(Icons.check_rounded,
+                          color: Colors.white, size: 22)
+                      : null,
+                ),
+                const SizedBox(height: 4),
+                Text(C.accents[i].$1,
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        color: C.muted,
+                        fontWeight:
+                            i == sel ? FontWeight.w800 : FontWeight.w500)),
+              ],
+            ),
+          ),
+        );
+    Widget group(String title, Iterable<int> idx) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SmallLabel(title),
+            const SizedBox(height: 10),
+            Wrap(spacing: 14, runSpacing: 12, children: [
+              for (final i in idx) swatch(i),
+            ]),
+          ],
+        );
+    return SheetFrame(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text('Warna utama',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              ),
+              IconButton(
+                tooltip: 'Tutup',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          group('Biasa', Iterable<int>.generate(8)),
+          const SizedBox(height: 18),
+          group('Pastel', Iterable<int>.generate(C.accents.length - 8, (k) => k + 8)),
+          const SizedBox(height: 12),
+          Text('Pemasukan tetap hijau dan pengeluaran tetap merah.',
+              style: TextStyle(fontSize: 12, color: C.muted)),
+        ],
+      ),
+    );
+  }
+}
+
 class DashboardTab extends StatelessWidget {
   const DashboardTab({super.key, required this.store, required this.onSeeAll});
   final AppStore store;
@@ -5949,55 +6045,41 @@ class MoreTab extends StatelessWidget {
                       store.updateSettings((x) => x.themeMode = v),
                 ),
                 const SizedBox(height: 14),
-                const SmallLabel('Warna utama'),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    for (var i = 0; i < C.accents.length; i++)
-                      Semantics(
-                        button: true,
-                        selected: i == s.accentIndex,
-                        label: C.accents[i].$1,
-                        child: GestureDetector(
-                          onTap: () => store
-                              .updateSettings((x) => x.accentIndex = i),
+                const SizedBox(height: 4),
+                InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => showSheet<void>(
+                      context, AccentPickerSheet(store: store)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                              color: C.accentDark, shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: C.isDark
-                                      ? C.accents[i].$4
-                                      : C.accents[i].$3,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: i == s.accentIndex
-                                          ? C.carbon
-                                          : Colors.transparent,
-                                      width: 3),
-                                ),
-                                child: i == s.accentIndex
-                                    ? const Icon(Icons.check_rounded,
-                                        color: Colors.white, size: 20)
-                                    : null,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(C.accents[i].$1,
+                              Text('Warna utama',
                                   style: TextStyle(
-                                      fontSize: 11,
-                                      color: C.muted,
-                                      fontWeight: i == s.accentIndex
-                                          ? FontWeight.w800
-                                          : FontWeight.w500)),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      color: C.carbon)),
+                              Text(C.accents[s.accentIndex].$1,
+                                  style: TextStyle(
+                                      fontSize: 12, color: C.muted)),
                             ],
                           ),
                         ),
-                      ),
-                  ],
+                        Icon(Icons.chevron_right_rounded, color: C.muted),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -8832,9 +8914,8 @@ class NotificationsPage extends StatelessWidget {
                       subtitle:
                           'Ikon Riwayat, Cari, Template, dan Tambah yang selalu ada di panel notifikasi',
                       value: s.quickBar,
-                      onChanged: on
-                          ? (v) => store.updateSettings((x) => x.quickBar = v)
-                          : null,
+                      onChanged: (v) =>
+                          store.updateSettings((x) => x.quickBar = v),
                     ),
                     _switch(
                       title: 'Pengingat harian',
