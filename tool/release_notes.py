@@ -32,7 +32,7 @@ def main():
         print(HEAD.format(v=v) + body)
     elif cmd == 'sync':
         for key, body in secs.items():
-            if not re.fullmatch(r'v1\.\d+', key) or not body:
+            if not re.fullmatch(r'v1\.\d+(\.\d+)?', key) or not body:
                 continue
             ok = subprocess.run(['gh', 'release', 'view', key], capture_output=True).returncode == 0
             if not ok:

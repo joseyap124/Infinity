@@ -81,9 +81,13 @@ jobs:
         run: |
           LAST=$(gh release list -R "${{ github.repository }}" --limit 200 --json tagName \
             --jq '[.[].tagName | select(test("^v1\\.[0-9]+$")) | ltrimstr("v1.") | tonumber] | max // 0')
-          echo "version=1.$((LAST + 1))" >> "$GITHUB_OUTPUT"
-          python3 tool/release_notes.py next "1.$((LAST + 1))" "$(git log -1 --pretty=%s)" > "$RUNNER_TEMP/notes.md"
-          echo "Versi baru: 1.$((LAST + 1))"
+          V="1.$((LAST + 1))"
+          # Versi bisa ditentukan manual di CHANGELOG.md: "## Berikutnya (v1.3.1)"
+          WANT=$(grep -m1 -oP '^## Berikutnya \(v\K[0-9]+\.[0-9]+(\.[0-9]+)?(?=\))' CHANGELOG.md || true)
+          if [ -n "$WANT" ] && ! gh release view "v$WANT" -R "${{ github.repository }}" >/dev/null 2>&1; then V="$WANT"; fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          python3 tool/release_notes.py next "$V" "$(git log -1 --pretty=%s)" > "$RUNNER_TEMP/notes.md"
+          echo "Versi baru: $V"
 
       - name: Build APK
         shell: bash

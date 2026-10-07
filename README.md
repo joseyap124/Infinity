@@ -35,7 +35,7 @@ Semua APK ditandatangani dengan **kunci yang sama** (secret `DEBUG_KEYSTORE_BASE
 
 ### Akun & transfer
 - Akun **E-Wallet, Tunai, Rekening Bank, Kartu Kredit** (limit + tanggal jatuh tempo), **Investasi**.
-- **Transfer** antar akun, termasuk beda mata uang (IDR, USD, SGD, MYR, CNY, EUR, JPY) dengan kurs yang bisa diubah.
+- **Transfer** antar akun, termasuk beda mata uang (IDR, USD, SGD, MYR, CNY, TWD, EUR, JPY) dengan kurs yang bisa diubah.
 - Saldo dihitung ulang dari saldo awal + semua transaksi, jadi edit/hapus selalu konsisten.
 
 ### Kategori

@@ -182,7 +182,9 @@ Color darken(Color c, [double amount = 0.12]) {
 // FORMAT & PARSING
 // =============================================================================
 
-const List<String> kCurrencies = ['IDR', 'USD', 'SGD', 'MYR', 'CNY', 'EUR', 'JPY'];
+const List<String> kCurrencies = [
+  'IDR', 'USD', 'SGD', 'MYR', 'CNY', 'TWD', 'EUR', 'JPY',
+];
 
 /// Kurs bawaan ke Rupiah. HANYA PERKIRAAN, ubah di menu Mata Uang & Kurs.
 const Map<String, double> kDefaultRates = {
@@ -191,6 +193,7 @@ const Map<String, double> kDefaultRates = {
   'SGD': 12600,
   'MYR': 3850,
   'CNY': 2280,
+  'TWD': 564, // kurs awal 6 Okt 2026, bisa diubah di Mata Uang & Kurs
   'EUR': 17700,
   'JPY': 108,
 };
@@ -202,13 +205,16 @@ String currencySymbol(String c) {
     'SGD': 'S\$',
     'MYR': 'RM',
     'CNY': 'CN¥',
+    'TWD': 'NT\$',
     'EUR': '€',
     'JPY': 'JP¥',
   };
   return symbols[c] ?? c;
 }
 
-bool hasDecimals(String currency) => currency != 'IDR' && currency != 'JPY';
+/// Rupiah, Yen, dan Dolar Taiwan dipakai tanpa sen.
+bool hasDecimals(String currency) =>
+    currency != 'IDR' && currency != 'JPY' && currency != 'TWD';
 
 final NumberFormat _plain = NumberFormat.decimalPattern('id_ID');
 final NumberFormat _compact = NumberFormat.compact(locale: 'id_ID');
