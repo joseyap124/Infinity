@@ -802,6 +802,9 @@ class AppSettings {
   String themeMode = 'system';
   int accentIndex = 0;
 
+  /// Akun yang otomatis terpilih saat mencatat transaksi baru.
+  String? defaultAccountId;
+
   /// Backup JSON otomatis ke Download/Infinity tiap 7 hari.
   bool autoBackup = true;
   DateTime? lastAutoBackup;
@@ -843,6 +846,7 @@ class AppSettings {
         'hideBalance': hideBalance,
         'themeMode': themeMode,
         'accentIndex': accentIndex,
+        'defaultAccountId': defaultAccountId,
         'autoBackup': autoBackup,
         'lastAutoBackup': lastAutoBackup?.toIso8601String(),
         'displayName': displayName,
@@ -888,6 +892,7 @@ class AppSettings {
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
     s.autoBackup = j['autoBackup'] != false;
+    s.defaultAccountId = _s(j['defaultAccountId']);
     s.lastAutoBackup = DateTime.tryParse(_s(j['lastAutoBackup']) ?? '');
     final dn = _s(j['displayName'])?.trim();
     s.displayName = (dn == null || dn.isEmpty) ? 'Infinity' : dn;
@@ -1967,6 +1972,14 @@ class AppStore extends ChangeNotifier {
     transactions.add(t);
     _commit();
     return t;
+  }
+
+  /// Akun bawaan untuk transaksi baru: pilihan user, kalau tidak ada akun
+  /// paling atas.
+  String get defaultAccountId {
+    final d = settings.defaultAccountId;
+    if (d != null && accountById(d) != null) return d;
+    return accounts.first.id;
   }
 
   /// Pindahkan akun (ReorderableListView: newIndex dihitung sebelum hapus).
@@ -3768,8 +3781,8 @@ Future<bool> openTxForm(
   } else if (template != null) {
     draft = TxDraft.fromTemplate(template);
   } else {
-    var from = store.accounts.first.id;
-    if (toAccountId != null) {
+    var from = store.defaultAccountId;
+    if (toAccountId != null && from == toAccountId) {
       from = store.accounts
           .firstWhere(
               (a) => a.id != toAccountId && a.type != AccountType.credit,
@@ -3999,7 +4012,7 @@ Future<void> openRecurringForm(BuildContext context, AppStore store,
   final draft = rule == null
       ? TxDraft(
           type: TxType.expense,
-          accountId: store.accounts.first.id,
+          accountId: store.defaultAccountId,
           date: DateTime.now())
       : TxDraft(
           type: rule.type,
@@ -4042,7 +4055,7 @@ Future<void> openRecurringForm(BuildContext context, AppStore store,
 
 Future<void> openTemplateForm(BuildContext context, AppStore store) async {
   final r = await showTxForm(context, store,
-      draft: TxDraft(type: TxType.expense, accountId: store.accounts.first.id),
+      draft: TxDraft(type: TxType.expense, accountId: store.defaultAccountId),
       mode: FormMode.template);
   if (r == null || !context.mounted) return;
   store.addTemplate(r.draft.toTemplate(store.newId()));
@@ -7947,8 +7960,33 @@ class AccountsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(a.name,
-                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(a.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w800)),
+                        ),
+                        if (store.defaultAccountId == a.id) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: C.accent.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text('Utama',
+                                style: TextStyle(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: C.accentDark)),
+                          ),
+                        ],
+                      ],
+                    ),
                     Text(
                         '${a.type.label} · ${a.currency}${a.type == AccountType.credit ? ' · jatuh tempo tgl ${a.dueDay}' : ''}',
                         style: TextStyle(fontSize: 12, color: C.muted)),
@@ -7969,6 +8007,24 @@ class AccountsPage extends StatelessWidget {
                         '≈ ${money(store.toIDR(store.balanceOf(a.id), a.currency))}',
                         style: TextStyle(fontSize: 11, color: C.muted)),
                 ],
+              ),
+              IconButton(
+                tooltip: store.defaultAccountId == a.id
+                    ? 'Akun utama'
+                    : 'Jadikan akun utama',
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  store.updateSettings((x) => x.defaultAccountId = a.id);
+                  snack(context,
+                      '${a.name} jadi akun utama untuk transaksi baru ⭐');
+                },
+                icon: Icon(
+                    store.defaultAccountId == a.id
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: store.defaultAccountId == a.id
+                        ? C.amber
+                        : C.muted),
               ),
               ReorderableDragStartListener(
                 index: index,
@@ -8024,7 +8080,7 @@ class AccountsPage extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                          'Urutkan: tahan lama kartu, atau tarik ikon ⠿ di kanan. Urutan ini dipakai di Beranda dan pilihan akun.',
+                          'Ketuk ☆ untuk jadikan akun utama (otomatis terpilih saat mencatat). Urutkan: tahan lama kartu atau tarik ⠿.',
                           style: TextStyle(fontSize: 12, color: C.muted)),
                     ),
                   ],
