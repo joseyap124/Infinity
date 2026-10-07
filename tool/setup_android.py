@@ -75,6 +75,37 @@ if "multiDexEnabled" not in g:
     else:
         g = g.replace("minSdkVersion 24", "minSdkVersion 24\n        multiDexEnabled true", 1)
 info("minSdk = 24, multidex aktif")
+# --- kunci tanda tangan tetap dari env INFINITY_KEYSTORE (supaya update tidak hapus data)
+if "INFINITY_KEYSTORE" not in g:
+    if kts:
+        block = ('signingConfigs {\n'
+                 '        getByName("debug") {\n'
+                 '            val ks = System.getenv("INFINITY_KEYSTORE")\n'
+                 '            if (ks != null && file(ks).exists()) {\n'
+                 '                storeFile = file(ks)\n'
+                 '                storePassword = "android"\n'
+                 '                keyAlias = "androiddebugkey"\n'
+                 '                keyPassword = "android"\n'
+                 '            }\n'
+                 '        }\n'
+                 '    }\n\n    buildTypes {')
+    else:
+        block = ('signingConfigs {\n'
+                 '        debug {\n'
+                 '            def ks = System.getenv("INFINITY_KEYSTORE")\n'
+                 '            if (ks != null && file(ks).exists()) {\n'
+                 '                storeFile file(ks)\n'
+                 '                storePassword "android"\n'
+                 '                keyAlias "androiddebugkey"\n'
+                 '                keyPassword "android"\n'
+                 '            }\n'
+                 '        }\n'
+                 '    }\n\n    buildTypes {')
+    g, n = re.subn(r"buildTypes\s*\{", block, g, count=1)
+    if n == 0:
+        fail("blok buildTypes tidak ditemukan")
+    info("signing pakai INFINITY_KEYSTORE kalau ada")
+
 
 # --- dependencies
 if "desugar_jdk_libs" not in g:

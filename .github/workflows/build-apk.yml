@@ -39,15 +39,14 @@ jobs:
         env:
           KS: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
         run: |
-          mkdir -p ~/.android
           if [ -n "$KS" ]; then
-            echo "$KS" | base64 -d > ~/.android/debug.keystore
-            echo "Keystore tetap dipakai (secret)"
-          elif [ -f tool/infinity.keystore ]; then
-            cp tool/infinity.keystore ~/.android/debug.keystore
-            echo "Keystore tetap dipakai (tool/infinity.keystore)"
+            printf '%s' "$KS" | tr -d ' \r\n' | base64 -d > "$RUNNER_TEMP/infinity.keystore"
+            keytool -list -keystore "$RUNNER_TEMP/infinity.keystore" -storepass android -alias androiddebugkey > /dev/null \
+              || { echo "::error::Secret DEBUG_KEYSTORE_BASE64 tidak valid"; exit 1; }
+            echo "INFINITY_KEYSTORE=$RUNNER_TEMP/infinity.keystore" >> "$GITHUB_ENV"
+            echo "Keystore tetap dipakai"
           else
-            echo "PERINGATAN: secret DEBUG_KEYSTORE_BASE64 belum diisi"
+            echo "::warning::secret DEBUG_KEYSTORE_BASE64 belum diisi, APK ditandatangani kunci acak"
           fi
 
       - name: Cek kode (analyze)
