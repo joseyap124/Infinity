@@ -3,7 +3,10 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya
+## Berikutnya (v1.3.2)
+
+### Diperbaiki
+- **Widget terpotong** di sebagian HP: tata letak widget disusun ulang supaya tombol Keluar · Masuk · Transfer selalu terlihat utuh di bawah, dan teks di tengah menyesuaikan tinggi widget. Nominal masuk/keluar/sisa anggaran di widget ditulis ringkas (mis. "Rp 7,5 jt") supaya muat. Widget juga tidak bisa dikecilkan sampai terpotong.
 
 ## v1.3.1 (7 Okt 2026)
 

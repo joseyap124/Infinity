@@ -553,10 +553,14 @@ class Transaction {
     required this.date,
     this.note = '',
     this.recurringId,
+    this.photos = const [],
   });
 
   final String id;
   final String title;
+
+  /// Nama file foto struk di folder pribadi app (lihat [Receipts]).
+  final List<String> photos;
 
   /// Selalu positif, dalam mata uang akun asal.
   final double amount;
@@ -588,6 +592,7 @@ class Transaction {
         'date': date.toIso8601String(),
         'note': note,
         'recurringId': recurringId,
+        if (photos.isNotEmpty) 'photos': photos,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> j) => Transaction(
@@ -602,6 +607,9 @@ class Transaction {
         date: DateTime.parse(j['date'] as String),
         note: _s(j['note']) ?? '',
         recurringId: _s(j['recurringId']),
+        photos: j['photos'] is List
+            ? (j['photos'] as List).whereType<String>().toList()
+            : const [],
       );
 }
 
@@ -731,7 +739,12 @@ class TxDraft {
     this.toAccountId,
     DateTime? date,
     this.note = '',
-  }) : date = date ?? DateTime.now();
+    List<String>? photos,
+  })  : date = date ?? DateTime.now(),
+        photos = photos ?? [];
+
+  /// Foto struk (nama file).
+  List<String> photos;
 
   TxType type;
   String title;
@@ -753,6 +766,7 @@ class TxDraft {
         toAccountId: t.toAccountId,
         date: t.date,
         note: t.note,
+        photos: [...t.photos],
       );
 
   factory TxDraft.fromTemplate(TxTemplate t) => TxDraft(
@@ -778,6 +792,7 @@ class TxDraft {
         date: date,
         note: note,
         recurringId: recurringId,
+        photos: List.unmodifiable(photos),
       );
 
   TxTemplate toTemplate(String id) => TxTemplate(
@@ -2165,13 +2180,14 @@ class AppStore extends ChangeNotifier {
       final pct = (remaining / s.globalBudget * 100).clamp(0, 100).round();
       budget = hide
           ? 'Sisa anggaran $pct%'
-          : 'Sisa anggaran ${money(remaining)} ($pct%)';
+          : 'Sisa anggaran Rp ${compactMoney(remaining)} ($pct%)';
     }
     return {
       'w_month': DateFormat('MMMM yyyy', 'id_ID').format(now),
       'w_balance': hide ? 'Rp ••••••' : money(netWorthIDR),
-      'w_income': hide ? 'Masuk ••••' : 'Masuk ${money(income)}',
-      'w_expense': hide ? 'Keluar ••••' : 'Keluar ${money(expense)}',
+      // Ringkas (mis. "Rp 7,5 jt") supaya muat di widget kecil.
+      'w_income': hide ? 'Masuk ••••' : 'Masuk Rp ${compactMoney(income)}',
+      'w_expense': hide ? 'Keluar ••••' : 'Keluar Rp ${compactMoney(expense)}',
       'w_budget': budget,
     };
   }
@@ -4057,7 +4073,8 @@ Future<void> openTxDetail(
     case _DetailAction.edit:
       await editTx(context, store, t);
     case _DetailAction.duplicate:
-      await openTxForm(context, store, prefill: TxDraft.fromTransaction(t));
+      await openTxForm(context, store,
+          prefill: TxDraft.fromTransaction(t)..photos = []);
     case _DetailAction.copy:
       await Clipboard.setData(ClipboardData(text: txShareText(store, t)));
       if (context.mounted) snack(context, 'Teks transaksi disalin 📋');

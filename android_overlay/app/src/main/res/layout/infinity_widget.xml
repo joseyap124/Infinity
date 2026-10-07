@@ -1,126 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Disusun memakai bobot (weight): tombol selalu di bawah dan tidak terpotong,
+     teks di tengah menyesuaikan sisa tinggi widget. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/w_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/infinity_widget_bg"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:paddingStart="12dp"
+    android:paddingTop="9dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="10dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:maxLines="1"
             android:text="∞ Infinity"
             android:textColor="@color/w_green"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/w_month"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:maxLines="1"
             android:textColor="@color/w_muted"
-            android:textSize="11sp" />
+            android:textSize="10.5sp" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/w_balance"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textColor="@color/w_text"
-        android:textSize="21sp"
-        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:orientation="horizontal">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/w_income"
-            android:layout_width="0dp"
+            android:id="@+id/w_balance"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:maxLines="1"
             android:ellipsize="end"
-            android:textColor="@color/w_green"
-            android:textSize="12sp"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="@color/w_text"
+            android:textSize="19sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/w_expense"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:maxLines="1"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/w_income"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/w_green"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/w_expense"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:textColor="@color/w_red"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/w_budget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
             android:ellipsize="end"
-            android:textColor="@color/w_red"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+            android:maxLines="1"
+            android:textColor="@color/w_muted"
+            android:textSize="10.5sp" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/w_budget"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textColor="@color/w_muted"
-        android:textSize="11sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_height="34dp"
+        android:layout_marginTop="6dp"
         android:orientation="horizontal">
 
         <TextView
             android:id="@+id/w_btn_expense"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/infinity_widget_btn_red"
             android:gravity="center"
+            android:maxLines="1"
             android:text="− Keluar"
             android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/w_btn_income"
             android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
             android:background="@drawable/infinity_widget_btn_green"
             android:gravity="center"
+            android:maxLines="1"
             android:text="+ Masuk"
             android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/w_btn_transfer"
             android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="6dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
             android:background="@drawable/infinity_widget_btn_blue"
             android:gravity="center"
+            android:maxLines="1"
             android:text="⇄ Transfer"
             android:textColor="#FFFFFF"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>
