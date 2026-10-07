@@ -34,4 +34,12 @@ if man.exists():
     m.update(name='Infinity', short_name='Infinity', background_color='#121316',
              theme_color='#007A0E', description='Catatan keuangan (prototipe web)')
     man.write_text(json.dumps(m, indent=2), encoding='utf-8')
+# Service worker tidak dipakai (halaman prototipe tidak mendukungnya).
+boot = web / 'flutter_bootstrap.js'
+if boot.exists():
+    b = boot.read_text(encoding='utf-8')
+    b = re.sub(r'_flutter\.loader\.load\(\{.*?\}\);\s*$', '_flutter.loader.load({});\n', b, flags=re.S)
+    boot.write_text(b, encoding='utf-8')
+for junk in ('flutter_service_worker.js', '.last_build_id', 'assets/AssetManifest.bin'):
+    (web / junk).unlink(missing_ok=True)
 print('web prototype siap:', web)
