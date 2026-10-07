@@ -3,7 +3,9 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v1.3.1)
+## Berikutnya
+
+## v1.3.1 (7 Okt 2026)
 
 ### Ditambah
 - **Dolar Taiwan (TWD, NT$)** sebagai mata uang akun dan transfer. Kurs awal 1 TWD = Rp564 (kurs 6 Okt 2026), bisa diubah di Lainnya → Mata Uang & Kurs. Nominal TWD tanpa sen, seperti Rupiah dan Yen.
