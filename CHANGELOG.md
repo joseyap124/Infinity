@@ -5,6 +5,8 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ## Berikutnya
 
+## v1.3 (7 Okt 2026)
+
 ### Ditambah
 - **Saran dari ketikan sebelumnya**: di kolom *Catatan* dan *Deskripsi*, ketik beberapa huruf (mis. "pot") dan muncul yang pernah kamu ketik ("Potong rambut"), diurutkan dari yang paling sering dipakai. Memilih saran Catatan juga mengisi kategori dan akun dari transaksi terakhir dengan catatan yang sama.
 
