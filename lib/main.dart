@@ -71,6 +71,14 @@ class C {
     ('Oranye', Color(0xFFF97316), Color(0xFFC2410C), Color(0xFFE2661A)),
     ('Pink', Color(0xFFEC4899), Color(0xFFBE185D), Color(0xFFE5568F)),
     ('Grafit', Color(0xFF475569), Color(0xFF334155), Color(0xFF7C8BA1)),
+    // Pastel: warna lembut untuk sorotan, versi tuanya dipakai untuk tombol
+    // dan teks supaya tulisan putih tetap terbaca.
+    ('Sage', Color(0xFFA8D5BA), Color(0xFF4F7F62), Color(0xFF5F9878)),
+    ('Lavender', Color(0xFFC9B8F0), Color(0xFF6E5BA8), Color(0xFF9583D1)),
+    ('Rose', Color(0xFFF4B6C8), Color(0xFFA9506F), Color(0xFFD07595)),
+    ('Peach', Color(0xFFFFCBA4), Color(0xFFA65A2A), Color(0xFFC77A4B)),
+    ('Langit', Color(0xFFA9D6F5), Color(0xFF3C6F97), Color(0xFF5B93BF)),
+    ('Mint', Color(0xFFA8E6D9), Color(0xFF3B7F72), Color(0xFF4F9E8E)),
   ];
 
   static (String, Color, Color, Color) get _acc =>
