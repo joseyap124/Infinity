@@ -3,6 +3,12 @@ name: Build APK Infinity
 on:
   push:
     branches: [main]
+    # Perubahan dokumentasi saja tidak perlu build APK baru.
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - 'tool/mockup/**'
+      - 'tool/make_icons.py'
   workflow_dispatch:
 
 permissions:
