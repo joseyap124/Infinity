@@ -51,19 +51,42 @@ Future<void> main() async {
 // =============================================================================
 
 class C {
+  /// Diatur oleh InfinityApp sesuai pilihan tema (Terang/Gelap/Ikut sistem).
+  static bool isDark = false;
+
+  // Warna aksen terang: sama di kedua mode.
   static const Color green = Color(0xFF00AA13);
-  static const Color greenDark = Color(0xFF007A0E); // untuk teks/isi di bawah teks putih
   static const Color red = Color(0xFFEE2737);
-  static const Color redDark = Color(0xFFD61F2E);
-  static const Color carbon = Color(0xFF1C1C1C);
-  static const Color bg = Color(0xFFF8F9FA);
   static const Color blue = Color(0xFF00AED6);
-  static const Color blueDark = Color(0xFF007A94);
   static const Color amber = Color(0xFFFFA000);
-  static const Color amberDark = Color(0xFFA35A00);
-  static const Color muted = Color(0xFF5B6270);
-  static const Color line = Color(0xFFE9ECEF);
   static const Color warning = Color(0xFFF59E0B);
+
+  // Warna aksen untuk teks/tombol. Di mode gelap dibuat lebih terang supaya
+  // kontras teks >= 4.5:1 di atas kartu gelap dan teks putih di atasnya >= 3:1.
+  static Color get greenDark =>
+      isDark ? const Color(0xFF1E9E33) : const Color(0xFF007A0E);
+  static Color get redDark =>
+      isDark ? const Color(0xFFEC5258) : const Color(0xFFD61F2E);
+  static Color get blueDark =>
+      isDark ? const Color(0xFF1497B5) : const Color(0xFF007A94);
+  static Color get amberDark =>
+      isDark ? const Color(0xFFD08A1E) : const Color(0xFFA35A00);
+
+  // Netral.
+  static Color get carbon =>
+      isDark ? const Color(0xFFECEDEF) : const Color(0xFF1C1C1C);
+  static Color get bg =>
+      isDark ? const Color(0xFF121316) : const Color(0xFFF8F9FA);
+  static Color get surface =>
+      isDark ? const Color(0xFF1E2024) : const Color(0xFFFFFFFF);
+  static Color get muted =>
+      isDark ? const Color(0xFFA3A9B4) : const Color(0xFF5B6270);
+  static Color get line =>
+      isDark ? const Color(0xFF2E3137) : const Color(0xFFE9ECEF);
+
+  /// Latar gelap untuk teks putih (snackbar, tombol "=", segmen terpilih).
+  static Color get toast =>
+      isDark ? const Color(0xFF3A3D44) : const Color(0xFF1C1C1C);
 }
 
 const List<int> kPalette = [
@@ -104,9 +127,14 @@ const Map<String, IconData> kIcons = {
 
 IconData iconOf(String key) => kIcons[key] ?? Icons.category_rounded;
 
+/// Warna ikon/teks dari warna kategori: lebih gelap di mode terang, lebih
+/// terang di mode gelap, supaya tetap terbaca di kedua latar.
 Color darken(Color c, [double amount = 0.12]) {
   final h = HSLColor.fromColor(c);
-  return h.withLightness((h.lightness - amount).clamp(0.0, 1.0)).toColor();
+  final l = C.isDark
+      ? (h.lightness + amount * 1.6).clamp(0.55, 0.85)
+      : (h.lightness - amount).clamp(0.0, 1.0);
+  return h.withLightness(l.toDouble()).toColor();
 }
 
 // =============================================================================
@@ -259,14 +287,19 @@ DateTime nextDueDate(int dueDay, DateTime now) {
 // =============================================================================
 
 enum TxType {
-  expense('Pengeluaran', C.redDark, Icons.north_east_rounded),
-  income('Pemasukan', C.greenDark, Icons.south_west_rounded),
-  transfer('Transfer', C.blueDark, Icons.swap_horiz_rounded);
+  expense('Pengeluaran', Icons.north_east_rounded),
+  income('Pemasukan', Icons.south_west_rounded),
+  transfer('Transfer', Icons.swap_horiz_rounded);
 
-  const TxType(this.label, this.color, this.icon);
+  const TxType(this.label, this.icon);
   final String label;
-  final Color color;
   final IconData icon;
+
+  Color get color => switch (this) {
+        TxType.expense => C.redDark,
+        TxType.income => C.greenDark,
+        TxType.transfer => C.blueDark,
+      };
 }
 
 enum AccountType {
@@ -316,13 +349,18 @@ enum BudgetPeriod {
 enum FormMode { transaction, recurring, template }
 
 enum BudgetStatus {
-  safe('Aman Abis, Jajan Terus! 👌', C.greenDark),
-  tight('Mulai Seret, Hati-hati! ⚠️', C.amberDark),
-  broke('Waduh, Rem Dulu, Jebol! 🚨', C.redDark);
+  safe('Aman Abis, Jajan Terus! 👌'),
+  tight('Mulai Seret, Hati-hati! ⚠️'),
+  broke('Waduh, Rem Dulu, Jebol! 🚨');
 
-  const BudgetStatus(this.message, this.color);
+  const BudgetStatus(this.message);
   final String message;
-  final Color color;
+
+  Color get color => switch (this) {
+        BudgetStatus.safe => C.greenDark,
+        BudgetStatus.tight => C.amberDark,
+        BudgetStatus.broke => C.redDark,
+      };
 
   /// remaining = sisa / limit. >50% aman, 10%-50% seret, <10% atau minus jebol.
   static BudgetStatus of(double remaining) {
@@ -723,9 +761,12 @@ class AppSettings {
   String? pin;
   bool hideBalance = false;
 
+  /// 'system' | 'light' | 'dark'
+  String themeMode = 'system';
+
   // Keamanan
   bool biometric = false;
-  bool secureScreen = true;
+  bool secureScreen = false;
 
   /// 'off' | 'ask' | 'auto' untuk pencatatan dari notifikasi bank/e-wallet.
   String captureMode = 'auto';
@@ -750,8 +791,9 @@ class AppSettings {
         'rates': rates,
         if (includeSecrets) 'pin': pin,
         'hideBalance': hideBalance,
+        'themeMode': themeMode,
         'biometric': biometric,
-        'secureScreen': secureScreen,
+        'secureScreenV2': secureScreen,
         'captureMode': captureMode,
         'notifHideAmounts': notifHideAmounts,
         'notifEnabled': notifEnabled,
@@ -785,8 +827,11 @@ class AppSettings {
     s.rates['IDR'] = 1;
     s.pin = _s(j['pin']);
     s.hideBalance = j['hideBalance'] == true;
+    final tm = _s(j['themeMode']);
+    s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.biometric = j['biometric'] == true;
-    s.secureScreen = j['secureScreen'] != false;
+    // V2: bawaan sekarang mati (screenshot boleh). Setelan lama diabaikan.
+    s.secureScreen = j['secureScreenV2'] == true;
     final mode = _s(j['captureMode']);
     s.captureMode =
         (mode == 'off' || mode == 'ask' || mode == 'auto') ? mode! : 'auto';
@@ -1133,6 +1178,7 @@ class AppStore extends ChangeNotifier {
     settings.pin = old.pin;
     settings.biometric = old.biometric;
     settings.secureScreen = old.secureScreen;
+    settings.themeMode = old.themeMode;
   }
 
   String exportJson() => const JsonEncoder.withIndent('  ')
@@ -1737,6 +1783,56 @@ class AppStore extends ChangeNotifier {
     return tops.isEmpty ? null : tops.first.id;
   }
 
+  /// Catat cepat dari panel notifikasi ("25rb kopi"). Null kalau tidak ada
+  /// nominal. Akun: yang disebut di teks, kalau tidak, akun pengeluaran terakhir.
+  Transaction? quickExpense(String input) {
+    final q = parseQuickInput(input);
+    if (q == null) return null;
+    final lower = input.toLowerCase();
+    String? categoryId;
+    for (final e in _categoryHints.entries) {
+      final cat = categoryById(e.key);
+      if (cat == null || cat.type != TxType.expense) continue;
+      if (e.value.any(lower.contains)) {
+        categoryId = e.key;
+        break;
+      }
+    }
+    categoryId ??= fallbackCategory(TxType.expense);
+    String? accountId;
+    for (final a in accounts) {
+      if (lower.contains(a.name.toLowerCase())) {
+        accountId = a.id;
+        break;
+      }
+    }
+    if (accountId == null) {
+      final recent = transactions
+          .where((t) =>
+              t.type == TxType.expense && accountById(t.accountId) != null)
+          .toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+      accountId =
+          recent.isNotEmpty ? recent.first.accountId : accounts.first.id;
+    }
+    final title = q.title.isNotEmpty
+        ? q.title
+        : (categoryById(categoryId)?.name ?? 'Pengeluaran');
+    final t = Transaction(
+      id: newId(),
+      title: title,
+      amount: q.amount,
+      type: TxType.expense,
+      categoryId: categoryId,
+      accountId: accountId,
+      date: DateTime.now(),
+      note: 'Dicatat dari panel notifikasi',
+    );
+    transactions.add(t);
+    _commit();
+    return t;
+  }
+
   TxDraft draftFromCapture(CapturedNotif c) {
     final p = parseReceipt(c.fullText, this);
     final type = p.type ?? TxType.expense;
@@ -1909,9 +2005,10 @@ class Notifier {
     ),
   );
 
-  /// Tombol di notifikasi pintasan: 'qb_add' | 'qb_template' | 'qb_history'.
-  final StreamController<String> _actions = StreamController<String>.broadcast();
-  Stream<String> get actions => _actions.stream;
+  /// Tombol di notifikasi pintasan: 'qb_quick' | 'qb_add' | 'qb_history'.
+  final StreamController<QuickAction> _actions =
+      StreamController<QuickAction>.broadcast();
+  Stream<QuickAction> get actions => _actions.stream;
 
   static const int quickBarId = 900001;
 
@@ -1920,11 +2017,13 @@ class Notifier {
       tzdata.initializeTimeZones();
       await _plugin.initialize(
         settings: const fln.InitializationSettings(
-          android: fln.AndroidInitializationSettings('@mipmap/ic_launcher'),
+          android: fln.AndroidInitializationSettings('@drawable/ic_stat_infinity'),
         ),
         onDidReceiveNotificationResponse: (fln.NotificationResponse r) {
           final a = r.actionId;
-          if (a != null && a.startsWith('qb_')) _actions.add(a);
+          if (a != null && a.startsWith('qb_')) {
+            _actions.add(QuickAction(a, r.input));
+          }
         },
       );
       _ready = true;
@@ -1934,13 +2033,16 @@ class Notifier {
   }
 
   /// Tombol pintasan yang membuka app dari kondisi tertutup.
-  Future<String?> launchAction() async {
+  Future<QuickAction?> launchAction() async {
     if (!_ready) return null;
     try {
       final d = await _plugin.getNotificationAppLaunchDetails();
       if (d == null || !d.didNotificationLaunchApp) return null;
-      final a = d.notificationResponse?.actionId;
-      return (a != null && a.startsWith('qb_')) ? a : null;
+      final r = d.notificationResponse;
+      final a = r?.actionId;
+      return (a != null && a.startsWith('qb_'))
+          ? QuickAction(a, r?.input)
+          : null;
     } catch (_) {
       return null;
     }
@@ -1952,7 +2054,7 @@ class Notifier {
       await _plugin.show(
         id: quickBarId,
         title: 'Infinity',
-        body: 'Catat cepat tanpa buka menu',
+        body: 'Ketik "25rb kopi" di ＋ Pengeluaran, langsung tercatat',
         notificationDetails: const fln.NotificationDetails(
           android: fln.AndroidNotificationDetails(
             'infinity_quickbar',
@@ -1968,9 +2070,14 @@ class Notifier {
             enableVibration: false,
             visibility: fln.NotificationVisibility.public,
             actions: <fln.AndroidNotificationAction>[
-              fln.AndroidNotificationAction('qb_add', '＋ Catat',
-                  showsUserInterface: true, cancelNotification: false),
-              fln.AndroidNotificationAction('qb_template', 'Template',
+              fln.AndroidNotificationAction('qb_quick', '＋ Pengeluaran',
+                  showsUserInterface: true,
+                  cancelNotification: false,
+                  inputs: <fln.AndroidNotificationActionInput>[
+                    fln.AndroidNotificationActionInput(
+                        label: 'Contoh: 25rb kopi'),
+                  ]),
+              fln.AndroidNotificationAction('qb_add', 'Form',
                   showsUserInterface: true, cancelNotification: false),
               fln.AndroidNotificationAction('qb_history', 'Riwayat',
                   showsUserInterface: true, cancelNotification: false),
@@ -2032,34 +2139,150 @@ class Notifier {
 }
 // NOTIF-IMPL-END
 
+/// Tombol yang ditekan di notifikasi pintasan, plus teks yang diketik.
+class QuickAction {
+  const QuickAction(this.id, [this.input]);
+  final String id;
+  final String? input;
+}
+
+class QuickInput {
+  const QuickInput(this.amount, this.title);
+  final double amount;
+  final String title;
+}
+
+/// "25rb kopi", "kopi 25.000", "1,5jt hp", "15000 parkir" -> nominal + judul.
+QuickInput? parseQuickInput(String text) {
+  final m = RegExp(r'(\d+(?:[.,]\d+)*)\s*(?:(rb|ribu|k|jt|juta)(?![a-z]))?',
+          caseSensitive: false)
+      .firstMatch(text);
+  if (m == null) return null;
+  final numStr = m.group(1)!;
+  final suf = (m.group(2) ?? '').toLowerCase();
+  double? v;
+  if (suf.isEmpty) {
+    v = double.tryParse(numStr.replaceAll(RegExp(r'[.,]'), ''));
+  } else {
+    final n = RegExp(r'^\d+[.,]\d{1,2}$').hasMatch(numStr)
+        ? numStr.replaceAll(',', '.')
+        : numStr.replaceAll(RegExp(r'[.,]'), '');
+    final base = double.tryParse(n);
+    if (base != null) {
+      v = base * ((suf == 'jt' || suf == 'juta') ? 1000000 : 1000);
+    }
+  }
+  if (v == null || v <= 0) return null;
+  var title = '${text.substring(0, m.start)} ${text.substring(m.end)}'
+      .replaceAll(RegExp(r'\brp\.?', caseSensitive: false), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  if (title.isNotEmpty) title = title[0].toUpperCase() + title.substring(1);
+  return QuickInput(v.roundToDouble(), title);
+}
+
 // =============================================================================
 // APP SHELL
 // =============================================================================
 
-class InfinityApp extends StatelessWidget {
+/// Pilihan tema dari setelan: 'system' | 'light' | 'dark'.
+final ValueNotifier<String> themePref = ValueNotifier<String>('system');
+
+class InfinityApp extends StatefulWidget {
   const InfinityApp({super.key});
+
+  @override
+  State<InfinityApp> createState() => _InfinityAppState();
+}
+
+class _InfinityAppState extends State<InfinityApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    themePref.addListener(_apply);
+    C.isDark = _wantDark();
+  }
+
+  @override
+  void dispose() {
+    themePref.removeListener(_apply);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() => _apply();
+
+  bool _wantDark() {
+    final sys = WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+        Brightness.dark;
+    return themePref.value == 'dark' || (themePref.value == 'system' && sys);
+  }
+
+  /// Warna C.* dibaca langsung oleh banyak widget, jadi saat tema berganti
+  /// semua elemen dibangun ulang.
+  void _apply() {
+    final dark = _wantDark();
+    if (dark == C.isDark || !mounted) return;
+    C.isDark = dark;
+    void visit(Element e) {
+      e.markNeedsBuild();
+      e.visitChildren(visit);
+    }
+
+    (context as Element).visitChildren(visit);
+    setState(() {});
+  }
+
+  ThemeData _theme() {
+    final dark = C.isDark;
+    final scheme = ColorScheme.fromSeed(
+      seedColor: C.green,
+      brightness: dark ? Brightness.dark : Brightness.light,
+      primary: C.greenDark,
+      onPrimary: Colors.white,
+      error: C.redDark,
+      surface: C.surface,
+      onSurface: C.carbon,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      brightness: dark ? Brightness.dark : Brightness.light,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: C.bg,
+      canvasColor: C.surface,
+      dividerColor: C.line,
+      dialogTheme: DialogThemeData(backgroundColor: C.surface),
+      bottomSheetTheme: BottomSheetThemeData(backgroundColor: C.surface),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: C.toast,
+        contentTextStyle: const TextStyle(color: Colors.white, fontSize: 14),
+        actionTextColor: const Color(0xFF7CFC8A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Infinity',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: C.green,
-          primary: C.greenDark,
-          error: C.redDark,
+      theme: _theme(),
+      home: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness:
+              C.isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: C.isDark ? Brightness.dark : Brightness.light,
+          systemNavigationBarColor: C.surface,
+          systemNavigationBarIconBrightness:
+              C.isDark ? Brightness.light : Brightness.dark,
         ),
-        scaffoldBackgroundColor: C.bg,
-        snackBarTheme: SnackBarThemeData(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: C.carbon,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        ),
+        child: const RootPage(),
       ),
-      home: const RootPage(),
     );
   }
 }
@@ -2080,8 +2303,8 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   Timer? _capturePoll;
   StreamSubscription<Uri?>? _widgetSub;
   TxType? _pendingWidgetAction;
-  String? _pendingQuick;
-  StreamSubscription<String>? _quickSub;
+  QuickAction? _pendingQuick;
+  StreamSubscription<QuickAction>? _quickSub;
   bool? _quickShown;
 
   @override
@@ -2097,6 +2320,8 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     if (store.settings.notifEnabled) {
       unawaited(Notifier.instance.requestPermission());
     }
+    themePref.value = store.settings.themeMode;
+    store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
     _scheduleNotifications();
     unawaited(NativeBridge.setSecure(store.settings.secureScreen));
@@ -2134,6 +2359,8 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     });
   }
 
+  void _syncTheme() => themePref.value = store.settings.themeMode;
+
   void _syncQuickBar() {
     final want = store.settings.quickBar && store.settings.notifEnabled;
     if (_quickShown == want) return;
@@ -2144,7 +2371,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   }
 
   /// Tombol pintasan di panel notifikasi.
-  void _handleQuick(String? action) {
+  void _handleQuick(QuickAction? action) {
     if (action == null) return;
     if (_locked && store.settings.pin != null) {
       _pendingQuick = action;
@@ -2153,9 +2380,22 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     _runQuick(action);
   }
 
-  void _runQuick(String action) {
+  void _runQuick(QuickAction action) {
     Navigator.of(context).popUntil((r) => r.isFirst);
-    switch (action) {
+    switch (action.id) {
+      case 'qb_quick':
+        // Tampilkan ulang supaya kolom balasan di notifikasi bersih lagi.
+        unawaited(Notifier.instance.showQuickBar());
+        final text = action.input?.trim() ?? '';
+        final t = text.isEmpty ? null : store.quickExpense(text);
+        if (t == null) {
+          snack(context, 'Nominal tidak terbaca. Contoh: 25rb kopi');
+          _openFromWidget(TxType.expense);
+        } else {
+          setState(() => _tab = 0);
+          snack(context,
+              'Tercatat: ${t.title} ${money(t.amount)} dari ${store.accountName(t.accountId)}');
+        }
       case 'qb_add':
         _openFromWidget(TxType.expense);
       case 'qb_history':
@@ -2224,6 +2464,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     _capturePoll?.cancel();
     _widgetSub?.cancel();
     _quickSub?.cancel();
+    store.removeListener(_syncTheme);
     store.removeListener(_scheduleNotifications);
     WidgetsBinding.instance.removeObserver(this);
     store.dispose();
@@ -2303,7 +2544,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
             bottomNavigationBar: NavigationBar(
               selectedIndex: _tab,
               onDestinationSelected: (i) => setState(() => _tab = i),
-              backgroundColor: Colors.white,
+              backgroundColor: C.surface,
               indicatorColor: C.green.withValues(alpha: 0.18),
               destinations: const [
                 NavigationDestination(
@@ -2336,7 +2577,7 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: C.greenDark,
       body: Center(
         child: Column(
@@ -2433,7 +2674,7 @@ Future<bool> typedConfirmDialog(
                 const TextSpan(text: 'Ketik '),
                 TextSpan(
                     text: word,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.w900, color: C.redDark)),
                 const TextSpan(text: ' untuk melanjutkan:'),
               ])),
@@ -2482,7 +2723,7 @@ Future<void> confirmResetAll(BuildContext context, AppStore store) async {
 
 PreferredSizeWidget pageBar(String title, {List<Widget>? actions}) => AppBar(
       title: Text(title,
-          style: const TextStyle(
+          style: TextStyle(
               fontWeight: FontWeight.w900, fontSize: 19, color: C.carbon)),
       backgroundColor: C.bg,
       foregroundColor: C.carbon,
@@ -2493,7 +2734,7 @@ PreferredSizeWidget pageBar(String title, {List<Widget>? actions}) => AppBar(
     );
 
 InputDecoration fieldDeco(String label,
-    {IconData? icon, String? prefix, String? helper, Color accent = C.greenDark}) {
+    {IconData? icon, String? prefix, String? helper, Color? accent}) {
   return InputDecoration(
     labelText: label,
     helperText: helper,
@@ -2506,10 +2747,10 @@ InputDecoration fieldDeco(String label,
         borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
     enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: C.line)),
+        borderSide: BorderSide(color: C.line)),
     focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: accent, width: 2)),
+        borderSide: BorderSide(color: accent ?? C.greenDark, width: 2)),
   );
 }
 
@@ -2519,18 +2760,18 @@ class AppCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.onTap,
-    this.color = Colors.white,
+    this.color,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: color,
+      color: color ?? C.surface,
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
         onTap: onTap,
@@ -2574,7 +2815,7 @@ class SectionTitle extends StatelessWidget {
       children: [
         Expanded(
           child: Text(text,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
                   color: C.carbon)),
@@ -2592,7 +2833,7 @@ class SmallLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(text,
-        style: const TextStyle(
+        style: TextStyle(
             fontSize: 13, fontWeight: FontWeight.w800, color: C.carbon));
   }
 }
@@ -2710,7 +2951,7 @@ class Segmented<T> extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: C.surface,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: C.line),
       ),
@@ -2733,8 +2974,8 @@ class SheetFrame extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: C.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
           padding: EdgeInsets.only(bottom: bottomInset),
@@ -2789,11 +3030,11 @@ class ErrorBox extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: C.redDark, size: 20),
+          Icon(Icons.error_outline_rounded, color: C.redDark, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(message,
-                style: const TextStyle(
+                style: TextStyle(
                     color: C.redDark,
                     fontWeight: FontWeight.w700,
                     fontSize: 13)),
@@ -2809,12 +3050,12 @@ class PrimaryButton extends StatelessWidget {
       {super.key,
       required this.label,
       required this.onPressed,
-      this.color = C.greenDark,
+      this.color,
       this.icon});
 
   final String label;
   final VoidCallback? onPressed;
-  final Color color;
+  final Color? color;
   final IconData? icon;
 
   @override
@@ -2823,7 +3064,7 @@ class PrimaryButton extends StatelessWidget {
       duration: const Duration(milliseconds: 250),
       height: 54,
       decoration: BoxDecoration(
-        color: onPressed == null ? C.muted : color,
+        color: onPressed == null ? C.muted : (color ?? C.greenDark),
         borderRadius: BorderRadius.circular(22),
       ),
       child: Material(
@@ -2879,13 +3120,13 @@ class EmptyState extends StatelessWidget {
           const SizedBox(height: 12),
           Text(title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                   fontWeight: FontWeight.w800, color: C.carbon)),
           if (subtitle != null) ...[
             const SizedBox(height: 4),
             Text(subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: C.muted, fontSize: 13)),
+                style: TextStyle(color: C.muted, fontSize: 13)),
           ],
         ],
       ),
@@ -2955,7 +3196,7 @@ class AccountPicker extends StatelessWidget {
                     Text(a.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
                             color: C.carbon)),
@@ -3104,7 +3345,7 @@ class TrendChart extends StatelessWidget {
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.clip,
-                    style: const TextStyle(fontSize: 10, color: C.muted)),
+                    style: TextStyle(fontSize: 10, color: C.muted)),
               ),
           ],
         ),
@@ -3137,7 +3378,7 @@ class _LegendDot extends StatelessWidget {
             height: 10,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12, color: C.muted)),
+        Text(label, style: TextStyle(fontSize: 12, color: C.muted)),
       ],
     );
   }
@@ -3520,7 +3761,7 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
       ),
       onDismissed: (_) => deleteWithUndo(context, store, t),
       child: Material(
-        color: Colors.white,
+        color: C.surface,
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
@@ -3541,14 +3782,14 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
                             child: Text(t.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w800,
                                     color: C.carbon)),
                           ),
                           if (t.recurringId != null) ...[
                             const SizedBox(width: 4),
-                            const Icon(Icons.repeat_rounded,
+                            Icon(Icons.repeat_rounded,
                                 size: 14, color: C.muted),
                           ],
                         ],
@@ -3558,14 +3799,14 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style:
-                              const TextStyle(fontSize: 12, color: C.muted)),
+                              TextStyle(fontSize: 12, color: C.muted)),
                       if (t.note.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text('“${t.note}”',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 11.5,
                                   fontStyle: FontStyle.italic,
                                   color: C.muted)),
@@ -3609,7 +3850,7 @@ List<Widget> groupedTxWidgets(
         children: [
           Expanded(
             child: Text(dayLabel(day),
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w800, color: C.muted)),
           ),
           Text(net > 0 ? '+${money(net)}' : money(net),
@@ -3711,7 +3952,7 @@ class DashboardTab extends StatelessWidget {
     final total = store.netWorthIDR;
     final hide = store.settings.hideBalance;
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: C.greenDark,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
@@ -3728,7 +3969,7 @@ class DashboardTab extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.all_inclusive_rounded,
+                child: Icon(Icons.all_inclusive_rounded,
                     color: C.greenDark, size: 26),
               ),
               const SizedBox(width: 12),
@@ -3764,7 +4005,7 @@ class DashboardTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: C.surface,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -3785,7 +4026,7 @@ class DashboardTab extends StatelessWidget {
                         color: C.blue.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Text('Total Saldo Bersih',
+                      child: Text('Total Saldo Bersih',
                           style: TextStyle(
                               color: C.blueDark,
                               fontSize: 11,
@@ -3822,7 +4063,7 @@ class DashboardTab extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Divider(height: 1, color: C.line),
+                Divider(height: 1, color: C.line),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -3869,7 +4110,7 @@ class DashboardTab extends StatelessWidget {
                 const Spacer(),
                 if (a.currency != 'IDR')
                   Text(a.currency,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           color: C.muted)),
@@ -3879,7 +4120,7 @@ class DashboardTab extends StatelessWidget {
             Text(a.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11, color: C.muted, fontWeight: FontWeight.w600)),
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -3915,7 +4156,7 @@ class DashboardTab extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(label,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: C.carbon)),
@@ -3966,7 +4207,7 @@ class DashboardTab extends StatelessWidget {
                   children: [
                     Text(
                         '${appLabelForPackage(c.pkg)} · ${DateFormat('d MMM HH:mm', 'id_ID').format(c.time)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 12,
                             color: C.muted,
                             fontWeight: FontWeight.w700)),
@@ -4064,11 +4305,11 @@ class DashboardTab extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            const Text('Tagihan',
+                            Text('Tagihan',
                                 style:
                                     TextStyle(fontSize: 11, color: C.muted)),
                             Text(money(debt, a.currency),
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontWeight: FontWeight.w900,
                                     color: C.redDark)),
                           ],
@@ -4087,7 +4328,7 @@ class DashboardTab extends StatelessWidget {
                       Text(
                           'Sisa limit ${money(a.creditLimit - debt, a.currency)} dari ${money(a.creditLimit, a.currency)}',
                           style:
-                              const TextStyle(fontSize: 11.5, color: C.muted)),
+                              TextStyle(fontSize: 11.5, color: C.muted)),
                     ],
                     if (debt > 0)
                       Align(
@@ -4152,16 +4393,16 @@ class DashboardTab extends StatelessWidget {
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w800)),
                     Text(periodText,
-                        style: const TextStyle(fontSize: 12, color: C.muted)),
+                        style: TextStyle(fontSize: 12, color: C.muted)),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: C.muted),
+              Icon(Icons.chevron_right_rounded, color: C.muted),
             ],
           ),
           const SizedBox(height: 12),
           if (status == null)
-            const Text(
+            Text(
                 'Belum ada batas anggaran. Ketuk kartu ini untuk pasang rem 🛑',
                 style: TextStyle(color: C.muted, fontSize: 13))
           else ...[
@@ -4185,7 +4426,7 @@ class DashboardTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Sisa kuota',
+                      Text('Sisa kuota',
                           style: TextStyle(fontSize: 12, color: C.muted)),
                       FittedBox(
                         fit: BoxFit.scaleDown,
@@ -4210,11 +4451,11 @@ class DashboardTab extends StatelessWidget {
             FunProgressBar(value: ratio, color: status.color),
             const SizedBox(height: 8),
             Text('Terpakai ${money(spent)} dari ${money(s.globalBudget)}',
-                style: const TextStyle(fontSize: 12, color: C.muted)),
+                style: TextStyle(fontSize: 12, color: C.muted)),
           ],
           if (catRows.isNotEmpty) ...[
             const SizedBox(height: 14),
-            const Divider(height: 1, color: C.line),
+            Divider(height: 1, color: C.line),
             const SizedBox(height: 10),
             const SmallLabel('Per Kategori'),
             const SizedBox(height: 6),
@@ -4296,7 +4537,7 @@ class DashboardTab extends StatelessWidget {
                       '${t.title} · ${money(t.amount, store.currencyOf(t.accountId))}'),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),
-                  side: const BorderSide(color: C.line),
+                  side: BorderSide(color: C.line),
                   backgroundColor: C.bg,
                   onPressed: () => openTxForm(context, store, template: t),
                 ),
@@ -4344,7 +4585,7 @@ class DashboardTab extends StatelessWidget {
                                 fontWeight: FontWeight.w800, fontSize: 13.5)),
                         Text(
                             '${r.frequency.label} · ${DateFormat('EEE, d MMM', 'id_ID').format(r.nextDate)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 12, color: C.muted)),
                       ],
                     ),
@@ -4426,7 +4667,7 @@ class _HistoryTabState extends State<HistoryTab> {
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
           child: Text('${results.length} hasil untuk "${_query.trim()}"',
-              style: const TextStyle(color: C.muted, fontSize: 13)),
+              style: TextStyle(color: C.muted, fontSize: 13)),
         ),
         if (results.isEmpty)
           const EmptyState(
@@ -4485,7 +4726,7 @@ class _HistoryTabState extends State<HistoryTab> {
                       iconOf: (v) => v == HistoryView.list
                           ? Icons.view_list_rounded
                           : Icons.calendar_month_rounded,
-                      colorOf: (_) => C.carbon,
+                      colorOf: (_) => C.toast,
                       dense: true,
                       onChanged: (v) => setState(() => _view = v),
                     ),
@@ -4594,7 +4835,7 @@ class _HistoryTabState extends State<HistoryTab> {
             margin: const EdgeInsets.all(2),
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
             decoration: BoxDecoration(
-              color: selected ? C.green.withValues(alpha: 0.12) : Colors.white,
+              color: selected ? C.green.withValues(alpha: 0.12) : C.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                   color: selected
@@ -4614,7 +4855,7 @@ class _HistoryTabState extends State<HistoryTab> {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text('+${compactMoney(i)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 9,
                             color: C.greenDark,
                             fontWeight: FontWeight.w800)),
@@ -4623,7 +4864,7 @@ class _HistoryTabState extends State<HistoryTab> {
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text('-${compactMoney(e)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 9,
                             color: C.redDark,
                             fontWeight: FontWeight.w800)),
@@ -4669,7 +4910,7 @@ class _HistoryTabState extends State<HistoryTab> {
                   Expanded(
                     child: Text(w,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: C.muted)),
@@ -4716,7 +4957,7 @@ class _SummaryBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(20)),
+          color: C.surface, borderRadius: BorderRadius.circular(20)),
       child: Row(
         children: [
           CatIcon(icon: icon, color: color, size: 34),
@@ -4726,7 +4967,7 @@ class _SummaryBox extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: const TextStyle(fontSize: 11, color: C.muted)),
+                    style: TextStyle(fontSize: 11, color: C.muted)),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
@@ -4900,7 +5141,7 @@ class _StatsTabState extends State<StatsTab> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Selisih (net)',
+                      Text('Selisih (net)',
                           style: TextStyle(fontSize: 12, color: C.muted)),
                       Text(net > 0 ? '+${money(net)}' : money(net),
                           style: TextStyle(
@@ -4914,7 +5155,7 @@ class _StatsTabState extends State<StatsTab> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text('Rata-rata keluar/hari',
+                      Text('Rata-rata keluar/hari',
                           style: TextStyle(fontSize: 12, color: C.muted)),
                       Text(money(avgDaily),
                           style: const TextStyle(
@@ -4970,7 +5211,7 @@ class _StatsTabState extends State<StatsTab> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text('Total',
+                                  Text('Total',
                                       style: TextStyle(
                                           fontSize: 11, color: C.muted)),
                                   FittedBox(
@@ -5037,7 +5278,7 @@ class _StatsTabState extends State<StatsTab> {
                             if (a.currency != 'IDR')
                               Text(
                                   '≈ ${money(store.toIDR(store.balanceOf(a.id), a.currency))}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 11, color: C.muted)),
                           ],
                         ),
@@ -5100,7 +5341,7 @@ class _StatsTabState extends State<StatsTab> {
                       hasChildren
                           ? '${money(value)} · ketuk untuk rincian'
                           : money(value),
-                      style: const TextStyle(fontSize: 11, color: C.muted)),
+                      style: TextStyle(fontSize: 11, color: C.muted)),
                 ],
               ),
             ),
@@ -5215,11 +5456,11 @@ class MoreTab extends StatelessWidget {
                           fontWeight: FontWeight.w800, fontSize: 14)),
                   if (subtitle != null)
                     Text(subtitle,
-                        style: const TextStyle(fontSize: 12, color: C.muted)),
+                        style: TextStyle(fontSize: 12, color: C.muted)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: C.muted),
+            Icon(Icons.chevron_right_rounded, color: C.muted),
           ],
         ),
       ),
@@ -5236,6 +5477,28 @@ class MoreTab extends StatelessWidget {
         children: [
           const Text('Lainnya',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SmallLabel('Tampilan'),
+                const SizedBox(height: 8),
+                Segmented<String>(
+                  values: const ['system', 'light', 'dark'],
+                  selected: s.themeMode,
+                  labelOf: (v) => switch (v) {
+                    'light' => 'Terang',
+                    'dark' => 'Gelap',
+                    _ => 'Ikut HP',
+                  },
+                  dense: true,
+                  onChanged: (v) =>
+                      store.updateSettings((x) => x.themeMode = v),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -5342,7 +5605,7 @@ class MoreTab extends StatelessWidget {
                 onTap: () => confirmResetAll(context, store)),
           ),
           const SizedBox(height: 24),
-          const Center(
+          Center(
             child: Column(
               children: [
                 Icon(Icons.all_inclusive_rounded, color: C.muted),
@@ -5697,7 +5960,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     final id = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: C.surface,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => CategoryPanel(
@@ -5718,7 +5981,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     final id = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: C.surface,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => AccountPanel(
@@ -5777,7 +6040,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
               children: [
                 Expanded(
                   child: Text(_heading,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
                           color: C.carbon)),
@@ -5814,7 +6077,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                             decoration: BoxDecoration(
                               color: t == _type
                                   ? t.color.withValues(alpha: 0.08)
-                                  : Colors.white,
+                                  : C.surface,
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
                                   color: t == _type ? t.color : C.line,
@@ -5946,7 +6209,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
               child: TextField(
                 controller: _titleCtrl,
                 textCapitalization: TextCapitalization.sentences,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: C.carbon),
@@ -5967,7 +6230,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 minLines: 1,
                 maxLines: 3,
                 textCapitalization: TextCapitalization.sentences,
-                style: const TextStyle(fontSize: 14, color: C.carbon),
+                style: TextStyle(fontSize: 14, color: C.carbon),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   isDense: true,
@@ -6002,7 +6265,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                         label: Text(t.title),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)),
-                        side: const BorderSide(color: C.line),
+                        side: BorderSide(color: C.line),
                         onPressed: () => _applyTemplate(t),
                       ),
                     ],
@@ -6020,12 +6283,12 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_rounded,
+                    Icon(Icons.check_circle_rounded,
                         color: C.greenDark, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(_info!,
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: C.greenDark,
                               fontWeight: FontWeight.w700,
                               fontSize: 13)),
@@ -6095,7 +6358,7 @@ class FormRow extends StatelessWidget {
     final row = Container(
       constraints: const BoxConstraints(minHeight: 52),
       padding: const EdgeInsets.symmetric(vertical: 4),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: C.line)),
       ),
       child: Row(
@@ -6103,14 +6366,14 @@ class FormRow extends StatelessWidget {
           SizedBox(
             width: 84,
             child: Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 14,
                     color: C.muted,
                     fontWeight: FontWeight.w600)),
           ),
           Expanded(child: child),
           if (onTap != null)
-            const Icon(Icons.chevron_right_rounded, color: C.muted, size: 20),
+            Icon(Icons.chevron_right_rounded, color: C.muted, size: 20),
         ],
       ),
     );
@@ -6221,7 +6484,7 @@ class _CategoryPanelState extends State<CategoryPanel> {
           child: Container(
             decoration: BoxDecoration(
               color: sel ? widget.accent.withValues(alpha: 0.08) : null,
-              border: const Border(
+              border: Border(
                 right: BorderSide(color: C.line),
                 bottom: BorderSide(color: C.line),
               ),
@@ -6231,7 +6494,7 @@ class _CategoryPanelState extends State<CategoryPanel> {
               children: [
                 Center(child: _label(c, selected: sel)),
                 if (hasSubs)
-                  const Positioned(
+                  Positioned(
                     right: 0,
                     bottom: 4,
                     child: Icon(Icons.chevron_right_rounded,
@@ -6260,7 +6523,7 @@ class _CategoryPanelState extends State<CategoryPanel> {
                 InkWell(
                   onTap: () => _tapTop(c),
                   child: Container(
-                    color: c.id == open ? C.bg : Colors.white,
+                    color: c.id == open ? C.bg : C.surface,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 13),
                     child: Text(c.name,
@@ -6277,7 +6540,7 @@ class _CategoryPanelState extends State<CategoryPanel> {
             ],
           ),
         ),
-        const VerticalDivider(width: 1, color: C.line),
+        VerticalDivider(width: 1, color: C.line),
         Expanded(
           child: Container(
             color: C.bg,
@@ -6303,7 +6566,7 @@ class _CategoryPanelState extends State<CategoryPanel> {
       onTap: () => Navigator.pop(context, id),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: C.line))),
         child: Row(
           children: [
@@ -6360,10 +6623,10 @@ class _CategoryPanelState extends State<CategoryPanel> {
                 ],
               ),
             ),
-            const Divider(height: 1, color: C.line),
+            Divider(height: 1, color: C.line),
             Expanded(
               child: tops.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text('Belum ada kategori. Tambah di Lainnya > Kategori.',
                           style: TextStyle(color: C.muted)))
                   : (open == null ? _grid(tops) : _split(tops, open)),
@@ -6421,7 +6684,7 @@ class AccountPanel extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: C.line),
+          Divider(height: 1, color: C.line),
           ConstrainedBox(
             constraints: BoxConstraints(
                 maxHeight: MediaQuery.sizeOf(context).height * 0.5),
@@ -6443,7 +6706,7 @@ class AccountPanel extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         color: sel ? accent.withValues(alpha: 0.08) : null,
-                        border: const Border(
+                        border: Border(
                           right: BorderSide(color: C.line),
                           bottom: BorderSide(color: C.line),
                         ),
@@ -6509,7 +6772,7 @@ class TransactionDetailSheet extends StatelessWidget {
               SizedBox(
                 width: 110,
                 child: Text(label,
-                    style: const TextStyle(color: C.muted, fontSize: 13)),
+                    style: TextStyle(color: C.muted, fontSize: 13)),
               ),
               Expanded(
                 child: Text(value,
@@ -6543,7 +6806,7 @@ class TransactionDetailSheet extends StatelessWidget {
           if (cur != 'IDR')
             Text('≈ ${money(store.amountIDR(t))}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: C.muted)),
+                style: TextStyle(color: C.muted)),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -6621,14 +6884,14 @@ class TransactionDetailSheet extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w800)),
             style: OutlinedButton.styleFrom(
               foregroundColor: C.redDark,
-              side: const BorderSide(color: C.redDark, width: 1.5),
+              side: BorderSide(color: C.redDark, width: 1.5),
               minimumSize: const Size.fromHeight(50),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20)),
             ),
           ),
           const SizedBox(height: 6),
-          const Text('Tip: geser item ke kiri di riwayat untuk hapus cepat.',
+          Text('Tip: geser item ke kiri di riwayat untuk hapus cepat.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11.5, color: C.muted)),
         ],
@@ -6855,7 +7118,7 @@ class _CalculatorSheetState extends State<CalculatorSheet> {
           Row(children: [
             _key('0'),
             _key('000'),
-            _key('=', bg: C.carbon, fg: Colors.white, flex: 2),
+            _key('=', bg: C.toast, fg: Colors.white, flex: 2),
           ]),
           const SizedBox(height: 10),
           PrimaryButton(label: 'Pakai hasil', onPressed: _use),
@@ -6893,7 +7156,7 @@ class AccountsPage extends StatelessWidget {
             AppCard(
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                       child: Text('Total saldo bersih',
                           style: TextStyle(color: C.muted))),
                   Text(money(store.netWorthIDR),
@@ -6922,7 +7185,7 @@ class AccountsPage extends StatelessWidget {
                                     fontWeight: FontWeight.w800)),
                             Text(
                                 '${a.type.label} · ${a.currency}${a.type == AccountType.credit ? ' · jatuh tempo tgl ${a.dueDay}' : ''}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 12, color: C.muted)),
                           ],
                         ),
@@ -6939,7 +7202,7 @@ class AccountsPage extends StatelessWidget {
                           if (a.currency != 'IDR')
                             Text(
                                 '≈ ${money(store.toIDR(store.balanceOf(a.id), a.currency))}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 11, color: C.muted)),
                         ],
                       ),
@@ -7102,7 +7365,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
             ],
           ),
           if (hasTx && _currency != widget.account!.currency)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 8),
               child: Text(
                   'Catatan: transaksi lama tidak dikonversi otomatis, nominalnya akan dibaca dalam mata uang baru.',
@@ -7233,7 +7496,7 @@ class CategoriesPage extends StatelessWidget {
             backgroundColor: C.bg,
             surfaceTintColor: Colors.transparent,
             scrolledUnderElevation: 0,
-            bottom: const TabBar(
+            bottom: TabBar(
               labelColor: C.greenDark,
               indicatorColor: C.greenDark,
               tabs: [Tab(text: 'Pengeluaran'), Tab(text: 'Pemasukan')],
@@ -7290,7 +7553,7 @@ class CategoriesPage extends StatelessWidget {
         child: Row(
           children: [
             if (isChild)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(right: 6),
                 child: Icon(Icons.subdirectory_arrow_right_rounded,
                     color: C.muted, size: 18),
@@ -7302,7 +7565,7 @@ class CategoriesPage extends StatelessWidget {
                   style: TextStyle(
                       fontWeight: isChild ? FontWeight.w600 : FontWeight.w800)),
             ),
-            const Icon(Icons.edit_rounded, size: 18, color: C.muted),
+            Icon(Icons.edit_rounded, size: 18, color: C.muted),
           ],
         ),
       ),
@@ -7433,7 +7696,7 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
             ],
           ),
           if (hasChildren)
-            const Text('Kategori ini punya sub-kategori, jadi tetap kategori utama.',
+            Text('Kategori ini punya sub-kategori, jadi tetap kategori utama.',
                 style: TextStyle(fontSize: 12, color: C.muted)),
           const SizedBox(height: 14),
           const SmallLabel('Ikon'),
@@ -7562,7 +7825,7 @@ class _BudgetPageState extends State<BudgetPage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
-          const Text(
+          Text(
               'Semua batas dalam Rupiah. Transaksi mata uang lain dikonversi pakai kurs di menu Mata Uang & Kurs. Kosongkan kolom untuk menonaktifkan.',
               style: TextStyle(color: C.muted, fontSize: 13)),
           const SizedBox(height: 14),
@@ -7616,7 +7879,7 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
               child: Text(
                 'Total per kategori (${money(_sumCats)}) melebihi batas total (${money(global)}). Boleh disimpan, tapi cek lagi ya ⚠️',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                     color: C.amberDark),
@@ -7657,7 +7920,7 @@ class RecurringPage extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
             children: [
-              const Text(
+              Text(
                   'Gaji, langganan, cicilan, atau kiriman rutin dicatat otomatis setiap kali aplikasi dibuka dan sudah jatuh tempo.',
                   style: TextStyle(color: C.muted, fontSize: 13)),
               const SizedBox(height: 12),
@@ -7703,7 +7966,7 @@ class RecurringPage extends StatelessWidget {
                                     r.active
                                         ? 'Berikutnya ${DateFormat('EEE, d MMM yyyy', 'id_ID').format(r.nextDate)}'
                                         : 'Dijeda',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 12, color: C.muted)),
                               ],
                             ),
@@ -7726,7 +7989,7 @@ class RecurringPage extends StatelessWidget {
                               ),
                               IconButton(
                                 tooltip: 'Hapus',
-                                icon: const Icon(Icons.delete_outline_rounded,
+                                icon: Icon(Icons.delete_outline_rounded,
                                     color: C.redDark),
                                 onPressed: () async {
                                   final ok = await confirmDialog(context,
@@ -7776,7 +8039,7 @@ class TemplatesPage extends StatelessWidget {
         builder: (context, _) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
           children: [
-            const Text(
+            Text(
                 'Untuk pengeluaran yang sering diulang. Ketuk template untuk langsung mencatat.',
                 style: TextStyle(color: C.muted, fontSize: 13)),
             const SizedBox(height: 12),
@@ -7811,7 +8074,7 @@ class TemplatesPage extends StatelessWidget {
                                       fontWeight: FontWeight.w800)),
                               Text(
                                   '${t.type.label} · ${store.accountName(t.accountId)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 12, color: C.muted)),
                             ],
                           ),
@@ -7822,7 +8085,7 @@ class TemplatesPage extends StatelessWidget {
                                 color: t.type.color)),
                         IconButton(
                           tooltip: 'Hapus template',
-                          icon: const Icon(Icons.delete_outline_rounded,
+                          icon: Icon(Icons.delete_outline_rounded,
                               color: C.redDark),
                           onPressed: () => store.deleteTemplate(t.id),
                         ),
@@ -7897,7 +8160,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
               color: C.warning.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text(
+            child: Text(
               'Kurs bawaan hanya perkiraan dan TIDAK update otomatis. Isi sesuai kurs terbaru supaya total saldo, anggaran, dan statistik akurat.',
               style: TextStyle(
                   fontSize: 12.5,
@@ -7962,7 +8225,7 @@ class NotificationsPage extends StatelessWidget {
       title: Text(title,
           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
       subtitle: Text(subtitle,
-          style: const TextStyle(fontSize: 12.5, color: C.muted)),
+          style: TextStyle(fontSize: 12.5, color: C.muted)),
     );
   }
 
@@ -8094,7 +8357,7 @@ class NotificationsPage extends StatelessWidget {
                                 child: Text(
                                     DateFormat('d MMM HH:mm', 'id_ID')
                                         .format(n.when),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 12, color: C.muted)),
                               ),
                               Expanded(
@@ -8124,7 +8387,7 @@ class NotificationsPage extends StatelessWidget {
                     : null,
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                   'Catatan: pengingat dijadwalkan ke sistem Android, jadi tetap muncul walau aplikasi ditutup. Beberapa HP (Xiaomi, Oppo, Vivo) membatasi aplikasi di latar belakang. Kalau pengingat tidak muncul, matikan penghemat baterai untuk Infinity.',
                   style: TextStyle(fontSize: 12.5, color: C.muted)),
             ],
@@ -8198,7 +8461,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
               width: 22,
               height: 22,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                   color: C.greenDark, shape: BoxShape.circle),
               child: Text(n,
                   style: const TextStyle(
@@ -8247,7 +8510,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
                                       : 'Akses notifikasi belum diizinkan'),
                               style: const TextStyle(
                                   fontWeight: FontWeight.w900, fontSize: 15)),
-                          const Text(
+                          Text(
                               'Infinity hanya mengambil notifikasi yang berisi nominal "Rp". Semua diproses di HP ini.',
                               style: TextStyle(fontSize: 12.5, color: C.muted)),
                         ],
@@ -8312,7 +8575,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
                     _ =>
                       'Langsung dicatat kalau akun bisa ditebak. Kalau akun tidak jelas atau sepertinya sudah kamu catat manual (nominal & akun sama dalam 10 menit), masuk ke "Dari Notifikasi" dulu.',
                   },
-                  style: const TextStyle(fontSize: 12.5, color: C.muted)),
+                  style: TextStyle(fontSize: 12.5, color: C.muted)),
               const SizedBox(height: 16),
               AppCard(
                 child: Column(
@@ -8324,7 +8587,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
                         'GoPay, OVO, DANA, ShopeePay, LinkAja, myBCA/BCA mobile, Jago, BRImo, Livin Mandiri, BNI, SeaBank, blu, Flip, dan aplikasi lain yang notifikasinya menyebut "Rp".',
                         style: TextStyle(fontSize: 13)),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                         'Supaya akun tertebak, beri nama akun yang memuat nama aplikasinya, misalnya "GoPay", "BCA", atau "Bank Jago". Notifikasi promo (diskon, voucher, cashback hingga...) diabaikan.',
                         style: TextStyle(fontSize: 12.5, color: C.muted)),
                   ],
@@ -8408,7 +8671,7 @@ class _PinPadState extends State<PinPad> {
       child: Padding(
         padding: const EdgeInsets.all(6),
         child: Material(
-          color: Colors.white,
+          color: C.surface,
           shape: const CircleBorder(),
           child: InkWell(
             customBorder: const CircleBorder(),
@@ -8443,7 +8706,7 @@ class _PinPadState extends State<PinPad> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.all_inclusive_rounded, color: C.greenDark, size: 44),
+          Icon(Icons.all_inclusive_rounded, color: C.greenDark, size: 44),
           const SizedBox(height: 12),
           Text(widget.title,
               textAlign: TextAlign.center,
@@ -8453,7 +8716,7 @@ class _PinPadState extends State<PinPad> {
             const SizedBox(height: 4),
             Text(widget.subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: C.muted)),
+                style: TextStyle(color: C.muted)),
           ],
           const SizedBox(height: 20),
           Row(
@@ -8477,7 +8740,7 @@ class _PinPadState extends State<PinPad> {
             height: 32,
             child: Center(
               child: Text(_error ?? '',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: C.redDark, fontWeight: FontWeight.w700)),
             ),
           ),
@@ -8704,7 +8967,7 @@ class SecurityPage extends StatelessWidget {
                           Text(active ? 'PIN aktif' : 'PIN nonaktif',
                               style: const TextStyle(
                                   fontWeight: FontWeight.w900, fontSize: 16)),
-                          const Text(
+                          Text(
                               'Aplikasi minta PIN saat dibuka, dan saat kembali setelah 30 detik di latar belakang.',
                               style: TextStyle(fontSize: 12.5, color: C.muted)),
                         ],
@@ -8730,7 +8993,7 @@ class SecurityPage extends StatelessWidget {
                               ? 'PIN tetap bisa dipakai sebagai cadangan'
                               : 'Pasang PIN dulu untuk mengaktifkan',
                           style:
-                              const TextStyle(fontSize: 12.5, color: C.muted)),
+                              TextStyle(fontSize: 12.5, color: C.muted)),
                       onChanged: active
                           ? (v) async {
                               if (v) {
@@ -8753,7 +9016,7 @@ class SecurityPage extends StatelessWidget {
                       title: const Text('Mode layar aman',
                           style: TextStyle(
                               fontWeight: FontWeight.w800, fontSize: 14)),
-                      subtitle: const Text(
+                      subtitle: Text(
                           'Isi app disembunyikan di daftar aplikasi terbaru dan screenshot diblokir',
                           style: TextStyle(fontSize: 12.5, color: C.muted)),
                       onChanged: (v) =>
@@ -8763,7 +9026,7 @@ class SecurityPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                   'Data keuangan disimpan terenkripsi di HP ini (kunci di Android Keystore). PIN ikut tersimpan di penyimpanan terenkripsi itu dan tidak ikut ke file backup. Tidak ada data yang dikirim ke internet.',
                   style: TextStyle(fontSize: 12.5, color: C.muted)),
               const SizedBox(height: 16),
@@ -8876,7 +9139,7 @@ class _BackupPageState extends State<BackupPage> {
                 const SizedBox(height: 6),
                 Text(
                     '${store.transactions.length} transaksi, ${store.accounts.length} akun, ${store.categories.length} kategori. Data disalin sebagai teks JSON, simpan di tempat aman (catatan, email ke diri sendiri, Google Drive).',
-                    style: const TextStyle(fontSize: 13, color: C.muted)),
+                    style: TextStyle(fontSize: 13, color: C.muted)),
                 const SizedBox(height: 12),
                 PrimaryButton(
                     label: 'Salin backup',
@@ -8942,7 +9205,7 @@ class _BackupPageState extends State<BackupPage> {
               children: [
                 const SectionTitle('Zona Bahaya'),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                     'Hapus semua data dan mulai dari nol. Harus mengetik HAPUS dulu supaya tidak terpencet.',
                     style: TextStyle(fontSize: 13, color: C.muted)),
                 const SizedBox(height: 10),
@@ -8950,7 +9213,7 @@ class _BackupPageState extends State<BackupPage> {
                   onPressed: _clear,
                   style: OutlinedButton.styleFrom(
                       foregroundColor: C.redDark,
-                      side: const BorderSide(color: C.redDark),
+                      side: BorderSide(color: C.redDark),
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20))),

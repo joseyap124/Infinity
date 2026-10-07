@@ -18,9 +18,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Default aman: isi app tersembunyi di daftar aplikasi terbaru sejak awal.
-        // Dart bisa mematikannya lewat setelan "Mode layar aman".
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        // Layar aman diatur dari app (Keamanan > Mode layar aman), bawaan mati
+        // supaya screenshot bisa.
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

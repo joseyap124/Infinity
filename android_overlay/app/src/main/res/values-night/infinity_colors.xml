@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="w_bg">#FF1E2024</color>
+    <color name="w_text">#FFECEDEF</color>
+    <color name="w_muted">#FFA3A9B4</color>
+    <color name="w_green">#FF4CC764</color>
+    <color name="w_red">#FFF0696E</color>
+    <color name="w_btn_green">#FF1E9E33</color>
+    <color name="w_btn_red">#FFD9434A</color>
+    <color name="w_btn_blue">#FF1497B5</color>
+</resources>
