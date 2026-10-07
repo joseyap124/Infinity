@@ -1,0 +1,7 @@
+build/
+.dart_tool/
+*.iml
+.idea/
+local.properties
+*.keystore
+*.jks
