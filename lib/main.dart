@@ -2265,7 +2265,9 @@ class QuickInput {
 
 /// "25rb kopi", "kopi 25.000", "1,5jt hp", "15000 parkir" -> nominal + judul.
 QuickInput? parseQuickInput(String text) {
-  final m = RegExp(r'(\d+(?:[.,]\d+)*)\s*(?:(rb|ribu|k|jt|juta)(?![a-z]))?',
+  // Satuan ribu: rb, rbu, rebu, ribu, ribuan, rban, k. Juta: jt, jta, juta.
+  final m = RegExp(
+          r'(\d+(?:[.,]\d+)*)\s*(?:(rb\w*|r[ie]bu\w*|rib\w*|k|jt\w*|jut\w*)(?![a-z]))?',
           caseSensitive: false)
       .firstMatch(text);
   if (m == null) return null;
@@ -2274,13 +2276,15 @@ QuickInput? parseQuickInput(String text) {
   double? v;
   if (suf.isEmpty) {
     v = double.tryParse(numStr.replaceAll(RegExp(r'[.,]'), ''));
+    // Rupiah di bawah 1.000 hampir tidak pernah dipakai: "25 nasgor" = 25rb.
+    if (v != null && v > 0 && v < 1000) v = v * 1000;
   } else {
     final n = RegExp(r'^\d+[.,]\d{1,2}$').hasMatch(numStr)
         ? numStr.replaceAll(',', '.')
         : numStr.replaceAll(RegExp(r'[.,]'), '');
     final base = double.tryParse(n);
     if (base != null) {
-      v = base * ((suf == 'jt' || suf == 'juta') ? 1000000 : 1000);
+      v = base * (suf.startsWith('j') ? 1000000 : 1000);
     }
   }
   if (v == null || v <= 0) return null;
