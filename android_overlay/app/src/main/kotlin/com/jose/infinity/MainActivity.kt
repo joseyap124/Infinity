@@ -26,6 +26,37 @@ class MainActivity : FlutterFragmentActivity() {
         // supaya screenshot bisa.
     }
 
+    private var pendingPick: MethodChannel.Result? = null
+
+    @Deprecated("Dipakai untuk pemilih file sederhana")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQ_PICK) return
+        val r = pendingPick ?: return
+        pendingPick = null
+        val uri = data?.data
+        if (resultCode != RESULT_OK || uri == null) {
+            r.success(null)
+            return
+        }
+        try {
+            val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            var name = "file"
+            contentResolver.query(uri, null, null, null, null)?.use { c ->
+                val idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (idx >= 0 && c.moveToFirst()) name = c.getString(idx) ?: name
+            }
+            r.success(mapOf("name" to name, "bytes" to bytes))
+        } catch (e: Exception) {
+            r.error("read", e.message, null)
+        }
+    }
+
+    companion object {
+        private const val REQ_PICK = 4242
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "infinity/native")
@@ -59,6 +90,19 @@ class MainActivity : FlutterFragmentActivity() {
                         val name = call.argument<String>("name") ?: "infinity-backup.json"
                         val text = call.argument<String>("text") ?: ""
                         result.success(saveDownload(name, text))
+                    }
+                    "pickFile" -> {
+                        if (pendingPick != null) {
+                            result.error("busy", "Pemilih file sedang terbuka", null)
+                        } else {
+                            pendingPick = result
+                            val i = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "*/*"
+                            }
+                            @Suppress("DEPRECATION")
+                            startActivityForResult(i, REQ_PICK)
+                        }
                     }
                     "showQuickBar" -> {
                         QuickBar.show(this)

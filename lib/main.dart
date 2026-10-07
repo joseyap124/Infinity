@@ -19,12 +19,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:archive/archive.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 // NOTIF-IMPORTS-BEGIN
@@ -996,6 +996,15 @@ class NativeBridge {
     } catch (_) {
       return false;
     }
+  }
+
+  /// Buka pemilih file Android. Null kalau dibatalkan.
+  static Future<({String name, Uint8List bytes})?> pickFile() async {
+    final r = await _ch.invokeMapMethod<String, Object?>('pickFile');
+    if (r == null) return null;
+    final bytes = r['bytes'];
+    if (bytes is! Uint8List) return null;
+    return (name: (r['name'] as String?) ?? 'file', bytes: bytes);
   }
 
   /// Notifikasi pintasan 4 ikon (native, gaya Money Manager).
@@ -10188,16 +10197,16 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
       _error = null;
     });
     try {
-      // file_picker 13: API statis, isi file dibaca lewat readAsBytes().
-      final f = await FilePicker.pickFile(type: FileType.any);
-      if (f == null) return;
-      final bytes = await f.readAsBytes();
+      // Pemilih file bawaan Android (tanpa paket tambahan).
+      final picked = await NativeBridge.pickFile();
+      if (picked == null) return;
+      final bytes = picked.bytes;
       final rows = parseMoneyManagerXlsx(bytes);
       if (rows.isEmpty) {
         throw const FormatException('Tidak ada transaksi di file ini.');
       }
       setState(() {
-        _fileName = f.name;
+        _fileName = picked.name;
         _plan = store.planMoneyManagerImport(rows);
         _done = false;
       });
