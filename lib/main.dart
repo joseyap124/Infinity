@@ -1629,6 +1629,36 @@ class AppStore extends ChangeNotifier {
       recurring.any((r) => r.accountId == id || r.toAccountId == id) ||
       templates.any((t) => t.accountId == id || t.toAccountId == id);
 
+  /// Hapus akun beserta transaksi, transaksi berulang, dan template yang
+  /// memakainya. null = berhasil.
+  String? deleteAccountWithData(String id) {
+    if (accounts.length <= 1) return 'Minimal harus ada satu akun.';
+    transactions.removeWhere((t) => t.accountId == id || t.toAccountId == id);
+    recurring.removeWhere((r) => r.accountId == id || r.toAccountId == id);
+    templates.removeWhere((t) => t.accountId == id || t.toAccountId == id);
+    accounts.removeWhere((a) => a.id == id);
+    _commit();
+    return null;
+  }
+
+  /// Penyesuaian saldo ala "Modified Bal." Money Manager: dicatat sebagai
+  /// pemasukan/pengeluaran supaya riwayat tetap jujur.
+  void addBalanceAdjustment(Account a, double diff) {
+    if (diff.abs() < 0.0005) return;
+    final type = diff > 0 ? TxType.income : TxType.expense;
+    transactions.add(Transaction(
+      id: newId(),
+      title: 'Penyesuaian saldo',
+      amount: diff.abs(),
+      type: type,
+      categoryId: fallbackCategory(type),
+      accountId: a.id,
+      date: DateTime.now(),
+      note: 'Saldo ${a.name} diubah manual',
+    ));
+    _commit();
+  }
+
   /// null = berhasil, selain itu pesan error.
   String? deleteAccount(String id) {
     if (accounts.length <= 1) return 'Minimal harus ada satu akun.';
@@ -1937,6 +1967,15 @@ class AppStore extends ChangeNotifier {
     transactions.add(t);
     _commit();
     return t;
+  }
+
+  /// Pindahkan akun (ReorderableListView: newIndex dihitung sebelum hapus).
+  void moveAccount(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= accounts.length) return;
+    if (newIndex > oldIndex) newIndex -= 1;
+    final a = accounts.removeAt(oldIndex);
+    accounts.insert(newIndex.clamp(0, accounts.length), a);
+    _commit();
   }
 
   /// Backup ke folder Download. [force] = abaikan jadwal mingguan.
@@ -3786,18 +3825,151 @@ Future<void> editTx(BuildContext context, AppStore store, Transaction t) async {
   snack(context, 'Transaksi diperbarui ✏️');
 }
 
+String _txAmountText(AppStore store, Transaction t) {
+  final m = money(t.amount, store.currencyOf(t.accountId));
+  return switch (t.type) {
+    TxType.expense => '-$m',
+    TxType.income => '+$m',
+    TxType.transfer => m,
+  };
+}
+
+/// Konfirmasi sebelum menghapus (geser sering tidak sengaja).
+Future<bool> confirmDeleteTx(
+    BuildContext context, AppStore store, Transaction t) async {
+  HapticFeedback.mediumImpact();
+  final r = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      icon: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+            color: C.redDark.withValues(alpha: 0.12), shape: BoxShape.circle),
+        child: Icon(Icons.delete_outline_rounded, color: C.redDark, size: 28),
+      ),
+      title: const Text('Hapus transaksi ini?',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 19)),
+      content: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: C.bg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: C.line),
+        ),
+        child: Row(
+          children: [
+            CatIcon(icon: store.txIcon(t), color: store.txColor(t), size: 38),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(t.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800, color: C.carbon)),
+                  Text(DateFormat('d MMM yyyy · HH:mm', 'id_ID').format(t.date),
+                      style: TextStyle(fontSize: 12, color: C.muted)),
+                ],
+              ),
+            ),
+            Text(_txAmountText(store, t),
+                style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: t.type.color,
+                    fontSize: 13)),
+          ],
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18))),
+                child: const Text('Batal'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: FilledButton.styleFrom(
+                    backgroundColor: C.redDark,
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18))),
+                child: const Text('Hapus',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+  return r ?? false;
+}
+
 void deleteWithUndo(BuildContext context, AppStore store, Transaction t) {
   final removed = store.deleteTransaction(t.id);
   if (removed == null) return;
-  snack(
-    context,
-    '"${t.title}" dihapus',
+  final m = ScaffoldMessenger.of(context);
+  m.hideCurrentSnackBar();
+  m.showSnackBar(SnackBar(
+    duration: const Duration(seconds: 5),
+    behavior: SnackBarBehavior.floating,
+    backgroundColor: C.toast,
+    margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+    padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    content: Row(
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              shape: BoxShape.circle),
+          child: const Icon(Icons.delete_outline_rounded,
+              color: Colors.white, size: 19),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Transaksi dihapus',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14)),
+              Text('${t.title} · ${_txAmountText(store, t)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            ],
+          ),
+        ),
+      ],
+    ),
     action: SnackBarAction(
-      label: 'URUNGKAN',
+      label: 'Urungkan',
       textColor: const Color(0xFF7CFC8A),
       onPressed: () => store.restoreTransaction(removed),
     ),
-  );
+  ));
 }
 
 enum _DetailAction { edit, duplicate, copy, delete }
@@ -3816,7 +3988,9 @@ Future<void> openTxDetail(
       await Clipboard.setData(ClipboardData(text: txShareText(store, t)));
       if (context.mounted) snack(context, 'Teks transaksi disalin 📋');
     case _DetailAction.delete:
-      deleteWithUndo(context, store, t);
+      if (await confirmDeleteTx(context, store, t) && context.mounted) {
+        deleteWithUndo(context, store, t);
+      }
   }
 }
 
@@ -3904,21 +4078,37 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
     child: Dismissible(
       key: ValueKey('tx_${t.id}'),
       direction: DismissDirection.endToStart,
+      // Harus digeser cukup jauh, lalu tetap dikonfirmasi.
+      dismissThresholds: const {DismissDirection.endToStart: 0.45},
+      confirmDismiss: (_) => confirmDeleteTx(context, store, t),
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: BoxDecoration(
-          color: C.redDark,
+          gradient: LinearGradient(colors: [
+            C.redDark.withValues(alpha: 0.15),
+            C.redDark,
+          ]),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Hapus',
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.22),
+                  shape: BoxShape.circle),
+              child: const Icon(Icons.delete_outline_rounded,
+                  color: Colors.white, size: 20),
+            ),
+            const SizedBox(height: 2),
+            const Text('Hapus',
                 style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w800)),
-            SizedBox(width: 8),
-            Icon(Icons.delete_rounded, color: Colors.white),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12)),
           ],
         ),
       ),
@@ -7739,6 +7929,61 @@ class AccountsPage extends StatelessWidget {
   const AccountsPage({super.key, required this.store});
   final AppStore store;
 
+  Widget _item(BuildContext context, Account a, int index) {
+    return Padding(
+      key: ValueKey('acc_${a.id}'),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: ReorderableDelayedDragStartListener(
+        index: index,
+        child: AppCard(
+          padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
+          onTap: () => showSheet<void>(
+              context, AccountEditorSheet(store: store, account: a)),
+          child: Row(
+            children: [
+              CatIcon(icon: a.type.icon, color: a.colorValue),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(a.name,
+                        style: const TextStyle(fontWeight: FontWeight.w800)),
+                    Text(
+                        '${a.type.label} · ${a.currency}${a.type == AccountType.credit ? ' · jatuh tempo tgl ${a.dueDay}' : ''}',
+                        style: TextStyle(fontSize: 12, color: C.muted)),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(money(store.balanceOf(a.id), a.currency),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: store.balanceOf(a.id) < 0
+                              ? C.redDark
+                              : C.carbon)),
+                  if (a.currency != 'IDR')
+                    Text(
+                        '≈ ${money(store.toIDR(store.balanceOf(a.id), a.currency))}',
+                        style: TextStyle(fontSize: 11, color: C.muted)),
+                ],
+              ),
+              ReorderableDragStartListener(
+                index: index,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  child: Icon(Icons.drag_indicator_rounded, color: C.muted),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -7753,67 +7998,50 @@ class AccountsPage extends StatelessWidget {
       ),
       body: ListenableBuilder(
         listenable: store,
-        builder: (context, _) => ListView(
+        builder: (context, _) => ReorderableListView.builder(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
-          children: [
-            AppCard(
-              child: Row(
-                children: [
-                  Expanded(
-                      child: Text('Total saldo bersih',
-                          style: TextStyle(color: C.muted))),
-                  Text(money(store.netWorthIDR),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w900, fontSize: 16)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            for (final a in store.accounts)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: AppCard(
-                  onTap: () => showSheet<void>(
-                      context, AccountEditorSheet(store: store, account: a)),
-                  child: Row(
-                    children: [
-                      CatIcon(icon: a.type.icon, color: a.colorValue),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(a.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w800)),
-                            Text(
-                                '${a.type.label} · ${a.currency}${a.type == AccountType.credit ? ' · jatuh tempo tgl ${a.dueDay}' : ''}',
-                                style: TextStyle(
-                                    fontSize: 12, color: C.muted)),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(money(store.balanceOf(a.id), a.currency),
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  color: store.balanceOf(a.id) < 0
-                                      ? C.redDark
-                                      : C.carbon)),
-                          if (a.currency != 'IDR')
-                            Text(
-                                '≈ ${money(store.toIDR(store.balanceOf(a.id), a.currency))}',
-                                style: TextStyle(
-                                    fontSize: 11, color: C.muted)),
-                        ],
-                      ),
-                    ],
-                  ),
+          buildDefaultDragHandles: false,
+          header: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppCard(
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: Text('Total saldo bersih',
+                            style: TextStyle(color: C.muted))),
+                    Text(money(store.netWorthIDR),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 16)),
+                  ],
                 ),
               ),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 10, 4, 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.swap_vert_rounded, size: 16, color: C.muted),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                          'Urutkan: tahan lama kartu, atau tarik ikon ⠿ di kanan. Urutan ini dipakai di Beranda dan pilihan akun.',
+                          style: TextStyle(fontSize: 12, color: C.muted)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          itemCount: store.accounts.length,
+          onReorder: store.moveAccount,
+          proxyDecorator: (child, _, __) => Material(
+            color: Colors.transparent,
+            elevation: 6,
+            shadowColor: Colors.black38,
+            borderRadius: BorderRadius.circular(24),
+            child: child,
+          ),
+          itemBuilder: (context, i) => _item(context, store.accounts[i], i),
         ),
       ),
     );
@@ -7839,6 +8067,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
   late int _color;
   late int _dueDay;
   String? _error;
+  bool _balTouched = false;
 
   bool get _editing => widget.account != null;
 
@@ -7852,9 +8081,10 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     _dueDay = a?.dueDay ?? 25;
     _nameCtrl.text = a?.name ?? '';
     if (a != null) {
-      final initial =
-          a.type == AccountType.credit ? -a.initialBalance : a.initialBalance;
-      if (initial != 0) _balanceCtrl.text = amountToInput(initial.abs(), _currency);
+      // Saat edit, yang ditampilkan saldo SEKARANG (seperti Money Manager).
+      final cur = store.balanceOf(a.id);
+      final shown = a.type == AccountType.credit ? -cur : cur;
+      if (shown != 0) _balanceCtrl.text = amountToInput(shown.abs(), _currency);
       if (a.creditLimit > 0) {
         _limitCtrl.text = amountToInput(a.creditLimit, _currency);
       }
@@ -7869,38 +8099,123 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     super.dispose();
   }
 
-  void _save() {
+  /// 'tx' = catat sebagai transaksi, 'initial' = ubah saldo awal saja.
+  Future<String?> _askAdjust(double from, double to) {
+    final cur = _currency;
+    final diff = to - from;
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Saldo berubah',
+            style: TextStyle(fontWeight: FontWeight.w900)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${money(from, cur)}  →  ${money(to, cur)}',
+                style: TextStyle(fontWeight: FontWeight.w800, color: C.carbon)),
+            Text(
+                'Selisih ${diff > 0 ? '+' : '-'}${money(diff.abs(), cur)}',
+                style: TextStyle(
+                    color: diff > 0 ? C.income : C.redDark,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            Text(
+                'Mau dicatat sebagai transaksi "Penyesuaian saldo" (masuk Riwayat & Statistik), atau cukup ubah saldo awal tanpa transaksi?',
+                style: TextStyle(fontSize: 13, color: C.muted)),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, 'initial'),
+              child: const Text('Ubah saldo awal')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, 'tx'),
+            style: FilledButton.styleFrom(
+                backgroundColor: C.accentDark,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18))),
+            child: const Text('Catat transaksi'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _save() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
       setState(() => _error = 'Nama akun wajib diisi.');
       return;
     }
     final dec = hasDecimals(_currency);
-    final bal = parseAmount(_balanceCtrl.text, decimals: dec);
+    final input = parseAmount(_balanceCtrl.text, decimals: dec);
     final isCredit = _type == AccountType.credit;
-    store.upsertAccount(Account(
-      id: widget.account?.id ?? store.newId(),
+    final old = widget.account;
+    var initial = isCredit ? -input : input;
+    double adjust = 0;
+    if (old != null) {
+      initial = old.initialBalance;
+      if (_balTouched) {
+        final curBal = store.balanceOf(old.id);
+        final newBal = isCredit ? -input : input;
+        final diff = newBal - curBal;
+        if (diff.abs() >= 0.0005) {
+          final choice = await _askAdjust(curBal, newBal);
+          if (choice == null || !mounted) return;
+          if (choice == 'initial') {
+            initial = old.initialBalance + diff;
+          } else {
+            adjust = diff;
+          }
+        }
+      }
+    }
+    final acc = Account(
+      id: old?.id ?? store.newId(),
       name: name,
       type: _type,
       currency: _currency,
-      initialBalance: isCredit ? -bal : bal,
+      initialBalance: initial,
       color: _color,
       creditLimit: isCredit ? parseAmount(_limitCtrl.text, decimals: dec) : 0,
       dueDay: _dueDay,
-    ));
+    );
+    store.upsertAccount(acc);
+    if (adjust != 0) store.addBalanceAdjustment(acc, adjust);
+    if (!mounted) return;
     Navigator.of(context).pop();
     snack(context, _editing ? 'Akun diperbarui' : 'Akun "$name" ditambahkan');
   }
 
   Future<void> _delete() async {
     final a = widget.account!;
+    final bal = store.balanceOf(a.id);
+    final txCount = store.transactions
+        .where((t) => t.accountId == a.id || t.toAccountId == a.id)
+        .length;
+    final inUse = store.accountInUse(a.id);
+    final notes = <String>[
+      if (bal.abs() >= 0.0005)
+        'Saldo sekarang ${money(bal, a.currency)}. Saldo ini ikut hilang dari total saldo.',
+      if (txCount > 0)
+        '$txCount transaksi di akun ini (termasuk transfer) ikut terhapus.',
+      if (inUse && txCount == 0)
+        'Transaksi berulang/template yang memakai akun ini ikut terhapus.',
+    ];
     final ok = await confirmDialog(context,
-        title: 'Hapus akun?',
-        message: 'Akun "${a.name}" akan dihapus permanen.',
-        confirmLabel: 'Hapus',
+        title: 'Hapus akun "${a.name}"?',
+        message: notes.isEmpty
+            ? 'Akun kosong, aman dihapus.'
+            : '${notes.join('\n\n')}\n\nTidak bisa dibatalkan. Salin backup dulu kalau ragu.',
+        confirmLabel: txCount > 0 ? 'Hapus semua' : 'Hapus',
         destructive: true);
     if (!ok || !mounted) return;
-    final err = store.deleteAccount(a.id);
+    final err = store.deleteAccountWithData(a.id);
     if (err != null) {
       setState(() => _error = err);
       return;
@@ -7979,13 +8294,18 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
             controller: _balanceCtrl,
             keyboardType: TextInputType.numberWithOptions(decimal: dec),
             inputFormatters: [AmountFormatter(decimals: dec)],
+            onChanged: (_) => _balTouched = true,
             decoration: fieldDeco(
-                isCredit ? 'Tagihan awal (opsional)' : 'Saldo awal',
+                _editing
+                    ? (isCredit ? 'Tagihan sekarang' : 'Saldo sekarang')
+                    : (isCredit ? 'Tagihan awal (opsional)' : 'Saldo awal'),
                 icon: Icons.savings_rounded,
                 prefix: '${currencySymbol(_currency)} ',
-                helper: isCredit
-                    ? 'Isi kalau kartu sudah punya tagihan sebelum mulai dicatat.'
-                    : 'Saldo saat akun mulai dicatat. Saldo berjalan dihitung otomatis.'),
+                helper: _editing
+                    ? 'Ubah kalau beda dengan saldo asli. Nanti ditanya: catat sebagai transaksi atau ubah saldo awal saja.'
+                    : isCredit
+                        ? 'Isi kalau kartu sudah punya tagihan sebelum mulai dicatat.'
+                        : 'Saldo saat akun mulai dicatat. Saldo berjalan dihitung otomatis.'),
           ),
           if (isCredit) ...[
             const SizedBox(height: 12),
