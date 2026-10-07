@@ -1,0 +1,71 @@
+name: Build prototipe web (iPhone)
+
+# Versi web Infinity untuk dicoba di iPhone/iPad lewat browser.
+# Fitur khusus Android (catat otomatis, widget, pintasan notifikasi) tidak ada.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - '.github/workflows/build-web.yml'
+      - 'tool/web_prototype.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-web
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Siapkan proyek web + paket
+        run: |
+          flutter create --org com.jose --project-name infinity --platforms web .
+          rm -rf test
+          flutter pub add intl flutter_secure_storage local_auth flutter_local_notifications timezone home_widget image_picker path_provider archive
+
+      - name: Build web
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter build web --release --no-web-resources-cdn \
+            --dart-define=APP_VERSION=web 2>&1 | tee "$RUNNER_TEMP/build.txt"
+          python3 tool/web_prototype.py build/web
+          cd build/web && zip -qr "$GITHUB_WORKSPACE/infinity-web.zip" .
+
+      - name: Terbitkan di Releases (tag web-prototype)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: web-prototype
+          name: Infinity prototipe web (iPhone)
+          prerelease: true
+          body: |
+            Versi web Infinity untuk dicoba di iPhone lewat browser (Safari > Bagikan > Tambah ke Layar Utama).
+            Fitur khusus Android (catat otomatis dari notifikasi, widget, pintasan notifikasi, backup ke Download) tidak tersedia.
+            Commit ${{ github.sha }}
+          files: infinity-web.zip
+          overwrite_files: true
+
+      - name: Simpan log kegagalan
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/logs"
+          cp "$RUNNER_TEMP"/*.txt "$RUNNER_TEMP/logs/" 2>/dev/null || true
+          cd "$RUNNER_TEMP/logs"
+          git init -q
+          git config user.name ci && git config user.email ci@localhost
+          echo "web run ${{ github.run_number }} commit ${{ github.sha }}" > info.txt
+          git add -A && git commit -qm "log web run ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:ci-logs
