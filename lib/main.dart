@@ -10188,11 +10188,10 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
       _error = null;
     });
     try {
-      final res = await FilePicker
-          .pickFiles(type: FileType.any, withData: true);
-      final f = res?.files.single;
+      // file_picker 13: API statis, isi file dibaca lewat readAsBytes().
+      final f = await FilePicker.pickFile(type: FileType.any);
       if (f == null) return;
-      final bytes = f.bytes ?? await File(f.path!).readAsBytes();
+      final bytes = await f.readAsBytes();
       final rows = parseMoneyManagerXlsx(bytes);
       if (rows.isEmpty) {
         throw const FormatException('Tidak ada transaksi di file ini.');
