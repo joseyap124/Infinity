@@ -1992,13 +1992,13 @@ class AppStore extends ChangeNotifier {
     final query = q.trim().toLowerCase();
     if (query.isEmpty) return const [];
     final score = <String, (int, DateTime)>{};
-    for (final (text, when) in items) {
+    for (final (text, at) in items) {
       final t = text.trim();
       if (t.isEmpty || t.toLowerCase() == query) continue;
       final prev = score[t];
       score[t] = (
         (prev?.$1 ?? 0) + 1,
-        prev == null || when.isAfter(prev.$2) ? when : prev.$2,
+        prev == null || at.isAfter(prev.$2) ? at : prev.$2,
       );
     }
     final starts = <String>[], contains = <String>[];
