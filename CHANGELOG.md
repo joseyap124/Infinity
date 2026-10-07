@@ -9,7 +9,13 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 - **Foto struk di transaksi**: di form catat ada baris *Foto*. Ambil dari kamera atau galeri, bisa lebih dari satu. Foto disimpan di folder pribadi Infinity (offline), tampil di detail transaksi dan bisa diperbesar.
 - **Backup terenkripsi**: atur *kata sandi backup* di Backup & Pulihkan. Backup mingguan dan *Backup sekarang* lalu disimpan sebagai file `.infb` yang terkunci (AES-256) dan ikut menyimpan foto struk.
 - **Pulihkan dari file**: pilih file `.infb` (diminta kata sandi) atau `.json` lama langsung dari HP, tanpa salin-tempel.
+- **Saldo minus** bisa diisi saat edit akun (centang *Saldo minus* / *Kelebihan bayar*).
 - **Tes otomatis** untuk hitungan saldo, transfer beda mata uang, penyesuaian saldo, urutan akun, teks cepat, saran ketikan, import Money Manager, dan backup terenkripsi. APK baru hanya terbit kalau semua tes lolos.
+
+### Diperbaiki
+- **Saldo berubah lagi setelah diubah manual**: notifikasi bank/e-wallet yang terjadi *sebelum* saldo diubah manual tidak lagi dicatat otomatis (saldo yang kamu ketik sudah termasuk transaksi itu). Notifikasi seperti itu masuk ke kartu *Dari Notifikasi* untuk dicek.
+- **Saldo minus terbaca plus** saat membuka edit akun yang saldonya minus, sehingga menyimpan bisa mengubah saldo. Sekarang tanda minus dipertahankan.
+- Notifikasi **Urungkan** setelah menghapus sekarang hilang sendiri dalam 3 detik.
 
 ## v1.3.2 (8 Okt 2026)
 

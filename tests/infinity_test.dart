@@ -92,6 +92,39 @@ void main() {
     });
   });
 
+  group('Catat otomatis', () {
+    AppStore setup() {
+      final s = storeWith([acc('bca', initial: 1000000)]);
+      s.categories = [
+        TxCategory(id: 'lain', name: 'Lain lain', type: TxType.expense, icon: 'other', color: 0),
+      ];
+      s.settings.captureMode = 'auto';
+      return s;
+    }
+
+    Map<String, dynamic> notif(DateTime at) => {
+          'pkg': 'com.bca.mybca.omni.android',
+          'title': 'myBCA',
+          'text': 'Transfer berhasil sebesar Rp 50.000,00',
+          'time': at.millisecondsSinceEpoch,
+        };
+
+    test('notifikasi baru langsung dicatat', () {
+      final s = setup();
+      expect(s.ingestCaptured([notif(DateTime.now())]), 1);
+      expect(s.balanceOf('bca'), 950000);
+    });
+
+    test('notifikasi sebelum saldo diubah manual tidak mengubah saldo', () {
+      final s = setup();
+      final at = DateTime.now().subtract(const Duration(minutes: 5));
+      s.settings.balanceSetAt['bca'] = DateTime.now().toIso8601String();
+      expect(s.ingestCaptured([notif(at)]), 0);
+      expect(s.balanceOf('bca'), 1000000);
+      expect(s.pendingCaptures, hasLength(1));
+    });
+  });
+
   group('Teks cepat', () {
     const cases = {
       '25rb kopi': 25000.0,

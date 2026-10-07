@@ -831,6 +831,11 @@ class AppSettings {
   /// Akun yang otomatis terpilih saat mencatat transaksi baru.
   String? defaultAccountId;
 
+  /// Kapan saldo tiap akun terakhir diubah manual (id akun -> waktu).
+  /// Notifikasi bank yang lebih lama dari waktu ini tidak dicatat otomatis,
+  /// karena saldo yang diketik user sudah termasuk transaksi itu.
+  Map<String, String> balanceSetAt = {};
+
   /// Backup JSON otomatis ke Download/Infinity tiap 7 hari.
   bool autoBackup = true;
   DateTime? lastAutoBackup;
@@ -873,6 +878,7 @@ class AppSettings {
         'themeMode': themeMode,
         'accentIndex': accentIndex,
         'defaultAccountId': defaultAccountId,
+        'balanceSetAt': balanceSetAt,
         'autoBackup': autoBackup,
         'lastAutoBackup': lastAutoBackup?.toIso8601String(),
         'displayName': displayName,
@@ -919,6 +925,13 @@ class AppSettings {
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
     s.autoBackup = j['autoBackup'] != false;
     s.defaultAccountId = _s(j['defaultAccountId']);
+    final bsa = j['balanceSetAt'];
+    if (bsa is Map) {
+      s.balanceSetAt = {
+        for (final e in bsa.entries)
+          if (e.value is String) e.key.toString(): e.value as String
+      };
+    }
     s.lastAutoBackup = DateTime.tryParse(_s(j['lastAutoBackup']) ?? '');
     final dn = _s(j['displayName'])?.trim();
     s.displayName = (dn == null || dn.isEmpty) ? 'Infinity' : dn;
@@ -2203,10 +2216,15 @@ class AppStore extends ChangeNotifier {
               (t.amount - amount).abs() < 0.5 &&
               t.date.difference(time).inMinutes.abs() <= 10);
 
+      final setAt = accountId == null
+          ? null
+          : DateTime.tryParse(settings.balanceSetAt[accountId] ?? '');
+      final beforeManualBalance = setAt != null && time.isBefore(setAt);
       if (settings.captureMode == 'auto' &&
           accountId != null &&
           categoryId != null &&
-          !looksDuplicate) {
+          !looksDuplicate &&
+          !beforeManualBalance) {
         transactions.add(Transaction(
           id: 'ntf_${time.millisecondsSinceEpoch}_${newId()}',
           title: p.title ?? 'Transaksi ${appLabelForPackage(pkg)}',
@@ -2973,7 +2991,13 @@ class SplashScreen extends StatelessWidget {
 void snack(BuildContext context, String message, {SnackBarAction? action}) {
   final m = ScaffoldMessenger.of(context);
   m.hideCurrentSnackBar();
-  m.showSnackBar(SnackBar(content: Text(message), action: action));
+  m.showSnackBar(SnackBar(
+    content: Text(message),
+    action: action,
+    // Snackbar bertombol tetap hilang sendiri (tidak menetap).
+    persist: false,
+    duration: Duration(seconds: action == null ? 3 : 4),
+  ));
 }
 
 Future<bool> confirmDialog(
@@ -4087,7 +4111,8 @@ void deleteWithUndo(BuildContext context, AppStore store, Transaction t) {
   final m = ScaffoldMessenger.of(context);
   m.hideCurrentSnackBar();
   m.showSnackBar(SnackBar(
-    duration: const Duration(seconds: 5),
+    duration: const Duration(seconds: 3),
+    persist: false,
     behavior: SnackBarBehavior.floating,
     backgroundColor: C.toast,
     margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -8697,6 +8722,9 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
   String? _error;
   bool _balTouched = false;
 
+  /// Saldo minus (rekening tekor, atau kartu kredit kelebihan bayar).
+  bool _negative = false;
+
   bool get _editing => widget.account != null;
 
   @override
@@ -8712,6 +8740,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
       // Saat edit, yang ditampilkan saldo SEKARANG (seperti Money Manager).
       final cur = store.balanceOf(a.id);
       final shown = a.type == AccountType.credit ? -cur : cur;
+      _negative = shown < 0;
       if (shown != 0) _balanceCtrl.text = amountToInput(shown.abs(), _currency);
       if (a.creditLimit > 0) {
         _limitCtrl.text = amountToInput(a.creditLimit, _currency);
@@ -8793,7 +8822,9 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
       return;
     }
     final dec = hasDecimals(_currency);
-    final input = parseAmount(_balanceCtrl.text, decimals: dec);
+    final raw = parseAmount(_balanceCtrl.text, decimals: dec);
+    // Kolom hanya menerima angka positif; tanda minus diatur saklar terpisah.
+    final input = _negative ? -raw : raw;
     final isCredit = _type == AccountType.credit;
     final old = widget.account;
     var initial = isCredit ? -input : input;
@@ -8827,6 +8858,11 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     );
     store.upsertAccount(acc);
     if (adjust != 0) store.addBalanceAdjustment(acc, adjust);
+    if (old != null && _balTouched) {
+      // Notifikasi bank sebelum saat ini sudah termasuk di saldo yang diketik.
+      store.updateSettings((x) => x.balanceSetAt[acc.id] =
+          DateTime.now().toIso8601String());
+    }
     if (!mounted) return;
     Navigator.of(context).pop();
     snack(context, _editing ? 'Akun diperbarui' : 'Akun "$name" ditambahkan');
@@ -8952,6 +8988,24 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
                 onPressed: () => _calc(_balanceCtrl, balance: true),
               ),
             ),
+          ),
+          Row(
+            children: [
+              Checkbox(
+                value: _negative,
+                onChanged: (v) => setState(() {
+                  _negative = v ?? false;
+                  _balTouched = true;
+                }),
+              ),
+              Expanded(
+                child: Text(
+                    isCredit
+                        ? 'Kelebihan bayar (tagihan minus)'
+                        : 'Saldo minus (rekening tekor)',
+                    style: TextStyle(fontSize: 13, color: C.muted)),
+              ),
+            ],
           ),
           if (isCredit) ...[
             const SizedBox(height: 12),
