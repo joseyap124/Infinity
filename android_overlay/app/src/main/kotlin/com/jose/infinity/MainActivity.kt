@@ -1,9 +1,13 @@
 package com.jose.infinity
 
 import android.content.ComponentName
+import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -51,6 +55,11 @@ class MainActivity : FlutterFragmentActivity() {
                         result.success(null)
                     }
                     "fetchCaptured" -> result.success(CaptureStore.drain(this))
+                    "saveDownload" -> {
+                        val name = call.argument<String>("name") ?: "infinity-backup.json"
+                        val text = call.argument<String>("text") ?: ""
+                        result.success(saveDownload(name, text))
+                    }
                     "showQuickBar" -> {
                         QuickBar.show(this)
                         result.success(null)
@@ -62,6 +71,31 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    /** Simpan backup ke Download/Infinity (Android 10+) atau folder app (lama). */
+    private fun saveDownload(name: String, text: String): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Infinity")
+                }
+                val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                    ?: return false
+                contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+                    ?: return false
+                true
+            } else {
+                val dir = java.io.File(getExternalFilesDir(null), "backup")
+                dir.mkdirs()
+                java.io.File(dir, name).writeText(text)
+                true
+            }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private fun isListenerEnabled(): Boolean {

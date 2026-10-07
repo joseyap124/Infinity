@@ -800,6 +800,10 @@ class AppSettings {
   String themeMode = 'system';
   int accentIndex = 0;
 
+  /// Backup JSON otomatis ke Download/Infinity tiap 7 hari.
+  bool autoBackup = true;
+  DateTime? lastAutoBackup;
+
   // Header Beranda
   String displayName = 'Infinity';
   String? avatarPath;
@@ -837,6 +841,8 @@ class AppSettings {
         'hideBalance': hideBalance,
         'themeMode': themeMode,
         'accentIndex': accentIndex,
+        'autoBackup': autoBackup,
+        'lastAutoBackup': lastAutoBackup?.toIso8601String(),
         'displayName': displayName,
         'avatarPath': avatarPath,
         'greetingMode': greetingMode,
@@ -879,6 +885,8 @@ class AppSettings {
     final tm = _s(j['themeMode']);
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
+    s.autoBackup = j['autoBackup'] != false;
+    s.lastAutoBackup = DateTime.tryParse(_s(j['lastAutoBackup']) ?? '');
     final dn = _s(j['displayName'])?.trim();
     s.displayName = (dn == null || dn.isEmpty) ? 'Infinity' : dn;
     s.avatarPath = _s(j['avatarPath']);
@@ -976,6 +984,17 @@ class HomeWidgetBridge {
 /// Kalau kode native belum dipasang (misalnya di DartPad), semua jadi no-op.
 class NativeBridge {
   static const MethodChannel _ch = MethodChannel('infinity/native');
+
+  /// Simpan teks ke Download/Infinity (Android 10+). False kalau gagal.
+  static Future<bool> saveDownload(String name, String text) async {
+    try {
+      return (await _ch.invokeMethod<bool>(
+              'saveDownload', {'name': name, 'text': text})) ??
+          false;
+    } catch (_) {
+      return false;
+    }
+  }
 
   /// Notifikasi pintasan 4 ikon (native, gaya Money Manager).
   static Future<void> showQuickBar() async {
@@ -1249,6 +1268,8 @@ class AppStore extends ChangeNotifier {
     settings.secureScreen = old.secureScreen;
     settings.themeMode = old.themeMode;
     settings.accentIndex = old.accentIndex;
+    settings.autoBackup = old.autoBackup;
+    settings.lastAutoBackup = old.lastAutoBackup;
     settings.displayName = old.displayName;
     settings.avatarPath = old.avatarPath;
     settings.greetingMode = old.greetingMode;
@@ -1907,6 +1928,22 @@ class AppStore extends ChangeNotifier {
     return t;
   }
 
+  /// Backup ke folder Download. [force] = abaikan jadwal mingguan.
+  Future<bool> backupToDownloads({bool force = false}) async {
+    if (!force) {
+      if (!settings.autoBackup || transactions.isEmpty) return false;
+      final last = settings.lastAutoBackup;
+      if (last != null && DateTime.now().difference(last).inDays < 7) {
+        return false;
+      }
+    }
+    final name =
+        'infinity-backup-${DateFormat('yyyy-MM-dd_HHmm').format(DateTime.now())}.json';
+    final ok = await NativeBridge.saveDownload(name, exportJson());
+    if (ok) updateSettings((x) => x.lastAutoBackup = DateTime.now());
+    return ok;
+  }
+
   TxDraft draftFromCapture(CapturedNotif c) {
     final p = parseReceipt(c.fullText, this);
     final type = p.type ?? TxType.expense;
@@ -2411,6 +2448,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     _scheduleNotifications();
     unawaited(NativeBridge.setSecure(store.settings.secureScreen));
     await _ingestCaptures(quiet: true);
+    unawaited(store.backupToDownloads());
     // Saat app terbuka, cek notifikasi bank/e-wallet baru setiap 20 detik.
     _capturePoll = Timer.periodic(
         const Duration(seconds: 20), (_) => _ingestCaptures());
@@ -2583,6 +2621,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
       _quickShown = null; // tampilkan ulang kalau sempat digeser hilang
       _scheduleNotifications();
       unawaited(_ingestCaptures());
+      unawaited(store.backupToDownloads());
       if (store.settings.pin != null &&
           pausedAt != null &&
           DateTime.now().difference(pausedAt).inSeconds >= 30) {
@@ -9530,6 +9569,7 @@ class _BackupPageState extends State<BackupPage> {
 
   @override
   void dispose() {
+    store.removeListener(_refresh);
     _importCtrl.dispose();
     super.dispose();
   }
@@ -9585,6 +9625,16 @@ class _BackupPageState extends State<BackupPage> {
   Future<void> _clear() => confirmResetAll(context, store);
 
   @override
+  void initState() {
+    super.initState();
+    store.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: pageBar('Backup & Pulihkan'),
@@ -9605,6 +9655,50 @@ class _BackupPageState extends State<BackupPage> {
                     label: 'Salin backup',
                     icon: Icons.copy_rounded,
                     onPressed: _copy),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SectionTitle('Backup ke folder Download'),
+                const SizedBox(height: 4),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: store.settings.autoBackup,
+                  onChanged: (v) =>
+                      store.updateSettings((x) => x.autoBackup = v),
+                  title: const Text('Otomatis tiap minggu',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: Text(
+                      store.settings.lastAutoBackup == null
+                          ? 'Belum pernah'
+                          : 'Terakhir: ${DateFormat('d MMM yyyy, HH.mm', 'id_ID').format(store.settings.lastAutoBackup!)}',
+                      style: TextStyle(fontSize: 12.5, color: C.muted)),
+                ),
+                Text(
+                    'File JSON disimpan di Download/Infinity. Tetap ada walau app di-uninstall. Isinya tidak terenkripsi (tanpa PIN), jadi jangan dibagikan. Untuk memulihkan: buka file, salin isinya, tempel di kolom Pulihkan.',
+                    style: TextStyle(fontSize: 12.5, color: C.muted)),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final ok = await store.backupToDownloads(force: true);
+                    if (!context.mounted) return;
+                    snack(
+                        context,
+                        ok
+                            ? 'Backup tersimpan di Download/Infinity ✅'
+                            : 'Gagal menyimpan ke Download.');
+                  },
+                  icon: const Icon(Icons.download_rounded),
+                  label: const Text('Backup sekarang'),
+                  style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20))),
+                ),
               ],
             ),
           ),
