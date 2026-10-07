@@ -1986,6 +1986,57 @@ class AppStore extends ChangeNotifier {
     return accounts.first.id;
   }
 
+  /// Saran teks dari yang pernah diketik: yang diawali kata ketikan dulu,
+  /// lalu yang memuatnya; urut dari yang paling sering & terbaru.
+  List<String> _suggest(Iterable<(String, DateTime)> items, String q) {
+    final query = q.trim().toLowerCase();
+    if (query.isEmpty) return const [];
+    final score = <String, (int, DateTime)>{};
+    for (final (text, when) in items) {
+      final t = text.trim();
+      if (t.isEmpty || t.toLowerCase() == query) continue;
+      final prev = score[t];
+      score[t] = (
+        (prev?.$1 ?? 0) + 1,
+        prev == null || when.isAfter(prev.$2) ? when : prev.$2,
+      );
+    }
+    final starts = <String>[], contains = <String>[];
+    for (final t in score.keys) {
+      final l = t.toLowerCase();
+      if (l.startsWith(query) || l.split(' ').any((w) => w.startsWith(query))) {
+        starts.add(t);
+      } else if (l.contains(query)) {
+        contains.add(t);
+      }
+    }
+    int byUse(String a, String b) {
+      final c = score[b]!.$1.compareTo(score[a]!.$1);
+      return c != 0 ? c : score[b]!.$2.compareTo(score[a]!.$2);
+    }
+    starts.sort(byUse);
+    contains.sort(byUse);
+    return [...starts, ...contains].take(6).toList();
+  }
+
+  List<String> suggestTitles(String q, TxType type) => _suggest(
+      transactions
+          .where((t) => t.type == type)
+          .map((t) => (t.title, t.date)),
+      q);
+
+  List<String> suggestNotes(String q) =>
+      _suggest(transactions.map((t) => (t.note, t.date)), q);
+
+  Transaction? lastWithTitle(String title, TxType type) {
+    Transaction? best;
+    for (final t in transactions) {
+      if (t.type != type || t.title.trim() != title.trim()) continue;
+      if (best == null || t.date.isAfter(best.date)) best = t;
+    }
+    return best;
+  }
+
   /// Pindahkan akun (ReorderableListView: newIndex dihitung sebelum hapus).
   void moveAccount(int oldIndex, int newIndex) {
     if (oldIndex < 0 || oldIndex >= accounts.length) return;
@@ -6464,6 +6515,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
   final _toAmountCtrl = TextEditingController();
   final _titleCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
+  final _titleFocus = FocusNode();
+  final _noteFocus = FocusNode();
 
   String get _fromCur => store.currencyOf(_fromId);
   String get _toCur => store.currencyOf(_toId);
@@ -6504,6 +6557,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
     _toAmountCtrl.dispose();
     _titleCtrl.dispose();
     _noteCtrl.dispose();
+    _titleFocus.dispose();
+    _noteFocus.dispose();
     super.dispose();
   }
 
@@ -6595,6 +6650,21 @@ class _TxFormSheetState extends State<TxFormSheet> {
         _syncToAmount();
       }
     });
+  }
+
+  /// Pilih saran Catatan: kategori (dan akun) ikut diisi dari transaksi
+  /// terakhir dengan catatan yang sama, seperti Money Manager.
+  void _pickedTitle(String title) {
+    final last = store.lastWithTitle(title, _type);
+    if (last == null) return;
+    setState(() {
+      final cat = last.categoryId;
+      if (cat != null && store.categoryById(cat) != null) _categoryId = cat;
+      _error = null;
+    });
+    if (!widget.isEditing && store.accountById(last.accountId) != null) {
+      _selectFrom(last.accountId);
+    }
   }
 
   /// Isi form dari teks struk/notifikasi yang disalin user.
@@ -7012,8 +7082,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
             FormRow(
               label: mode == FormMode.template ? 'Nama' : 'Catatan',
               accent: accent,
-              child: TextField(
+              child: SuggestField(
                 controller: _titleCtrl,
+                focusNode: _titleFocus,
+                suggest: (q) => store.suggestTitles(q, _type),
+                onPicked: _pickedTitle,
                 textCapitalization: TextCapitalization.sentences,
                 style: TextStyle(
                     fontSize: 15,
@@ -7030,8 +7103,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
             FormRow(
               label: 'Deskripsi',
               accent: accent,
-              child: TextField(
+              child: SuggestField(
                 controller: _noteCtrl,
+                focusNode: _noteFocus,
+                suggest: store.suggestNotes,
                 maxLength: 120,
                 minLines: 1,
                 maxLines: 3,
@@ -7144,6 +7219,100 @@ class _TxFormSheetState extends State<TxFormSheet> {
 }
 
 // --------------------------------------------------------------- baris form
+
+/// TextField dengan saran dari teks yang pernah diketik (ketik "pot" ->
+/// "Potong rambut").
+class SuggestField extends StatelessWidget {
+  const SuggestField({
+    super.key,
+    required this.controller,
+    required this.focusNode,
+    required this.suggest,
+    this.onPicked,
+    this.decoration = const InputDecoration(),
+    this.style,
+    this.textCapitalization = TextCapitalization.none,
+    this.maxLength,
+    this.minLines,
+    this.maxLines = 1,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final List<String> Function(String) suggest;
+  final ValueChanged<String>? onPicked;
+  final InputDecoration decoration;
+  final TextStyle? style;
+  final TextCapitalization textCapitalization;
+  final int? maxLength;
+  final int? minLines;
+  final int? maxLines;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, box) => RawAutocomplete<String>(
+        textEditingController: controller,
+        focusNode: focusNode,
+        optionsBuilder: (v) => suggest(v.text),
+        onSelected: (v) => onPicked?.call(v),
+        fieldViewBuilder: (context, ctrl, focus, onSubmit) => TextField(
+          controller: ctrl,
+          focusNode: focus,
+          maxLength: maxLength,
+          minLines: minLines,
+          maxLines: maxLines,
+          textCapitalization: textCapitalization,
+          style: style,
+          decoration: decoration,
+          onSubmitted: (_) => onSubmit(),
+        ),
+        optionsViewBuilder: (context, onSelected, options) => Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            color: C.surface,
+            elevation: 6,
+            shadowColor: Colors.black26,
+            borderRadius: BorderRadius.circular(16),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                  maxHeight: 230,
+                  maxWidth: box.maxWidth.clamp(180.0, 420.0).toDouble()),
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                shrinkWrap: true,
+                children: [
+                  for (final o in options)
+                    InkWell(
+                      onTap: () => onSelected(o),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 11),
+                        child: Row(
+                          children: [
+                            Icon(Icons.history_rounded,
+                                size: 16, color: C.muted),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(o,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      fontSize: 14, color: C.carbon)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class FormRow extends StatelessWidget {
   const FormRow({

@@ -6,6 +6,11 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya
 
 ### Ditambah
+- **Saran dari ketikan sebelumnya**: di kolom *Catatan* dan *Deskripsi*, ketik beberapa huruf (mis. "pot") dan muncul yang pernah kamu ketik ("Potong rambut"), diurutkan dari yang paling sering dipakai. Memilih saran Catatan juga mengisi kategori dan akun dari transaksi terakhir dengan catatan yang sama.
+
+## v1.2 (7 Okt 2026)
+
+### Ditambah
 - **Kalkulator di Akun & Dompet**: kolom *Saldo sekarang* / *Tagihan* dan *Limit kartu* punya tombol kalkulator, sama seperti saat mencatat transaksi. Hasil hitungan langsung masuk ke kolom, dan kalau saldo berubah tetap ditanya mau dicatat sebagai transaksi atau ubah saldo awal saja.
 
 ## v1.1 (7 Okt 2026)
