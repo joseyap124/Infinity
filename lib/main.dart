@@ -737,6 +737,8 @@ class AppSettings {
   bool notifCredit = true;
   bool notifBudget = true;
   bool dailyReminder = true;
+  /// Notifikasi menetap berisi tombol pintasan (seperti Money Manager).
+  bool quickBar = true;
   int reminderHour = 20;
   int reminderMinute = 0;
 
@@ -757,6 +759,7 @@ class AppSettings {
         'notifCredit': notifCredit,
         'notifBudget': notifBudget,
         'dailyReminder': dailyReminder,
+        'quickBar': quickBar,
         'reminderHour': reminderHour,
         'reminderMinute': reminderMinute,
       };
@@ -793,6 +796,7 @@ class AppSettings {
     s.notifCredit = j['notifCredit'] != false;
     s.notifBudget = j['notifBudget'] != false;
     s.dailyReminder = j['dailyReminder'] != false;
+    s.quickBar = j['quickBar'] != false;
     s.reminderHour = _i(j['reminderHour'], 20).clamp(0, 23);
     s.reminderMinute = _i(j['reminderMinute'], 0).clamp(0, 59);
     return s;
@@ -1905,6 +1909,12 @@ class Notifier {
     ),
   );
 
+  /// Tombol di notifikasi pintasan: 'qb_add' | 'qb_template' | 'qb_history'.
+  final StreamController<String> _actions = StreamController<String>.broadcast();
+  Stream<String> get actions => _actions.stream;
+
+  static const int quickBarId = 900001;
+
   Future<void> init() async {
     try {
       tzdata.initializeTimeZones();
@@ -1912,11 +1922,70 @@ class Notifier {
         settings: const fln.InitializationSettings(
           android: fln.AndroidInitializationSettings('@mipmap/ic_launcher'),
         ),
+        onDidReceiveNotificationResponse: (fln.NotificationResponse r) {
+          final a = r.actionId;
+          if (a != null && a.startsWith('qb_')) _actions.add(a);
+        },
       );
       _ready = true;
     } catch (_) {
       _ready = false;
     }
+  }
+
+  /// Tombol pintasan yang membuka app dari kondisi tertutup.
+  Future<String?> launchAction() async {
+    if (!_ready) return null;
+    try {
+      final d = await _plugin.getNotificationAppLaunchDetails();
+      if (d == null || !d.didNotificationLaunchApp) return null;
+      final a = d.notificationResponse?.actionId;
+      return (a != null && a.startsWith('qb_')) ? a : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> showQuickBar() async {
+    if (!_ready) return;
+    try {
+      await _plugin.show(
+        id: quickBarId,
+        title: 'Infinity',
+        body: 'Catat cepat tanpa buka menu',
+        notificationDetails: const fln.NotificationDetails(
+          android: fln.AndroidNotificationDetails(
+            'infinity_quickbar',
+            'Pintasan Infinity',
+            channelDescription: 'Tombol catat cepat di panel notifikasi',
+            importance: fln.Importance.low,
+            priority: fln.Priority.low,
+            ongoing: true,
+            autoCancel: false,
+            showWhen: false,
+            onlyAlertOnce: true,
+            playSound: false,
+            enableVibration: false,
+            visibility: fln.NotificationVisibility.public,
+            actions: <fln.AndroidNotificationAction>[
+              fln.AndroidNotificationAction('qb_add', '＋ Catat',
+                  showsUserInterface: true, cancelNotification: false),
+              fln.AndroidNotificationAction('qb_template', 'Template',
+                  showsUserInterface: true, cancelNotification: false),
+              fln.AndroidNotificationAction('qb_history', 'Riwayat',
+                  showsUserInterface: true, cancelNotification: false),
+            ],
+          ),
+        ),
+      );
+    } catch (_) {}
+  }
+
+  Future<void> hideQuickBar() async {
+    if (!_ready) return;
+    try {
+      await _plugin.cancel(id: quickBarId);
+    } catch (_) {}
   }
 
   Future<bool> requestPermission() async {
@@ -2011,6 +2080,9 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   Timer? _capturePoll;
   StreamSubscription<Uri?>? _widgetSub;
   TxType? _pendingWidgetAction;
+  String? _pendingQuick;
+  StreamSubscription<String>? _quickSub;
+  bool? _quickShown;
 
   @override
   void initState() {
@@ -2037,6 +2109,10 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     if (!mounted) return;
     setState(() => _locked = store.settings.pin != null);
     _handleWidgetUri(launch);
+    _quickSub = Notifier.instance.actions.listen(_handleQuick);
+    final qa = await Notifier.instance.launchAction();
+    if (!mounted) return;
+    _handleQuick(qa);
     final warning = store.loadWarning;
     if (warning != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2054,7 +2130,44 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
           Notifier.instance.replaceSchedule(store.plannedNotifications()));
       unawaited(HomeWidgetBridge.update(store.widgetData()));
       unawaited(NativeBridge.setSecure(store.settings.secureScreen));
+      _syncQuickBar();
     });
+  }
+
+  void _syncQuickBar() {
+    final want = store.settings.quickBar && store.settings.notifEnabled;
+    if (_quickShown == want) return;
+    _quickShown = want;
+    unawaited(want
+        ? Notifier.instance.showQuickBar()
+        : Notifier.instance.hideQuickBar());
+  }
+
+  /// Tombol pintasan di panel notifikasi.
+  void _handleQuick(String? action) {
+    if (action == null) return;
+    if (_locked && store.settings.pin != null) {
+      _pendingQuick = action;
+      return;
+    }
+    _runQuick(action);
+  }
+
+  void _runQuick(String action) {
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    switch (action) {
+      case 'qb_add':
+        _openFromWidget(TxType.expense);
+      case 'qb_history':
+        setState(() => _tab = 1);
+      case 'qb_template':
+        setState(() => _tab = 0);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => TemplatesPage(store: store)));
+        });
+    }
   }
 
   Future<void> _ingestCaptures({bool quiet = false}) async {
@@ -2100,6 +2213,9 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     final pending = _pendingWidgetAction;
     _pendingWidgetAction = null;
     if (pending != null) _openFromWidget(pending);
+    final quick = _pendingQuick;
+    _pendingQuick = null;
+    if (quick != null) _runQuick(quick);
   }
 
   @override
@@ -2107,6 +2223,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     _notifDebounce?.cancel();
     _capturePoll?.cancel();
     _widgetSub?.cancel();
+    _quickSub?.cancel();
     store.removeListener(_scheduleNotifications);
     WidgetsBinding.instance.removeObserver(this);
     store.dispose();
@@ -2123,6 +2240,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
       _pausedAt = null;
       if (!store.loaded) return;
       final created = store.processRecurring();
+      _quickShown = null; // tampilkan ulang kalau sempat digeser hilang
       _scheduleNotifications();
       unawaited(_ingestCaptures());
       if (store.settings.pin != null &&
@@ -7923,6 +8041,15 @@ class NotificationsPage extends StatelessWidget {
                       onChanged: on
                           ? (v) =>
                               store.updateSettings((x) => x.notifBudget = v)
+                          : null,
+                    ),
+                    _switch(
+                      title: 'Pintasan di panel notifikasi',
+                      subtitle:
+                          'Tombol Catat, Template, Riwayat yang selalu ada di panel notifikasi',
+                      value: s.quickBar,
+                      onChanged: on
+                          ? (v) => store.updateSettings((x) => x.quickBar = v)
                           : null,
                     ),
                     _switch(

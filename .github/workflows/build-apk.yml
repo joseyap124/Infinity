@@ -50,10 +50,16 @@ jobs:
           fi
 
       - name: Cek kode (analyze)
-        run: flutter analyze lib --no-fatal-infos --no-fatal-warnings
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter analyze lib --no-fatal-infos --no-fatal-warnings 2>&1 | tee "$RUNNER_TEMP/analyze.txt"
 
       - name: Build APK
-        run: flutter build apk --release --split-per-abi
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter build apk --release --split-per-abi 2>&1 | tee "$RUNNER_TEMP/build.txt"
 
       - name: Ganti nama APK
         run: |
@@ -74,3 +80,17 @@ jobs:
           files: |
             Infinity.apk
             Infinity-hp-lama-32bit.apk
+
+      # Kalau gagal, simpan log ke branch ci-logs supaya bisa dibaca lewat git.
+      - name: Simpan log kegagalan
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/logs"
+          cp "$RUNNER_TEMP"/*.txt "$RUNNER_TEMP/logs/" 2>/dev/null || true
+          cd "$RUNNER_TEMP/logs"
+          git init -q
+          git config user.name ci && git config user.email ci@localhost
+          echo "run ${{ github.run_number }} commit ${{ github.sha }}" > info.txt
+          git add -A && git commit -qm "log run ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:ci-logs
