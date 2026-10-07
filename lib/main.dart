@@ -1031,7 +1031,7 @@ class AppStore extends ChangeNotifier {
           'Penyimpanan terenkripsi tidak tersedia. Data hanya tersimpan selama aplikasi terbuka.';
     }
     if (raw == null) {
-      _seedDemo();
+      _seedEmpty();
     } else {
       try {
         final decoded = jsonDecode(raw);
@@ -1041,9 +1041,9 @@ class AppStore extends ChangeNotifier {
           await SecureStore.write(
               '${_key}_rusak_${DateTime.now().millisecondsSinceEpoch}', raw);
         } catch (_) {}
-        _seedDemo();
+        _seedEmpty();
         loadWarning =
-            'Data tersimpan tidak bisa dibaca. Salinannya sudah diamankan, aplikasi memakai data demo.';
+            'Data tersimpan tidak bisa dibaca. Salinannya sudah diamankan, aplikasi mulai dari data kosong.';
       }
     }
     processRecurring(notify: false);
@@ -1160,15 +1160,21 @@ class AppStore extends ChangeNotifier {
 
   void clearAll() {
     final old = settings;
+    _seedEmpty();
+    _keepSecurity(old);
+    _commit();
+  }
+
+  /// Data awal: 3 akun dasar bersaldo 0 + kategori bawaan, tanpa transaksi.
+  void _seedEmpty() {
     accounts = _defaultAccounts(demo: false);
     categories = _defaultCategories();
     transactions = [];
     recurring = [];
     templates = [];
     settings = AppSettings();
-    _keepSecurity(old);
     pendingCaptures = [];
-    _commit();
+    _seenCaptureKeys = [];
   }
 
   // ---------------------------------------------------------------- seed
@@ -2278,6 +2284,82 @@ Future<bool> confirmDialog(
     ),
   );
   return r ?? false;
+}
+
+/// Konfirmasi berbahaya: tombol baru aktif setelah user mengetik [word].
+Future<bool> typedConfirmDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  String word = 'HAPUS',
+  String confirmLabel = 'Hapus',
+}) async {
+  final ctrl = TextEditingController();
+  final r = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setLocal) {
+        final ok = ctrl.text.trim().toUpperCase() == word;
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title:
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message),
+              const SizedBox(height: 14),
+              Text.rich(TextSpan(children: [
+                const TextSpan(text: 'Ketik '),
+                TextSpan(
+                    text: word,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, color: C.redDark)),
+                const TextSpan(text: ' untuk melanjutkan:'),
+              ])),
+              const SizedBox(height: 8),
+              TextField(
+                controller: ctrl,
+                autofocus: true,
+                textCapitalization: TextCapitalization.characters,
+                onChanged: (_) => setLocal(() {}),
+                decoration: fieldDeco(word, accent: C.redDark),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Batal')),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                  backgroundColor: C.redDark,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20))),
+              onPressed: ok ? () => Navigator.pop(ctx, true) : null,
+              child: Text(confirmLabel),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+  // ctrl tidak di-dispose di sini: dialog masih beranimasi keluar.
+  return r ?? false;
+}
+
+/// Reset total: dipakai dari Lainnya dan dari Backup.
+Future<void> confirmResetAll(BuildContext context, AppStore store) async {
+  final ok = await typedConfirmDialog(context,
+      title: 'Reset semua data?',
+      message:
+          'Semua transaksi, akun tambahan, template, budget, dan jadwal berulang akan dihapus permanen. Akun dasar dibuat ulang dengan saldo 0. PIN dan pengaturan keamanan tetap.\n\nSalin backup dulu kalau masih perlu.',
+      confirmLabel: 'Reset');
+  if (!ok || !context.mounted) return;
+  store.clearAll();
+  snack(context, 'Semua data dihapus. Mulai dari nol 🌱');
 }
 
 PreferredSizeWidget pageBar(String title, {List<Widget>? actions}) => AppBar(
@@ -5131,6 +5213,16 @@ class MoreTab extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          AppCard(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: _tile(context,
+                icon: Icons.restart_alt_rounded,
+                color: C.redDark,
+                title: 'Reset Semua Data',
+                subtitle: 'Mulai dari nol, harus ketik HAPUS dulu',
+                onTap: () => confirmResetAll(context, store)),
+          ),
           const SizedBox(height: 24),
           const Center(
             child: Column(
@@ -5472,18 +5564,82 @@ class _TxFormSheetState extends State<TxFormSheet> {
     }
   }
 
+  // ------------------------------------------------------------ pemilih (gaya Money Manager)
+
+  String _categoryLabel() {
+    final c = store.categoryById(_categoryId);
+    if (c == null) return '';
+    final pid = c.parentId;
+    final p = pid == null ? null : store.categoryById(pid);
+    return p == null ? c.name : '${p.name} / ${c.name}';
+  }
+
+  Future<void> _pickCategory() async {
+    FocusScope.of(context).unfocus();
+    final id = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => CategoryPanel(
+          store: store,
+          type: _type,
+          selectedId: _categoryId,
+          accent: _type.color),
+    );
+    if (id == null || !mounted) return;
+    setState(() {
+      _categoryId = id;
+      _error = null;
+    });
+  }
+
+  Future<void> _pickAccount({required bool to}) async {
+    FocusScope.of(context).unfocus();
+    final id = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => AccountPanel(
+        store: store,
+        selectedId: to ? _toId : _fromId,
+        disabledId: to ? _fromId : null,
+        accent: _type.color,
+        excludeTxId: widget.excludeTxId,
+        title: to ? 'Ke akun' : 'Akun',
+      ),
+    );
+    if (id == null || !mounted) return;
+    if (to) {
+      _selectTo(id);
+    } else {
+      _selectFrom(id);
+    }
+  }
+
+  Widget _accountValue(String id) {
+    final a = store.accountById(id);
+    if (a == null) return const FormValue(null);
+    final bal = store.balanceOf(a.id, excludeTxId: widget.excludeTxId);
+    return Row(
+      children: [
+        Expanded(child: FormValue(a.name)),
+        Text(money(bal, a.currency),
+            style: TextStyle(
+                fontSize: 12, color: bal < 0 ? C.redDark : C.muted)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final accent = _type.color;
     final isTransfer = _type == TxType.transfer;
     final mode = widget.mode;
     final showQuickRow = mode == FormMode.transaction && !widget.isEditing;
-    final tops = store.topCategories(_type);
-    final selectedTop =
-        _categoryId == null ? null : store.topCategoryId(_categoryId!);
-    final subs = selectedTop == null
-        ? <TxCategory>[]
-        : store.childrenOf(selectedTop);
     final fromDecimals = hasDecimals(_fromCur);
 
     return Theme(
@@ -5501,27 +5657,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
           children: [
             Row(
               children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                      mode == FormMode.recurring
-                          ? Icons.repeat_rounded
-                          : (mode == FormMode.template
-                              ? Icons.bolt_rounded
-                              : _type.icon),
-                      color: accent),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Text(_heading,
                       style: const TextStyle(
-                          fontSize: 19,
+                          fontSize: 18,
                           fontWeight: FontWeight.w900,
                           color: C.carbon)),
                 ),
@@ -5532,19 +5671,199 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Segmented<TxType>(
-              values: TxType.values,
-              selected: _type,
-              labelOf: (t) => t.label,
-              iconOf: (t) => t.icon,
-              colorOf: (t) => t.color,
-              onChanged: _changeType,
+            const SizedBox(height: 8),
+
+            // Tab jenis: Pemasukan | Pengeluaran | Transfer
+            Row(
+              children: [
+                for (final t in const [
+                  TxType.income,
+                  TxType.expense,
+                  TxType.transfer
+                ])
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: Semantics(
+                        button: true,
+                        selected: t == _type,
+                        child: GestureDetector(
+                          onTap: () => _changeType(t),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            height: 42,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: t == _type
+                                  ? t.color.withValues(alpha: 0.08)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color: t == _type ? t.color : C.line,
+                                  width: t == _type ? 1.6 : 1),
+                            ),
+                            child: Text(t.label,
+                                style: TextStyle(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: t == _type ? t.color : C.muted)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
+
+            const SizedBox(height: 6),
+
+            // Baris-baris isian
+            if (mode != FormMode.template)
+              FormRow(
+                label: mode == FormMode.recurring ? 'Mulai' : 'Tanggal',
+                accent: accent,
+                onTap: _pickDate,
+                child: FormValue(
+                    DateFormat('EEE, dd/MM/yyyy', 'id_ID').format(_date)),
+              ),
+            FormRow(
+              label: 'Jumlah',
+              accent: accent,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _amountCtrl,
+                      autofocus: !widget.isEditing,
+                      keyboardType: TextInputType.numberWithOptions(
+                          decimal: fromDecimals),
+                      inputFormatters: [
+                        AmountFormatter(decimals: fromDecimals)
+                      ],
+                      onChanged: (_) => setState(() {
+                        _error = null;
+                        _syncToAmount();
+                      }),
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: accent),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 8),
+                        prefixText: '${currencySymbol(_fromCur)} ',
+                        prefixStyle: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: accent),
+                        hintText: '0',
+                        hintStyle: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: accent.withValues(alpha: 0.3)),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Kalkulator',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: _openCalculator,
+                    icon: Icon(Icons.calculate_rounded, color: accent),
+                  ),
+                ],
+              ),
+            ),
+            if (!isTransfer)
+              FormRow(
+                label: 'Kategori',
+                accent: accent,
+                onTap: _pickCategory,
+                child: FormValue(_categoryId == null ? null : _categoryLabel(),
+                    placeholder: 'Pilih kategori'),
+              ),
+            FormRow(
+              label: isTransfer ? 'Dari' : 'Akun',
+              accent: accent,
+              onTap: () => _pickAccount(to: false),
+              child: _accountValue(_fromId),
+            ),
+            if (isTransfer)
+              FormRow(
+                label: 'Ke',
+                accent: accent,
+                onTap: () => _pickAccount(to: true),
+                child: _accountValue(_toId),
+              ),
+            if (isTransfer && _crossCurrency)
+              FormRow(
+                label: 'Diterima',
+                accent: accent,
+                child: TextField(
+                  controller: _toAmountCtrl,
+                  keyboardType: TextInputType.numberWithOptions(
+                      decimal: hasDecimals(_toCur)),
+                  inputFormatters: [
+                    AmountFormatter(decimals: hasDecimals(_toCur))
+                  ],
+                  onChanged: (_) => setState(() {
+                    _toTouched = true;
+                    _error = null;
+                  }),
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w800),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                    prefixText: '${currencySymbol(_toCur)} ',
+                    helperText: 'Otomatis dari kurs, ubah kalau beda.',
+                  ),
+                ),
+              ),
+            FormRow(
+              label: mode == FormMode.template ? 'Nama' : 'Catatan',
+              accent: accent,
+              child: TextField(
+                controller: _titleCtrl,
+                textCapitalization: TextCapitalization.sentences,
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: C.carbon),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  hintText: 'Opsional, misal "Nasi padang"',
+                ),
+              ),
+            ),
+            FormRow(
+              label: 'Deskripsi',
+              accent: accent,
+              child: TextField(
+                controller: _noteCtrl,
+                maxLength: 120,
+                minLines: 1,
+                maxLines: 3,
+                textCapitalization: TextCapitalization.sentences,
+                style: const TextStyle(fontSize: 14, color: C.carbon),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  counterText: '',
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  hintText: 'Opsional',
+                ),
+              ),
+            ),
+
             if (showQuickRow) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               SizedBox(
-                height: 40,
+                height: 38,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
@@ -5597,182 +5916,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 ),
               ),
             ],
-            const SizedBox(height: 16),
-
-            // Nominal
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Nominal (${_fromCur})',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: accent)),
-                        TextField(
-                          controller: _amountCtrl,
-                          autofocus: !widget.isEditing,
-                          keyboardType: TextInputType.numberWithOptions(
-                              decimal: fromDecimals),
-                          inputFormatters: [
-                            AmountFormatter(decimals: fromDecimals)
-                          ],
-                          onChanged: (_) => setState(() {
-                            _error = null;
-                            _syncToAmount();
-                          }),
-                          style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: accent),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            isDense: true,
-                            prefixText: '${currencySymbol(_fromCur)} ',
-                            prefixStyle: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
-                                color: accent),
-                            hintText: '0',
-                            hintStyle: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
-                                color: accent.withValues(alpha: 0.3)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton.filledTonal(
-                    tooltip: 'Kalkulator',
-                    onPressed: _openCalculator,
-                    icon: const Icon(Icons.calculate_rounded),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _titleCtrl,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: fieldDeco(
-                  mode == FormMode.template
-                      ? 'Nama template (opsional)'
-                      : 'Judul (opsional)',
-                  icon: Icons.edit_note_rounded,
-                  accent: accent),
-            ),
-
-            // Kategori + sub-kategori
-            if (!isTransfer) ...[
-              const SizedBox(height: 16),
-              const SmallLabel('Kategori'),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final c in tops)
-                    _CategoryChip(
-                      label: c.name,
-                      icon: c.iconData,
-                      color: c.colorValue,
-                      selected: c.id == selectedTop,
-                      onTap: () => setState(() {
-                        _categoryId = c.id;
-                        _error = null;
-                      }),
-                    ),
-                ],
-              ),
-              if (subs.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _CategoryChip(
-                      label: 'Umum',
-                      icon: Icons.subdirectory_arrow_right_rounded,
-                      color: C.muted,
-                      small: true,
-                      selected: _categoryId == selectedTop,
-                      onTap: () => setState(() => _categoryId = selectedTop),
-                    ),
-                    for (final c in subs)
-                      _CategoryChip(
-                        label: c.name,
-                        icon: c.iconData,
-                        color: c.colorValue,
-                        small: true,
-                        selected: c.id == _categoryId,
-                        onTap: () => setState(() => _categoryId = c.id),
-                      ),
-                  ],
-                ),
-              ],
-            ],
-
-            // Akun
-            const SizedBox(height: 16),
-            SmallLabel(isTransfer
-                ? 'Dari Akun'
-                : (_type == TxType.income ? 'Masuk ke Akun' : 'Bayar Pakai')),
-            const SizedBox(height: 8),
-            AccountPicker(
-              store: store,
-              selectedId: _fromId,
-              accent: accent,
-              excludeTxId: widget.excludeTxId,
-              onSelected: _selectFrom,
-            ),
-            if (isTransfer) ...[
-              const SizedBox(height: 10),
-              const SmallLabel('Ke Akun'),
-              const SizedBox(height: 8),
-              AccountPicker(
-                store: store,
-                selectedId: _toId,
-                disabledId: _fromId,
-                accent: accent,
-                excludeTxId: widget.excludeTxId,
-                onSelected: _selectTo,
-              ),
-              if (_crossCurrency) ...[
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _toAmountCtrl,
-                  keyboardType: TextInputType.numberWithOptions(
-                      decimal: hasDecimals(_toCur)),
-                  inputFormatters: [
-                    AmountFormatter(decimals: hasDecimals(_toCur))
-                  ],
-                  onChanged: (_) => setState(() {
-                    _toTouched = true;
-                    _error = null;
-                  }),
-                  decoration: fieldDeco('Jumlah diterima ($_toCur)',
-                      icon: Icons.currency_exchange_rounded,
-                      prefix: '${currencySymbol(_toCur)} ',
-                      helper:
-                          'Dihitung otomatis dari kurs. Ubah kalau kurs bank/e-wallet berbeda.',
-                      accent: accent),
-                ),
-              ],
-            ],
-
             // Frekuensi (khusus berulang)
             if (mode == FormMode.recurring) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               const SmallLabel('Ulangi setiap'),
               const SizedBox(height: 8),
               Segmented<Frequency>(
@@ -5784,62 +5930,6 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 onChanged: (f) => setState(() => _frequency = f),
               ),
             ],
-
-            // Tanggal
-            if (mode != FormMode.template) ...[
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: _pickDate,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: C.bg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: C.line),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.calendar_month_rounded, color: C.muted),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (mode == FormMode.recurring)
-                              const Text('Mulai / jatuh tempo berikutnya',
-                                  style:
-                                      TextStyle(fontSize: 11, color: C.muted)),
-                            Text(
-                              sameDay(_date, DateTime.now())
-                                  ? 'Hari ini, ${DateFormat('d MMMM yyyy', 'id_ID').format(_date)}'
-                                  : DateFormat('EEEE, d MMMM yyyy', 'id_ID')
-                                      .format(_date),
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: C.carbon),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text('Ubah',
-                          style: TextStyle(
-                              color: accent, fontWeight: FontWeight.w800)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            TextField(
-              controller: _noteCtrl,
-              maxLength: 120,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: fieldDeco('Catatan ringkas (opsional)',
-                      icon: Icons.sticky_note_2_rounded, accent: accent)
-                  .copyWith(counterText: ''),
-            ),
             if (mode == FormMode.transaction && !widget.isEditing)
               CheckboxListTile(
                 value: _saveTemplate,
@@ -5866,55 +5956,410 @@ class _TxFormSheetState extends State<TxFormSheet> {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({
+// --------------------------------------------------------------- baris form
+
+class FormRow extends StatelessWidget {
+  const FormRow({
+    super.key,
     required this.label,
-    required this.icon,
-    required this.color,
-    required this.selected,
-    required this.onTap,
-    this.small = false,
+    required this.child,
+    required this.accent,
+    this.onTap,
   });
 
   final String label;
-  final IconData icon;
-  final Color color;
-  final bool selected;
-  final bool small;
-  final VoidCallback onTap;
+  final Widget child;
+  final Color accent;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(
-              horizontal: small ? 10 : 12, vertical: small ? 7 : 9),
-          decoration: BoxDecoration(
-            color: selected ? color.withValues(alpha: 0.15) : C.bg,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-                color: selected ? darken(color) : C.line,
-                width: selected ? 2 : 1),
+    final row = Container(
+      constraints: const BoxConstraints(minHeight: 52),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: C.line)),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 84,
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 14,
+                    color: C.muted,
+                    fontWeight: FontWeight.w600)),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          Expanded(child: child),
+          if (onTap != null)
+            const Icon(Icons.chevron_right_rounded, color: C.muted, size: 20),
+        ],
+      ),
+    );
+    final tap = onTap;
+    if (tap == null) return row;
+    return InkWell(onTap: tap, child: row);
+  }
+}
+
+class FormValue extends StatelessWidget {
+  const FormValue(this.text, {super.key, this.placeholder = '-'});
+  final String? text;
+  final String placeholder;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = text;
+    final empty = t == null || t.isEmpty;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(empty ? placeholder : t,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+              fontSize: 15,
+              fontWeight: empty ? FontWeight.w500 : FontWeight.w700,
+              color: empty ? C.muted : C.carbon)),
+    );
+  }
+}
+
+// ------------------------------------------------- panel kategori (grid MM)
+
+final RegExp _emojiRe = RegExp(
+    r'[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]',
+    unicode: true);
+
+class CategoryPanel extends StatefulWidget {
+  const CategoryPanel({
+    super.key,
+    required this.store,
+    required this.type,
+    required this.selectedId,
+    required this.accent,
+  });
+
+  final AppStore store;
+  final TxType type;
+  final String? selectedId;
+  final Color accent;
+
+  @override
+  State<CategoryPanel> createState() => _CategoryPanelState();
+}
+
+class _CategoryPanelState extends State<CategoryPanel> {
+  String? _open; // parent yang sedang dibuka sub-kategorinya
+
+  AppStore get store => widget.store;
+
+  String? get _selectedTop {
+    final s = widget.selectedId;
+    return s == null ? null : store.topCategoryId(s);
+  }
+
+  void _tapTop(TxCategory c) {
+    if (store.childrenOf(c.id).isEmpty) {
+      Navigator.pop(context, c.id);
+    } else {
+      setState(() => _open = c.id);
+    }
+  }
+
+  Widget _label(TxCategory c, {required bool selected, double size = 13}) {
+    final hasEmoji = _emojiRe.hasMatch(c.name);
+    final text = Text(c.name,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+            fontSize: size,
+            height: 1.2,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+            color: selected ? widget.accent : C.carbon));
+    if (hasEmoji) return text;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(c.iconData, size: 18, color: darken(c.colorValue)),
+        const SizedBox(height: 2),
+        text,
+      ],
+    );
+  }
+
+  Widget _grid(List<TxCategory> tops) {
+    return GridView.builder(
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3, mainAxisExtent: 68),
+      itemCount: tops.length,
+      itemBuilder: (context, i) {
+        final c = tops[i];
+        final sel = c.id == _selectedTop;
+        final hasSubs = store.childrenOf(c.id).isNotEmpty;
+        return InkWell(
+          onTap: () => _tapTop(c),
+          child: Container(
+            decoration: BoxDecoration(
+              color: sel ? widget.accent.withValues(alpha: 0.08) : null,
+              border: const Border(
+                right: BorderSide(color: C.line),
+                bottom: BorderSide(color: C.line),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Stack(
+              children: [
+                Center(child: _label(c, selected: sel)),
+                if (hasSubs)
+                  const Positioned(
+                    right: 0,
+                    bottom: 4,
+                    child: Icon(Icons.chevron_right_rounded,
+                        size: 14, color: C.muted),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _split(List<TxCategory> tops, String open) {
+    final parent = store.categoryById(open);
+    final subs = store.childrenOf(open);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: MediaQuery.sizeOf(context).width * 0.42,
+          child: ListView(
+            padding: EdgeInsets.zero,
             children: [
-              Icon(icon, size: small ? 15 : 18, color: darken(color)),
-              const SizedBox(width: 6),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: small ? 12 : 12.5,
-                      fontWeight:
-                          selected ? FontWeight.w800 : FontWeight.w600,
-                      color: C.carbon)),
+              for (final c in tops)
+                InkWell(
+                  onTap: () => _tapTop(c),
+                  child: Container(
+                    color: c.id == open ? C.bg : Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 13),
+                    child: Text(c.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: c.id == open
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                            color: c.id == open ? widget.accent : C.carbon)),
+                  ),
+                ),
             ],
           ),
         ),
+        const VerticalDivider(width: 1, color: C.line),
+        Expanded(
+          child: Container(
+            color: C.bg,
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _subTile(
+                    parent == null ? 'Umum' : 'Umum (${parent.name})',
+                    open,
+                    widget.selectedId == open),
+                for (final s in subs)
+                  _subTile(s.name, s.id, widget.selectedId == s.id),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _subTile(String name, String id, bool sel) {
+    return InkWell(
+      onTap: () => Navigator.pop(context, id),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: C.line))),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                      color: sel ? widget.accent : C.carbon)),
+            ),
+            if (sel)
+              Icon(Icons.check_rounded, size: 18, color: widget.accent),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tops = store.topCategories(widget.type);
+    final open = _open;
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * 0.55,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 6, 4, 2),
+              child: Row(
+                children: [
+                  if (open != null)
+                    IconButton(
+                      tooltip: 'Kembali',
+                      onPressed: () => setState(() => _open = null),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                    )
+                  else
+                    const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text('Kategori',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w900)),
+                  ),
+                  IconButton(
+                    tooltip: 'Tutup',
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: C.line),
+            Expanded(
+              child: tops.isEmpty
+                  ? const Center(
+                      child: Text('Belum ada kategori. Tambah di Lainnya > Kategori.',
+                          style: TextStyle(color: C.muted)))
+                  : (open == null ? _grid(tops) : _split(tops, open)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------- panel akun (grid MM)
+
+class AccountPanel extends StatelessWidget {
+  const AccountPanel({
+    super.key,
+    required this.store,
+    required this.selectedId,
+    required this.accent,
+    required this.title,
+    this.disabledId,
+    this.excludeTxId,
+  });
+
+  final AppStore store;
+  final String selectedId;
+  final String? disabledId;
+  final String? excludeTxId;
+  final Color accent;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final accs = store.accounts;
+    return SafeArea(
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 4, 2),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(title,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w900)),
+                ),
+                IconButton(
+                  tooltip: 'Tutup',
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: C.line),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.5),
+            child: GridView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3, mainAxisExtent: 68),
+              itemCount: accs.length,
+              itemBuilder: (context, i) {
+                final a = accs[i];
+                final sel = a.id == selectedId;
+                final disabled = a.id == disabledId;
+                final bal = store.balanceOf(a.id, excludeTxId: excludeTxId);
+                return Opacity(
+                  opacity: disabled ? 0.35 : 1,
+                  child: InkWell(
+                    onTap: disabled ? null : () => Navigator.pop(context, a.id),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: sel ? accent.withValues(alpha: 0.08) : null,
+                        border: const Border(
+                          right: BorderSide(color: C.line),
+                          bottom: BorderSide(color: C.line),
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(a.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight:
+                                      sel ? FontWeight.w800 : FontWeight.w600,
+                                  color: sel ? accent : C.carbon)),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(money(bal, a.currency),
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: bal < 0 ? C.redDark : C.muted)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -8287,28 +8732,7 @@ class _BackupPageState extends State<BackupPage> {
     }
   }
 
-  Future<void> _resetDemo() async {
-    final ok = await confirmDialog(context,
-        title: 'Muat ulang data demo?',
-        message: 'Semua data sekarang akan diganti dengan data contoh.',
-        confirmLabel: 'Ganti',
-        destructive: true);
-    if (!ok || !mounted) return;
-    store.resetDemo();
-    snack(context, 'Data demo dimuat');
-  }
-
-  Future<void> _clear() async {
-    final ok = await confirmDialog(context,
-        title: 'Hapus semua data?',
-        message:
-            'Semua transaksi, akun tambahan, template, dan jadwal berulang akan dihapus permanen. Akun dan kategori dasar dibuat ulang dengan saldo 0.',
-        confirmLabel: 'Hapus semua',
-        destructive: true);
-    if (!ok || !mounted) return;
-    store.clearAll();
-    snack(context, 'Semua data dihapus. Mulai dari nol 🌱');
-  }
+  Future<void> _clear() => confirmResetAll(context, store);
 
   @override
   Widget build(BuildContext context) {
@@ -8391,15 +8815,10 @@ class _BackupPageState extends State<BackupPage> {
               children: [
                 const SectionTitle('Zona Bahaya'),
                 const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: _resetDemo,
-                  style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20))),
-                  child: const Text('Muat ulang data demo'),
-                ),
-                const SizedBox(height: 8),
+                const Text(
+                    'Hapus semua data dan mulai dari nol. Harus mengetik HAPUS dulu supaya tidak terpencet.',
+                    style: TextStyle(fontSize: 13, color: C.muted)),
+                const SizedBox(height: 10),
                 OutlinedButton(
                   onPressed: _clear,
                   style: OutlinedButton.styleFrom(
@@ -8408,7 +8827,7 @@ class _BackupPageState extends State<BackupPage> {
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20))),
-                  child: const Text('Hapus semua data'),
+                  child: const Text('Reset semua data'),
                 ),
               ],
             ),
