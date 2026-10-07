@@ -1,0 +1,21 @@
+name: Sinkron catatan rilis
+
+# Setiap CHANGELOG.md berubah, teks rilis v1.x di halaman Releases ikut diperbarui.
+on:
+  push:
+    branches: [main]
+    paths: ['CHANGELOG.md']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Perbarui teks rilis
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tool/release_notes.py sync

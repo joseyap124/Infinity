@@ -6,6 +6,8 @@ on:
     # Perubahan dokumentasi saja tidak perlu build APK baru.
     paths-ignore:
       - 'README.md'
+      - 'CHANGELOG.md'
+      - '.github/workflows/release-notes.yml'
       - 'docs/**'
       - 'tool/mockup/**'
       - 'tool/make_icons.py'
@@ -77,7 +79,7 @@ jobs:
           LAST=$(gh release list -R "${{ github.repository }}" --limit 200 --json tagName \
             --jq '[.[].tagName | select(test("^v1\\.[0-9]+$")) | ltrimstr("v1.") | tonumber] | max // 0')
           echo "version=1.$((LAST + 1))" >> "$GITHUB_OUTPUT"
-          echo "title=$(git log -1 --pretty=%s)" >> "$GITHUB_OUTPUT"
+          python3 tool/release_notes.py next "1.$((LAST + 1))" "$(git log -1 --pretty=%s)" > "$RUNNER_TEMP/notes.md"
           echo "Versi baru: 1.$((LAST + 1))"
 
       - name: Build APK
@@ -105,12 +107,7 @@ jobs:
         with:
           tag_name: v${{ steps.ver.outputs.version }}
           name: Infinity v${{ steps.ver.outputs.version }}
-          body: |
-            Pasang `Infinity-v${{ steps.ver.outputs.version }}.apk` di HP Android, menimpa versi lama (data tetap aman).
-            File `-hp-lama-32bit` hanya untuk HP lama yang gagal memasang versi biasa.
-
-            Perubahan: ${{ steps.ver.outputs.title }}
-            (build #${{ github.run_number }}, commit ${{ github.sha }})
+          body_path: ${{ runner.temp }}/notes.md
           files: |
             Infinity-v${{ steps.ver.outputs.version }}.apk
             Infinity-v${{ steps.ver.outputs.version }}-hp-lama-32bit.apk

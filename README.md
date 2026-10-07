@@ -19,7 +19,7 @@ Aplikasi catatan keuangan Android yang cara catatnya meniru **Money Manager** (b
 3. Buka file itu. Kalau Android bertanya, izinkan **"Instal aplikasi tidak dikenal"** untuk browser/Files. Kalau Play Protect memperingatkan, pilih **Tetap instal** (wajar untuk APK di luar Play Store).
 4. Pertama kali dibuka, izinkan notifikasi supaya pengingat dan pintasan muncul.
 
-Setiap kali `main` diperbarui, GitHub Actions otomatis membangun APK baru dan menerbitkannya di Releases.
+Setiap kali `main` diperbarui, GitHub Actions otomatis membangun APK baru dan menerbitkannya di Releases. Nomor versinya naik satu per rilis (v1.1, v1.2, ...), dan tiap rilis mencantumkan apa yang ditambah, diubah, dihapus, dan diperbaiki (sumbernya [CHANGELOG.md](CHANGELOG.md)).
 
 ### Update tanpa kehilangan data
 
