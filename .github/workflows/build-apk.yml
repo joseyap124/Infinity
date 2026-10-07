@@ -45,7 +45,8 @@ jobs:
           flutter --version
           flutter create --org com.jose --project-name infinity --platforms android .
           rm -rf test
-          flutter pub add intl flutter_secure_storage local_auth flutter_local_notifications timezone home_widget image_picker path_provider archive
+          cp -r tests test
+          flutter pub add intl flutter_secure_storage local_auth flutter_local_notifications timezone home_widget image_picker path_provider archive cryptography
           python3 tool/setup_android.py
 
       # Kunci tanda tangan tetap (opsional tapi sangat disarankan): tanpa ini,
@@ -64,6 +65,12 @@ jobs:
           else
             echo "::warning::secret DEBUG_KEYSTORE_BASE64 belum diisi, APK ditandatangani kunci acak"
           fi
+
+      - name: Tes otomatis (hitungan uang, import, backup)
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee "$RUNNER_TEMP/test.txt"
 
       - name: Cek kode (analyze)
         shell: bash

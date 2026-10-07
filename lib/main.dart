@@ -25,6 +25,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:archive/archive.dart';
+import 'package:cryptography/cryptography.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 // NOTIF-IMPORTS-BEGIN
@@ -1035,6 +1036,18 @@ class NativeBridge {
     final bytes = r['bytes'];
     if (bytes is! Uint8List) return null;
     return (name: (r['name'] as String?) ?? 'file', bytes: bytes);
+  }
+
+  /// Simpan file biner ke Download/Infinity. False kalau gagal.
+  static Future<bool> saveDownloadBytes(
+      String name, Uint8List bytes, String mime) async {
+    try {
+      return (await _ch.invokeMethod<bool>('saveDownloadBytes',
+              {'name': name, 'bytes': bytes, 'mime': mime})) ??
+          false;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Notifikasi pintasan 4 ikon (native, gaya Money Manager).
@@ -2067,7 +2080,40 @@ class AppStore extends ChangeNotifier {
     _commit();
   }
 
-  /// Backup ke folder Download. [force] = abaikan jadwal mingguan.
+  static const String _pwKey = 'infinity_backup_pw';
+
+  /// Kata sandi backup disimpan terenkripsi (Keystore), terpisah dari data.
+  Future<String?> backupPassword() async {
+    try {
+      final v = await SecureStore.read(_pwKey);
+      return (v == null || v.isEmpty) ? null : v;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> setBackupPassword(String? pw) async {
+    try {
+      await SecureStore.write(_pwKey, pw ?? '');
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  /// Bytes foto struk yang dipakai transaksi (untuk backup).
+  Map<String, List<int>> _photoBytes() {
+    final out = <String, List<int>>{};
+    for (final t in transactions) {
+      for (final p in t.photos) {
+        final f = Receipts.file(p);
+        if (f != null && f.existsSync()) out[p] = f.readAsBytesSync();
+      }
+    }
+    return out;
+  }
+
+  /// Backup ke folder Download. Kalau kata sandi backup sudah diatur, file
+  /// .infb terenkripsi (ikut foto); kalau belum, JSON biasa.
+  /// [force] = abaikan jadwal mingguan.
   Future<bool> backupToDownloads({bool force = false}) async {
     if (!force) {
       if (!settings.autoBackup || transactions.isEmpty) return false;
@@ -2076,11 +2122,33 @@ class AppStore extends ChangeNotifier {
         return false;
       }
     }
-    final name =
-        'infinity-backup-${DateFormat('yyyy-MM-dd_HHmm').format(DateTime.now())}.json';
-    final ok = await NativeBridge.saveDownload(name, exportJson());
+    final stamp = DateFormat('yyyy-MM-dd_HHmm').format(DateTime.now());
+    final pw = await backupPassword();
+    bool ok;
+    if (pw != null) {
+      final bytes = await SecureBackup.encrypt(exportJson(), _photoBytes(), pw);
+      ok = await NativeBridge.saveDownloadBytes(
+          'infinity-backup-$stamp.infb', bytes, 'application/octet-stream');
+    } else {
+      ok = await NativeBridge.saveDownload(
+          'infinity-backup-$stamp.json', exportJson());
+    }
     if (ok) updateSettings((x) => x.lastAutoBackup = DateTime.now());
     return ok;
+  }
+
+  /// Pulihkan dari isi file .infb atau .json. Lempar FormatException.
+  Future<int> restoreFromFile(List<int> bytes, {String? password}) async {
+    if (SecureBackup.looksEncrypted(bytes)) {
+      final (json, photos) = await SecureBackup.decrypt(bytes, password ?? '');
+      for (final e in photos.entries) {
+        await Receipts.write(e.key, e.value);
+      }
+      importJson(json);
+      return photos.length;
+    }
+    importJson(utf8.decode(bytes));
+    return 0;
   }
 
   TxDraft draftFromCapture(CapturedNotif c) {
@@ -2582,6 +2650,8 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
 
   Future<void> _init() async {
     await store.load();
+    await Receipts.init();
+    Receipts.cleanup(store.transactions);
     await Notifier.instance.init();
     if (store.settings.notifEnabled) {
       unawaited(Notifier.instance.requestPermission());
@@ -4374,6 +4444,219 @@ String greetingFor(AppSettings s) {
       return _motivations[day % _motivations.length];
     default:
       return _timeGreeting();
+  }
+}
+
+/// Backup terenkripsi (.infb): ZIP berisi data.json + foto struk, dikunci
+/// AES-256-GCM dengan kunci dari kata sandi (PBKDF2-SHA256).
+/// Format: "INFB1" | salt(16) | nonce(12) | mac(16) | ciphertext.
+class SecureBackup {
+  static const String magic = 'INFB1';
+  static const int iterations = 100000;
+
+  static Future<SecretKey> _key(String password, List<int> salt) =>
+      Pbkdf2(macAlgorithm: Hmac.sha256(), iterations: iterations, bits: 256)
+          .deriveKeyFromPassword(password: password, nonce: salt);
+
+  static List<int> _random(int n) {
+    final r = math.Random.secure();
+    return List<int>.generate(n, (_) => r.nextInt(256));
+  }
+
+  static bool looksEncrypted(List<int> bytes) =>
+      bytes.length > 5 && utf8.decode(bytes.sublist(0, 5), allowMalformed: true) == magic;
+
+  /// ZIP data + foto lalu enkripsi.
+  static Future<Uint8List> encrypt(
+      String json, Map<String, List<int>> photos, String password) async {
+    final arc = Archive();
+    final data = utf8.encode(json);
+    arc.addFile(ArchiveFile('data.json', data.length, data));
+    photos.forEach((name, bytes) {
+      arc.addFile(ArchiveFile('photos/$name', bytes.length, bytes));
+    });
+    final List<int>? zip = ZipEncoder().encode(arc);
+    final salt = _random(16);
+    final nonce = _random(12);
+    final box = await AesGcm.with256bits().encrypt(zip!,
+        secretKey: await _key(password, salt), nonce: nonce);
+    return Uint8List.fromList([
+      ...utf8.encode(magic),
+      ...salt,
+      ...nonce,
+      ...box.mac.bytes,
+      ...box.cipherText,
+    ]);
+  }
+
+  /// Buka backup. Lempar [FormatException] kalau kata sandi salah/file rusak.
+  static Future<(String, Map<String, List<int>>)> decrypt(
+      List<int> bytes, String password) async {
+    if (!looksEncrypted(bytes) || bytes.length < 5 + 16 + 12 + 16) {
+      throw const FormatException('Bukan file backup Infinity (.infb).');
+    }
+    final salt = bytes.sublist(5, 21);
+    final nonce = bytes.sublist(21, 33);
+    final mac = bytes.sublist(33, 49);
+    final cipher = bytes.sublist(49);
+    List<int> zip;
+    try {
+      zip = await AesGcm.with256bits().decrypt(
+          SecretBox(cipher, nonce: nonce, mac: Mac(mac)),
+          secretKey: await _key(password, salt));
+    } catch (_) {
+      throw const FormatException('Kata sandi salah atau file rusak.');
+    }
+    final arc = ZipDecoder().decodeBytes(zip);
+    String? json;
+    final photos = <String, List<int>>{};
+    for (final f in arc.files) {
+      if (!f.isFile) continue;
+      final content = f.content as List<int>;
+      if (f.name == 'data.json') {
+        json = utf8.decode(content);
+      } else if (f.name.startsWith('photos/')) {
+        final n = f.name.substring(7);
+        if (n.isNotEmpty && !n.contains('/') && !n.contains('..')) {
+          photos[n] = content;
+        }
+      }
+    }
+    if (json == null) throw const FormatException('Isi backup tidak lengkap.');
+    return (json, photos);
+  }
+}
+
+/// Foto struk disimpan di folder pribadi app: <dokumen>/receipts/<nama>.jpg.
+class Receipts {
+  static String? _dir;
+
+  static Future<void> init() async {
+    try {
+      final d = await getApplicationDocumentsDirectory();
+      final dir = Directory('${d.path}/receipts');
+      if (!dir.existsSync()) dir.createSync(recursive: true);
+      _dir = dir.path;
+    } catch (_) {
+      _dir = null; // mis. versi web: foto struk tidak tersedia
+    }
+  }
+
+  static bool get available => _dir != null;
+
+  static File? file(String name) => _dir == null ? null : File('$_dir/$name');
+
+  /// Ambil foto (kamera/galeri), kecilkan, simpan. Mengembalikan nama file.
+  static Future<String?> add(ImageSource source) async {
+    if (_dir == null) return null;
+    final x = await ImagePicker().pickImage(
+        source: source, maxWidth: 1600, maxHeight: 1600, imageQuality: 75);
+    if (x == null) return null;
+    final name = 'r_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    await File(x.path).copy('$_dir/$name');
+    return name;
+  }
+
+  /// Simpan bytes (saat memulihkan backup).
+  static Future<void> write(String name, List<int> bytes) async {
+    if (_dir == null) return;
+    await File('$_dir/$name').writeAsBytes(bytes, flush: true);
+  }
+
+  /// Hapus foto yang tidak lagi dipakai transaksi mana pun.
+  static void cleanup(Iterable<Transaction> txs) {
+    if (_dir == null) return;
+    try {
+      final used = {for (final t in txs) ...t.photos};
+      for (final f in Directory(_dir!).listSync().whereType<File>()) {
+        final name = f.uri.pathSegments.last;
+        if (!used.contains(name)) f.deleteSync();
+      }
+    } catch (_) {}
+  }
+}
+
+/// Lihat foto struk layar penuh, bisa dicubit untuk zoom.
+void showReceipt(BuildContext context, String name) {
+  final f = Receipts.file(name);
+  if (f == null || !f.existsSync()) {
+    snack(context, 'Foto tidak ditemukan.');
+    return;
+  }
+  showDialog<void>(
+    context: context,
+    barrierColor: Colors.black87,
+    builder: (ctx) => Stack(
+      children: [
+        Positioned.fill(
+          child: InteractiveViewer(
+            maxScale: 5,
+            child: Center(child: Image.file(f)),
+          ),
+        ),
+        Positioned(
+          top: MediaQuery.paddingOf(ctx).top + 8,
+          right: 8,
+          child: IconButton.filled(
+            onPressed: () => Navigator.pop(ctx),
+            style: IconButton.styleFrom(backgroundColor: Colors.black54),
+            icon: const Icon(Icons.close_rounded, color: Colors.white),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class ReceiptThumb extends StatelessWidget {
+  const ReceiptThumb(
+      {super.key, required this.name, this.size = 56, this.onRemove});
+  final String name;
+  final double size;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final f = Receipts.file(name);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GestureDetector(
+          onTap: () => showReceipt(context, name),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: size,
+              height: size,
+              color: C.bg,
+              child: f != null && f.existsSync()
+                  ? Image.file(f,
+                      fit: BoxFit.cover,
+                      cacheWidth: (size * 3).round(),
+                      errorBuilder: (_, __, ___) =>
+                          Icon(Icons.broken_image_rounded, color: C.muted))
+                  : Icon(Icons.broken_image_rounded, color: C.muted),
+            ),
+          ),
+        ),
+        if (onRemove != null)
+          Positioned(
+            top: -6,
+            right: -6,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                    color: C.redDark, shape: BoxShape.circle),
+                child: const Icon(Icons.close_rounded,
+                    size: 14, color: Colors.white),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 
@@ -6539,6 +6822,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
   final _titleCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
   final _titleFocus = FocusNode();
+  late List<String> _photos;
   final _noteFocus = FocusNode();
 
   String get _fromCur => store.currencyOf(_fromId);
@@ -6561,6 +6845,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
         ? d.categoryId
         : _defaultCategory(_type);
     _date = d.date;
+    _photos = [...d.photos];
     _frequency = widget.frequency ?? Frequency.monthly;
     if (d.amount > 0) _amountCtrl.text = amountToInput(d.amount, _fromCur);
     final ta = d.toAmount;
@@ -6673,6 +6958,45 @@ class _TxFormSheetState extends State<TxFormSheet> {
         _syncToAmount();
       }
     });
+  }
+
+  Future<void> _addPhoto() async {
+    FocusScope.of(context).unfocus();
+    final src = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: C.surface,
+      sheetAnimationStyle: AnimationStyle.noAnimation,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_rounded),
+                title: const Text('Foto pakai kamera'),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_rounded),
+                title: const Text('Pilih dari galeri'),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (src == null) return;
+    try {
+      final name = await Receipts.add(src);
+      if (name != null && mounted) setState(() => _photos.add(name));
+    } catch (_) {
+      if (mounted) snack(context, 'Gagal mengambil foto.');
+    }
   }
 
   /// Pilih saran Catatan: kategori (dan akun) ikut diisi dari transaksi
@@ -6815,6 +7139,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       toAccountId: _type == TxType.transfer ? _toId : null,
       date: date,
       note: _noteCtrl.text.trim(),
+      photos: _photos,
     );
     final title = _titleCtrl.text.trim();
     draft.title = title.isEmpty ? _defaultTitle(store, draft) : title;
@@ -7144,6 +7469,47 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 ),
               ),
             ),
+            if (mode == FormMode.transaction && Receipts.available)
+              FormRow(
+                label: 'Foto',
+                accent: accent,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      for (final p in _photos)
+                        ReceiptThumb(
+                          name: p,
+                          onRemove: () => setState(() => _photos.remove(p)),
+                        ),
+                      InkWell(
+                        onTap: _addPhoto,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: C.line, width: 1.5),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_a_photo_rounded,
+                                  size: 20, color: accent),
+                              Text('Struk',
+                                  style:
+                                      TextStyle(fontSize: 10, color: C.muted)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
             if (showQuickRow) ...[
               const SizedBox(height: 10),
@@ -7831,6 +8197,16 @@ class TransactionDetailSheet extends StatelessWidget {
                         .format(t.date)),
                 if (t.recurringId != null) row('Sumber', 'Transaksi berulang'),
                 if (t.note.isNotEmpty) row('Catatan', t.note),
+                if (t.photos.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      for (final p in t.photos) ReceiptThumb(name: p, size: 72),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -10324,14 +10700,125 @@ class _BackupPageState extends State<BackupPage> {
 
   Future<void> _clear() => confirmResetAll(context, store);
 
+  bool _hasPw = false;
+
   @override
   void initState() {
     super.initState();
     store.addListener(_refresh);
+    _refresh();
   }
 
   void _refresh() {
-    if (mounted) setState(() {});
+    store.backupPassword().then((pw) {
+      if (mounted) setState(() => _hasPw = pw != null);
+    });
+  }
+
+  Future<String?> _askPassword({required bool confirm, String? title}) {
+    final a = TextEditingController();
+    final b = TextEditingController();
+    String? err;
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text(title ?? 'Kata sandi backup',
+              style: const TextStyle(fontWeight: FontWeight.w900)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: a,
+                obscureText: true,
+                autofocus: true,
+                decoration: fieldDeco('Kata sandi', icon: Icons.key_rounded),
+              ),
+              if (confirm) ...[
+                const SizedBox(height: 10),
+                TextField(
+                  controller: b,
+                  obscureText: true,
+                  decoration:
+                      fieldDeco('Ulangi kata sandi', icon: Icons.key_rounded),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                    'Minimal 6 karakter. Catat di tempat aman: kalau lupa, backup tidak bisa dibuka.',
+                    style: TextStyle(fontSize: 12, color: C.muted)),
+              ],
+              if (err != null) ...[
+                const SizedBox(height: 8),
+                Text(err!, style: TextStyle(color: C.redDark, fontSize: 12.5)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Batal')),
+            FilledButton(
+              onPressed: () {
+                if (confirm && a.text.length < 6) {
+                  setLocal(() => err = 'Kata sandi minimal 6 karakter.');
+                } else if (confirm && a.text != b.text) {
+                  setLocal(() => err = 'Kedua kata sandi tidak sama.');
+                } else if (a.text.isEmpty) {
+                  setLocal(() => err = 'Isi kata sandinya.');
+                } else {
+                  Navigator.pop(ctx, a.text);
+                }
+              },
+              style: FilledButton.styleFrom(
+                  backgroundColor: C.accentDark,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18))),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _setPassword() async {
+    final pw = await _askPassword(confirm: true);
+    if (pw == null || !mounted) return;
+    await store.setBackupPassword(pw);
+    if (mounted) {
+      snack(context, 'Kata sandi backup disimpan. Backup berikutnya terenkripsi 🔒');
+    }
+  }
+
+  Future<void> _restoreFile() async {
+    final picked = await NativeBridge.pickFile();
+    if (picked == null || !mounted) return;
+    String? pw;
+    if (SecureBackup.looksEncrypted(picked.bytes)) {
+      pw = await _askPassword(
+          confirm: false, title: 'Kata sandi untuk ${picked.name}');
+      if (pw == null || !mounted) return;
+    }
+    final ok = await confirmDialog(context,
+        title: 'Pulihkan backup?',
+        message:
+            'Semua data sekarang akan DIGANTI dengan isi ${picked.name}. Backup data sekarang dulu kalau masih perlu.',
+        confirmLabel: 'Pulihkan',
+        destructive: true);
+    if (!ok || !mounted) return;
+    try {
+      final n = await store.restoreFromFile(picked.bytes, password: pw);
+      if (!mounted) return;
+      setState(() => _error = null);
+      snack(context,
+          'Data berhasil dipulihkan${n > 0 ? ' (+$n foto struk)' : ''} ✅');
+    } on FormatException catch (e) {
+      setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = 'Gagal memulihkan: $e');
+    }
   }
 
   @override
@@ -10378,8 +10865,28 @@ class _BackupPageState extends State<BackupPage> {
                           : 'Terakhir: ${DateFormat('d MMM yyyy, HH.mm', 'id_ID').format(store.settings.lastAutoBackup!)}',
                       style: TextStyle(fontSize: 12.5, color: C.muted)),
                 ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                      _hasPw ? Icons.lock_rounded : Icons.lock_open_rounded,
+                      color: _hasPw ? C.income : C.amberDark),
+                  title: Text(
+                      _hasPw
+                          ? 'Terenkripsi dengan kata sandi'
+                          : 'Belum terenkripsi',
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: Text(
+                      _hasPw
+                          ? 'File .infb, ikut foto struk. Tanpa kata sandi ini, backup tidak bisa dibuka (juga oleh kamu).'
+                          : 'File JSON bisa dibaca siapa saja yang memegang file-nya. Atur kata sandi supaya terkunci.',
+                      style: TextStyle(fontSize: 12.5, color: C.muted)),
+                  trailing: TextButton(
+                    onPressed: _setPassword,
+                    child: Text(_hasPw ? 'Ganti' : 'Atur'),
+                  ),
+                ),
                 Text(
-                    'File JSON disimpan di Download/Infinity. Tetap ada walau app di-uninstall. Isinya tidak terenkripsi (tanpa PIN), jadi jangan dibagikan. Untuk memulihkan: buka file, salin isinya, tempel di kolom Pulihkan.',
+                    'Disimpan di Download/Infinity dan tetap ada walau app di-uninstall. Pulihkan lewat tombol "Pulihkan dari file" di bawah.',
                     style: TextStyle(fontSize: 12.5, color: C.muted)),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
@@ -10409,6 +10916,20 @@ class _BackupPageState extends State<BackupPage> {
               children: [
                 const SectionTitle('Pulihkan'),
                 const SizedBox(height: 10),
+                FilledButton.icon(
+                  onPressed: _restoreFile,
+                  icon: const Icon(Icons.folder_open_rounded),
+                  label: const Text('Pulihkan dari file (.infb / .json)'),
+                  style: FilledButton.styleFrom(
+                      backgroundColor: C.accentDark,
+                      minimumSize: const Size.fromHeight(50),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20))),
+                ),
+                const SizedBox(height: 12),
+                Text('atau tempel teks JSON:',
+                    style: TextStyle(fontSize: 12.5, color: C.muted)),
+                const SizedBox(height: 6),
                 TextField(
                   controller: _importCtrl,
                   maxLines: 6,

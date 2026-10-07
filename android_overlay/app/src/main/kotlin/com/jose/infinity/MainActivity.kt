@@ -91,6 +91,12 @@ class MainActivity : FlutterFragmentActivity() {
                         val text = call.argument<String>("text") ?: ""
                         result.success(saveDownload(name, text))
                     }
+                    "saveDownloadBytes" -> {
+                        val name = call.argument<String>("name") ?: "infinity-backup.bin"
+                        val bytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
+                        val mime = call.argument<String>("mime") ?: "application/octet-stream"
+                        result.success(saveDownloadRaw(name, bytes, mime))
+                    }
                     "pickFile" -> {
                         if (pendingPick != null) {
                             result.error("busy", "Pemilih file sedang terbuka", null)
@@ -119,24 +125,27 @@ class MainActivity : FlutterFragmentActivity() {
             }
     }
 
-    /** Simpan backup ke Download/Infinity (Android 10+) atau folder app (lama). */
-    private fun saveDownload(name: String, text: String): Boolean {
+    private fun saveDownload(name: String, text: String): Boolean =
+        saveDownloadRaw(name, text.toByteArray(), "application/json")
+
+    /** Simpan file ke Download/Infinity (Android 10+) atau folder app (lama). */
+    private fun saveDownloadRaw(name: String, data: ByteArray, mime: String): Boolean {
         return try {
             if (Build.VERSION.SDK_INT >= 29) {
                 val values = ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+                    put(MediaStore.MediaColumns.MIME_TYPE, mime)
                     put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Infinity")
                 }
                 val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                     ?: return false
-                contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+                contentResolver.openOutputStream(uri)?.use { it.write(data) }
                     ?: return false
                 true
             } else {
                 val dir = java.io.File(getExternalFilesDir(null), "backup")
                 dir.mkdirs()
-                java.io.File(dir, name).writeText(text)
+                java.io.File(dir, name).writeBytes(data)
                 true
             }
         } catch (e: Exception) {
