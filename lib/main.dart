@@ -8159,6 +8159,18 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     super.dispose();
   }
 
+  /// Kalkulator yang sama seperti di form transaksi.
+  Future<void> _calc(TextEditingController ctrl, {bool balance = false}) async {
+    final dec = hasDecimals(_currency);
+    final v = await showSheet<double>(
+        context, CalculatorSheet(initial: parseAmount(ctrl.text, decimals: dec)));
+    if (v == null || !mounted) return;
+    setState(() {
+      ctrl.text = v.abs() > 0 ? amountToInput(v.abs(), _currency) : '';
+      if (balance) _balTouched = true;
+    });
+  }
+
   /// 'tx' = catat sebagai transaksi, 'initial' = ubah saldo awal saja.
   Future<String?> _askAdjust(double from, double to) {
     final cur = _currency;
@@ -8365,7 +8377,13 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
                     ? 'Ubah kalau beda dengan saldo asli. Nanti ditanya: catat sebagai transaksi atau ubah saldo awal saja.'
                     : isCredit
                         ? 'Isi kalau kartu sudah punya tagihan sebelum mulai dicatat.'
-                        : 'Saldo saat akun mulai dicatat. Saldo berjalan dihitung otomatis.'),
+                        : 'Saldo saat akun mulai dicatat. Saldo berjalan dihitung otomatis.').copyWith(
+              suffixIcon: IconButton(
+                tooltip: 'Kalkulator',
+                icon: Icon(Icons.calculate_rounded, color: C.accentDark),
+                onPressed: () => _calc(_balanceCtrl, balance: true),
+              ),
+            ),
           ),
           if (isCredit) ...[
             const SizedBox(height: 12),
@@ -8374,8 +8392,15 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
               keyboardType: TextInputType.numberWithOptions(decimal: dec),
               inputFormatters: [AmountFormatter(decimals: dec)],
               decoration: fieldDeco('Limit kartu',
-                  icon: Icons.speed_rounded,
-                  prefix: '${currencySymbol(_currency)} '),
+                      icon: Icons.speed_rounded,
+                      prefix: '${currencySymbol(_currency)} ')
+                  .copyWith(
+                suffixIcon: IconButton(
+                  tooltip: 'Kalkulator',
+                  icon: Icon(Icons.calculate_rounded, color: C.accentDark),
+                  onPressed: () => _calc(_limitCtrl),
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
