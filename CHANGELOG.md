@@ -7,7 +7,7 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ## v1.1 (7 Okt 2026)
 
-## Ditambah
+### Ditambah
 - **Import dari Money Manager**: Lainnya → Import dari Money Manager, pilih file `.xlsx` hasil *Ekspor ke Excel*. Ada pratinjau dulu; akun dan kategori dicocokkan otomatis, yang belum ada dibuat. Import ulang file yang sama tidak membuat transaksi dobel.
 - **Akun utama**: ketuk ☆ di Akun & Dompet, akun itu otomatis terpilih saat mencatat transaksi baru.
 - **Urutkan akun**: tahan lama kartu akun atau tarik ikon ⠿ di Akun & Dompet.
@@ -19,7 +19,7 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 - **Reset semua data** dengan konfirmasi mengetik `HAPUS`.
 - Nomor versi tampil di bawah halaman Lainnya.
 
-## Diubah
+### Diubah
 - **Form catat** dibuat seperti Money Manager: baris Tanggal, Jumlah, Kategori, Akun, Catatan, Deskripsi.
 - **Panel kategori** muncul di bawah tanpa animasi, tingginya pas dengan isi, dan terbuka sendiri setelah nominal diisi. Kategori yang punya sub membelah layar (induk kiri, sub kanan).
 - **Hapus dengan geser** harus digeser lebih jauh dan **selalu dikonfirmasi** dulu. Notifikasi *Transaksi dihapus* dengan tombol *Urungkan* dibuat lebih jelas.
@@ -30,11 +30,11 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 - **Screenshot** sekarang boleh dari awal (Mode layar aman bisa dinyalakan di Keamanan).
 - Install baru mulai **kosong**, tanpa data demo.
 
-## Dihapus
+### Dihapus
 - Data demo bawaan dan tombol *Muat ulang data demo*.
 - Fitur ketik nominal langsung di notifikasi (diganti pintasan 4 ikon).
 
-## Diperbaiki
+### Diperbaiki
 - Pintasan notifikasi tidak muncul di sebagian HP (Huawei/Honor/Xiaomi): sekarang tampil normal tanpa suara, terpisah dari saklar pengingat, dan muncul lagi setelah HP restart.
 - Teks cepat seperti "25 rbu nasgor" terbaca Rp25: sekarang `rbu/rebu/ribuan/k` dibaca ribu, `jt/jta/juta` dibaca juta.
 
