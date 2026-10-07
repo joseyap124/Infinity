@@ -10188,7 +10188,7 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
       _error = null;
     });
     try {
-      final res = await FilePicker.platform
+      final res = await FilePicker
           .pickFiles(type: FileType.any, withData: true);
       final f = res?.files.single;
       if (f == null) return;
