@@ -1,0 +1,38 @@
+
+::group::✅ Passing tests
+✅ Saldo pemasukan, pengeluaran, transfer
+✅ Saldo transfer beda mata uang memakai jumlah diterima
+✅ Saldo excludeTxId mengabaikan transaksi yang sedang diedit
+✅ Saldo penyesuaian saldo dicatat sebagai transaksi
+✅ Akun urutkan akun (aturan ReorderableListView)
+✅ Akun hapus akun ikut menghapus transaksinya
+✅ Akun akun utama dipakai sebagai bawaan
+✅ Catat otomatis notifikasi baru langsung dicatat
+✅ Catat otomatis notifikasi sebelum saldo diubah manual tidak mengubah saldo
+✅ Utang & target cicilan utang dan lunas
+✅ Utang & target lewat tenggat
+✅ Utang & target target ikut saldo akun atau manual
+✅ Utang & target tersimpan dan terbaca ulang lewat JSON
+✅ Ekspor Excel ekspor lalu impor ulang menghasilkan transaksi yang sama
+✅ Ekspor Excel ringkasan bulan ini vs bulan lalu (hari yang sama)
+✅ Struk (OCR) total di baris yang sama, abaikan subtotal & total item
+✅ Struk (OCR) angka total di baris berikutnya
+✅ Struk (OCR) tanpa kata total = null
+✅ Teks cepat 25rb kopi
+✅ Teks cepat 25 rbu nasgor
+✅ Teks cepat kopi 25.000
+✅ Teks cepat 1,5jt hp
+✅ Teks cepat 2 jta motor
+✅ Teks cepat 12k ojek
+✅ Teks cepat 15000 parkir
+✅ Teks cepat 25 nasgor
+✅ Teks cepat tanpa angka = null
+✅ Saran ketikan awal kata, paling sering di atas
+✅ Import Money Manager kunci nama mengabaikan emoji, spasi, kurung
+✅ Import Money Manager rencana import: akun baru, transfer, anti-dobel
+✅ Import Money Manager baca xlsx (shared strings + tanggal seri Excel)
+✅ Backup terenkripsi enkripsi lalu buka kembali
+✅ Backup terenkripsi kata sandi salah ditolak
+::endgroup::
+
+🎉 33 tests passed.

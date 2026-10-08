@@ -1,0 +1,19 @@
+Analyzing lib...                                                
+
+   info • The import of 'dart:typed_data' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/services.dart'. Try removing the import directive • lib/main.dart:22:8 • unnecessary_import
+   info • Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' • lib/main.dart:3238:9 • use_null_aware_elements
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/main.dart:3578:31 • unnecessary_underscores
+   info • Type could be non-nullable. Try changing the type to be non-nullable • lib/main.dart:4574:22 • unnecessary_nullable_for_final_variable_declarations
+   info • Angle brackets will be interpreted as HTML. Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;` • lib/main.dart:4626:48 • unintended_html_in_doc_comment
+   info • Angle brackets will be interpreted as HTML. Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;` • lib/main.dart:4626:67 • unintended_html_in_doc_comment
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/main.dart:4747:41 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/main.dart:4747:45 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/main.dart:4796:33 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/main.dart:4796:37 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/main.dart:5276:43 • unnecessary_underscores
+warning • The '!' will have no effect because the receiver can't be null. Try removing the '!' operator • lib/main.dart:6541:55 • unnecessary_non_null_assertion
+   info • 'onReorder' is deprecated and shouldn't be used. Use the onReorderItem callback instead. The onReorderItem callback adjusts the newIndex parameter for a removed item at the oldIndex. This feature was deprecated after v3.41.0-0.0.pre. Try replacing the use of the deprecated member with the replacement • lib/main.dart:8838:11 • deprecated_member_use
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/main.dart:8839:38 • unnecessary_underscores
+   info • Type could be non-nullable. Try changing the type to be non-nullable • lib/main.dart:12913:20 • unnecessary_nullable_for_final_variable_declarations
+
+15 issues found. (ran in 9.2s)
