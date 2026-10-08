@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v2.0)
+## v2.0 (8 Okt 2026)
 
 ### Ditambah
 - **Aman dibelanjakan hari ini**: angka utama di Beranda. Kalau anggaran diatur, sisa anggaran dibagi sisa hari periode. Kalau belum, dihitung dari saldo e-wallet, tunai, dan bank, ditambah pemasukan berulang, dikurangi tagihan kartu kredit, utang yang jatuh tempo, setoran target tabungan, serta tagihan dan langganan berulang sampai akhir bulan. Ketuk kartunya untuk melihat rinciannya.
