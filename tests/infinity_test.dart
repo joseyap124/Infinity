@@ -637,4 +637,31 @@ void main() {
       expect(ErrorLog.count(), 0);
     });
   });
+
+  group('Kesehatan data & backup', () {
+    test('dobel dan kategori hilang terdeteksi, kategori bisa diperbaiki', () {
+      final s = storeWith([acc('a', initial: 100000)], [
+        tx('1', TxType.expense, 25000, 'a', cat: 'kopi', title: 'Kopi', date: DateTime(2026, 10, 1, 9, 0)),
+        tx('2', TxType.expense, 25000, 'a', cat: 'kopi', title: 'kopi ', date: DateTime(2026, 10, 1, 9, 1)),
+        tx('3', TxType.expense, 25000, 'a', cat: 'kopi', title: 'Kopi', date: DateTime(2026, 10, 1, 12, 0)),
+      ]);
+      s.categories = [TxCategory(id: 'lain', name: 'Lain', type: TxType.expense, icon: 'other', color: 0)];
+      expect(s.possibleDuplicates(), hasLength(1));
+      final issues = s.healthCheck(DateTime(2026, 10, 8));
+      final lost = issues.firstWhere((i) => i.title.contains('kategorinya sudah dihapus'));
+      lost.fix!();
+      expect(s.transactions.every((t) => t.categoryId == 'lain'), isTrue);
+      expect(s.healthCheck(DateTime(2026, 10, 8)).any((i) => i.title.contains('kategorinya')), isFalse);
+    });
+
+    test('backup diverifikasi sebelum disimpan', () async {
+      final s = storeWith([acc('a', initial: 1)]);
+      final json = s.exportJson();
+      final enc = await SecureBackup.encrypt(json, {}, 'rahasia1');
+      expect(await s.verifyBackupBytes(enc, json, password: 'rahasia1'), isTrue);
+      expect(await s.verifyBackupBytes(enc, json, password: 'salah'), isFalse);
+      expect(await s.verifyBackupBytes(utf8.encode(json), json), isTrue);
+      expect(await s.verifyBackupBytes(utf8.encode('{}'), json), isFalse);
+    });
+  });
 }

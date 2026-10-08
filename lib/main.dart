@@ -85,6 +85,7 @@ part 'src/35_patungan.dart';
 part 'src/36_kekayaan_bersih.dart';
 part 'src/37_acara.dart';
 part 'src/38_catatan_error.dart';
+part 'src/39_kesehatan_data.dart';
 // WIDGET-IMPORTS-END
 
 void main() {

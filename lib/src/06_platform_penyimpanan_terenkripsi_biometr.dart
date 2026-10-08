@@ -116,6 +116,15 @@ class NativeBridge {
     }
   }
 
+  /// Hapus backup lama di Download/Infinity, sisakan [keep] terbaru.
+  static Future<int> pruneBackups(int keep) async {
+    try {
+      return await _ch.invokeMethod<int>('pruneBackups', {'keep': keep}) ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   /// Notifikasi pintasan 4 ikon (native, gaya Money Manager).
   static Future<void> showQuickBar() async {
     try {

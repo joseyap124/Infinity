@@ -1043,16 +1043,22 @@ class AppStore extends ChangeNotifier {
     }
     final stamp = DateFormat('yyyy-MM-dd_HHmm').format(DateTime.now());
     final pw = await backupPassword();
+    final json = exportJson();
     bool ok;
     if (pw != null) {
-      final bytes = await SecureBackup.encrypt(exportJson(), _photoBytes(), pw);
+      final bytes = await SecureBackup.encrypt(json, _photoBytes(), pw);
+      // Pastikan backup bisa dibuka lagi sebelum disimpan.
+      if (!await verifyBackupBytes(bytes, json, password: pw)) return false;
       ok = await NativeBridge.saveDownloadBytes(
           'infinity-backup-$stamp.infb', bytes, 'application/octet-stream');
     } else {
-      ok = await NativeBridge.saveDownload(
-          'infinity-backup-$stamp.json', exportJson());
+      if (!await verifyBackupBytes(utf8.encode(json), json)) return false;
+      ok = await NativeBridge.saveDownload('infinity-backup-$stamp.json', json);
     }
-    if (ok) updateSettings((x) => x.lastAutoBackup = DateTime.now());
+    if (ok) {
+      updateSettings((x) => x.lastAutoBackup = DateTime.now());
+      await NativeBridge.pruneBackups(kKeepBackups);
+    }
     return ok;
   }
 
@@ -1062,6 +1068,29 @@ class AppStore extends ChangeNotifier {
     final pw = await backupPassword();
     if (pw == null) return null;
     return SecureBackup.encrypt(exportJson(), _photoBytes(), pw);
+  }
+
+  /// Cek backup bisa dibuka dan isinya sama dengan data sekarang.
+  Future<bool> verifyBackupBytes(List<int> bytes, String expectedJson,
+      {String? password}) async {
+    try {
+      String json;
+      if (SecureBackup.looksEncrypted(bytes)) {
+        final (j, _) = await SecureBackup.decrypt(bytes, password ?? '');
+        json = j;
+      } else {
+        json = utf8.decode(bytes);
+      }
+      if (json != expectedJson) throw const FormatException('isi berbeda');
+      final decoded = jsonDecode(json);
+      if (decoded is! Map || decoded['accounts'] is! List) {
+        throw const FormatException('format salah');
+      }
+      return true;
+    } catch (e, st) {
+      ErrorLog.record(e, st, source: 'backup-verify');
+      return false;
+    }
   }
 
   /// Pulihkan dari isi file .infb atau .json. Lempar FormatException.

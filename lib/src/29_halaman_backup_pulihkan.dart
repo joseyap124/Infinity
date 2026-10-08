@@ -288,7 +288,7 @@ class _BackupPageState extends State<BackupPage> {
                   ),
                 ),
                 Text(
-                    'Disimpan di Download/Infinity dan tetap ada walau app di-uninstall. Pulihkan lewat tombol "Pulihkan dari file" di bawah.',
+                    'Disimpan di Download/Infinity dan tetap ada walau app di-uninstall. Disimpan $kKeepBackups backup terakhir; yang lebih lama dihapus otomatis. Setiap backup dicek dulu bisa dibuka sebelum disimpan. Pulihkan lewat tombol "Pulihkan dari file" di bawah.',
                     style: TextStyle(fontSize: 12.5, color: C.muted)),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(

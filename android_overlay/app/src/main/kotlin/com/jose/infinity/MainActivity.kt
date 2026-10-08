@@ -1,6 +1,7 @@
 package com.jose.infinity
 
 import android.content.ComponentName
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
@@ -154,6 +155,10 @@ class MainActivity : FlutterFragmentActivity() {
                             startActivityForResult(i, REQ_SAVE)
                         }
                     }
+                    "pruneBackups" -> {
+                        val keep = call.argument<Int>("keep") ?: 8
+                        result.success(pruneBackups(keep))
+                    }
                     "showQuickBar" -> {
                         QuickBar.setEnabled(this, true)
                         QuickBar.show(this)
@@ -195,6 +200,44 @@ class MainActivity : FlutterFragmentActivity() {
         } catch (e: Exception) {
             false
         }
+    }
+
+    /**
+     * Hapus backup lama di Download/Infinity, sisakan [keep] terbaru.
+     * Hanya file buatan Infinity sendiri yang bisa dihapus (aturan Android);
+     * file lain dilewati. Mengembalikan jumlah yang dihapus.
+     */
+    private fun pruneBackups(keep: Int): Int {
+        var deleted = 0
+        try {
+            if (Build.VERSION.SDK_INT >= 29) {
+                val uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+                val proj = arrayOf(MediaStore.MediaColumns._ID)
+                val sel = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND " +
+                    "${MediaStore.MediaColumns.DISPLAY_NAME} LIKE ?"
+                val args = arrayOf("${Environment.DIRECTORY_DOWNLOADS}/Infinity%", "infinity-backup-%")
+                contentResolver.query(uri, proj, sel, args,
+                    "${MediaStore.MediaColumns.DATE_ADDED} DESC")?.use { c ->
+                    var i = 0
+                    while (c.moveToNext()) {
+                        if (i++ < keep) continue
+                        try {
+                            val id = c.getLong(0)
+                            if (contentResolver.delete(ContentUris.withAppendedId(uri, id), null, null) > 0) deleted++
+                        } catch (_: Exception) {
+                        }
+                    }
+                }
+            } else {
+                val dir = java.io.File(getExternalFilesDir(null), "backup")
+                dir.listFiles { f -> f.name.startsWith("infinity-backup-") }
+                    ?.sortedByDescending { it.lastModified() }
+                    ?.drop(keep)
+                    ?.forEach { if (it.delete()) deleted++ }
+            }
+        } catch (_: Exception) {
+        }
+        return deleted
     }
 
     private fun isListenerEnabled(): Boolean {

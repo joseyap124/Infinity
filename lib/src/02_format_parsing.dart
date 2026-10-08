@@ -23,6 +23,9 @@ const Map<String, double> kDefaultRates = {
   'JPY': 113.28,
 };
 
+/// Jumlah backup otomatis yang disimpan di Download/Infinity.
+const int kKeepBackups = 8;
+
 /// Tanggal kurs bawaan di atas.
 final DateTime kDefaultRatesDate = DateTime(2026, 10, 7);
 
