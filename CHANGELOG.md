@@ -6,17 +6,13 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya
 
 ### Ditambah
+- **Baca struk otomatis (offline)**: saat menambah foto struk dan nominal masih kosong, Infinity membaca fotonya langsung di HP (Google ML Kit, tanpa internet) lalu mengisi nominal total, nama toko sebagai catatan, dan kategori kalau tertebak. Baris *Subtotal*, *Total item*, *Diskon*, dan *Tunai/Kembali* diabaikan. Hasilnya tebakan, jadi tetap dicek sebelum simpan.
 - **Splash animasi**: saat app dibuka, koin jatuh masuk ke celengan, celengan memantul, lalu tulisan Infinity muncul. Splash bawaan Android juga dibuat gelap dengan celengan supaya menyambung. Kalau *Kurangi animasi* di HP aktif, animasi dilewati.
 
 ### Diubah
 - **Penyimpanan data baru**: data dipindah dari secure storage ke **file terenkripsi AES-256** di folder pribadi app (kuncinya tetap di Android Keystore). Jauh lebih cepat untuk data besar, misalnya hasil import Money Manager bertahun-tahun. Pindahnya otomatis saat update; data lama baru dihapus setelah file baru terbukti bisa dibaca.
 - Penyimpanan sekarang dikumpulkan (sekali tulis untuk beberapa perubahan beruntun) dan langsung disimpan saat app ditutup.
 - Kode app dipecah dari satu file 13 ribu baris menjadi 32 file per bagian, supaya lebih mudah dirawat.
-
-## v1.7 (8 Okt 2026)
-
-### Ditambah
-- **Baca struk otomatis (offline)**: saat menambah foto struk dan nominal masih kosong, Infinity membaca fotonya langsung di HP (Google ML Kit, tanpa internet) lalu mengisi nominal total, nama toko sebagai catatan, dan kategori kalau tertebak. Baris *Subtotal*, *Total item*, *Diskon*, dan *Tunai/Kembali* diabaikan. Hasilnya tebakan, jadi tetap dicek sebelum simpan.
 
 ## v1.6 (8 Okt 2026)
 
