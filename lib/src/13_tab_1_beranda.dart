@@ -830,8 +830,7 @@ class DashboardTab extends StatelessWidget {
   Widget _accountTile(BuildContext context, Account a, bool hide) {
     final bal = store.balanceOf(a.id);
     return GestureDetector(
-      onTap: () => showSheet<void>(
-          context, AccountEditorSheet(store: store, account: a)),
+      onTap: () => openAccountHistory(context, store, a),
       child: Container(
         width: 150,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

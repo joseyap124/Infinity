@@ -345,11 +345,13 @@ Future<void> openTemplateForm(BuildContext context, AppStore store,
 }
 
 /// Baris transaksi gaya Gojek + swipe kiri untuk hapus.
+/// [forAccount]: tampilkan nominal dari sisi akun itu (transfer keluar
+/// minus, transfer masuk plus). [balanceAfter]: saldo akun setelah transaksi.
 Widget txTile(BuildContext context, AppStore store, Transaction t,
-    {bool showDate = false}) {
+    {bool showDate = false, String? forAccount, double? balanceAfter}) {
   final cur = store.currencyOf(t.accountId);
-  final String amountText;
-  final Color amountColor;
+  String amountText;
+  Color amountColor;
   switch (t.type) {
     case TxType.expense:
       amountText = '-${money(t.amount, cur)}';
@@ -360,6 +362,11 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
     case TxType.transfer:
       amountText = money(t.amount, cur);
       amountColor = C.blueDark;
+  }
+  if (forAccount != null && t.type == TxType.transfer) {
+    amountText = t.toAccountId == forAccount
+        ? '+${money(t.receivedAmount, store.currencyOf(forAccount))}'
+        : '-${money(t.amount, cur)}';
   }
   final accountText = t.type == TxType.transfer
       ? '${store.accountName(t.accountId)} → ${store.accountName(t.toAccountId)}'
@@ -463,11 +470,23 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(amountText,
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: amountColor)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(amountText,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: amountColor)),
+                    if (balanceAfter != null && forAccount != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text(
+                            'Saldo ${money(balanceAfter, store.currencyOf(forAccount))}',
+                            style: TextStyle(fontSize: 11, color: C.muted)),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),

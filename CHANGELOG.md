@@ -5,6 +5,15 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ## Berikutnya
 
+### Ditambah
+- **Riwayat per akun**: ketuk akun (mis. SeaBank, BCA) di Beranda atau di Kelola Akun untuk melihat semua transaksinya per bulan, dikelompokkan per hari, lengkap dengan saldo setelah tiap transaksi (seperti buku tabungan). Di atasnya ada saldo sekarang serta total masuk dan keluar bulan itu. Transfer ditampilkan dari sisi akun: keluar minus, masuk plus. Edit akun lewat tombol ✏️ di pojok kanan atas, dan tombol *Catat* langsung memakai akun itu.
+- **Dolar Australia (AUD, A$)** sebagai mata uang akun dan transfer. Kurs awal 1 AUD = Rp12.460 (kurs 7 Okt 2026), bisa diubah di Lainnya → Mata Uang & Kurs.
+
+### Diubah
+- Ketuk akun di Beranda sekarang membuka riwayatnya, bukan langsung form edit.
+
+## v2.4 (8 Okt 2026)
+
 ### Diubah
 - **Catat Cepat di Beranda lebih rapi**: template tampil sebagai tombol 2 kolom dengan lebar sama (ikon, nama, nominal), bukan lagi chip yang lebarnya mengikuti panjang teks sehingga sisi kanannya bolong. Maksimal 6 tombol; sisanya lewat *Semua*.
 - Jarak antar bagian di bawah Beranda diseragamkan.

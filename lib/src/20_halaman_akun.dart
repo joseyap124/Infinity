@@ -16,8 +16,7 @@ class AccountsPage extends StatelessWidget {
         index: index,
         child: AppCard(
           padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
-          onTap: () => showSheet<void>(
-              context, AccountEditorSheet(store: store, account: a)),
+          onTap: () => openAccountHistory(context, store, a),
           child: Row(
             children: [
               CatIcon(icon: a.type.icon, color: a.colorValue),

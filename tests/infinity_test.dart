@@ -469,4 +469,28 @@ void main() {
       expect(s.templates.first.amount, 28000);
     });
   });
+
+  group('Riwayat akun', () {
+    test('saldo berjalan per akun, transfer masuk dan keluar', () {
+      final s = storeWith([acc('sea', initial: 100000), acc('bca', initial: 500000)], [
+        tx('1', TxType.expense, 20000, 'sea', date: DateTime(2026, 10, 1, 9)),
+        tx('2', TxType.transfer, 50000, 'bca', to: 'sea', date: DateTime(2026, 10, 2, 9)),
+        tx('3', TxType.income, 10000, 'bca', date: DateTime(2026, 10, 3, 9)),
+        tx('4', TxType.transfer, 30000, 'sea', to: 'bca', date: DateTime(2026, 10, 4, 9)),
+      ]);
+      final l = s.accountLedger('sea');
+      expect(l.map((e) => e.$1.id), ['1', '2', '4']);
+      expect(l.map((e) => e.$2), [80000, 130000, 100000]);
+      expect(l.last.$2, s.balanceOf('sea'));
+      expect(s.accountDelta(l[1].$1, 'sea'), 50000);
+      expect(s.accountLedger('bca').last.$2, s.balanceOf('bca'));
+    });
+
+    test('AUD tersedia dengan kurs awal', () {
+      expect(kCurrencies, contains('AUD'));
+      expect(kDefaultRates['AUD'], greaterThan(0));
+      expect(hasDecimals('AUD'), isTrue);
+      expect(currencySymbol('AUD'), 'A\$');
+    });
+  });
 }

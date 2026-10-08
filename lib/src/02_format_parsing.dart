@@ -5,7 +5,7 @@ part of '../main.dart';
 // =============================================================================
 
 const List<String> kCurrencies = [
-  'IDR', 'USD', 'SGD', 'MYR', 'CNY', 'TWD', 'EUR', 'JPY',
+  'IDR', 'USD', 'SGD', 'MYR', 'CNY', 'TWD', 'AUD', 'EUR', 'JPY',
 ];
 
 /// Kurs bawaan ke Rupiah. HANYA PERKIRAAN, ubah di menu Mata Uang & Kurs.
@@ -16,6 +16,7 @@ const Map<String, double> kDefaultRates = {
   'MYR': 3850,
   'CNY': 2280,
   'TWD': 564, // kurs awal 6 Okt 2026, bisa diubah di Mata Uang & Kurs
+  'AUD': 12460, // kurs awal 7 Okt 2026
   'EUR': 17700,
   'JPY': 108,
 };
@@ -28,6 +29,7 @@ String currencySymbol(String c) {
     'MYR': 'RM',
     'CNY': 'CN¥',
     'TWD': 'NT\$',
+    'AUD': 'A\$',
     'EUR': '€',
     'JPY': 'JP¥',
   };
