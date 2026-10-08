@@ -255,6 +255,12 @@ class MoreTab extends StatelessWidget {
             child: Column(
               children: [
                 _tile(context,
+                    icon: Icons.help_rounded,
+                    color: C.blueDark,
+                    title: 'Bantuan',
+                    subtitle: 'Pindah HP, catat otomatis, backup, lupa PIN',
+                    onTap: () => _push(context, HelpPage(store: store))),
+                _tile(context,
                     icon: Icons.health_and_safety_rounded,
                     color: Colors.green,
                     title: 'Cek kesehatan data',

@@ -371,6 +371,12 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
             store.updateSettings((s) => s.splashSeen = true);
           });
         }
+        // Panduan singkat untuk install baru.
+        if (!store.settings.onboarded) {
+          return OnboardingPage(
+              store: store,
+              onDone: () => store.updateSettings((s) => s.onboarded = true));
+        }
         final pin = store.settings.pin;
         if (_locked && pin != null) {
           return PinLockScreen(

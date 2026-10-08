@@ -453,6 +453,8 @@ void main() {
   group('Splash', () {
     test('hanya saat pertama kali dibuka', () {
       expect(AppSettings().splashSeen, isFalse); // install baru
+      expect(AppSettings().onboarded, isFalse); // install baru lihat panduan
+      expect(AppSettings.fromJson({}).onboarded, isTrue); // pengguna lama tidak
       expect(AppSettings.fromJson({}).splashSeen, isTrue); // data versi lama
       final s = AppSettings()..splashSeen = true;
       expect(AppSettings.fromJson(s.toJson()).splashSeen, isTrue);

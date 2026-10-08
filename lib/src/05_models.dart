@@ -445,6 +445,9 @@ class AppSettings {
   /// Splash animasi koin hanya diputar sekali, saat app pertama kali dibuka.
   bool splashSeen = false;
 
+  /// Panduan pertama kali sudah dilewati.
+  bool onboarded = false;
+
   /// 'off' | 'ask' | 'auto' untuk pencatatan dari notifikasi bank/e-wallet.
   String captureMode = 'auto';
 
@@ -486,6 +489,7 @@ class AppSettings {
         'biometric': biometric,
         'secureScreenV2': secureScreen,
         'splashSeen': splashSeen,
+        'onboarded': onboarded,
         'captureMode': captureMode,
         'notifHideAmounts': notifHideAmounts,
         'notifEnabled': notifEnabled,
@@ -561,6 +565,7 @@ class AppSettings {
     s.secureScreen = j['secureScreenV2'] == true;
     // Data lama (sudah pernah buka app) dianggap sudah melihat splash.
     s.splashSeen = j['splashSeen'] != false;
+    s.onboarded = j['onboarded'] != false;
     final mode = _s(j['captureMode']);
     s.captureMode =
         (mode == 'off' || mode == 'ask' || mode == 'auto') ? mode! : 'auto';

@@ -335,6 +335,22 @@ class _BackupPageState extends State<BackupPage> {
             ),
           ),
           const SizedBox(height: 12),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SectionTitle('Pindah HP'),
+                const SizedBox(height: 6),
+                for (var i = 0; i < kMoveSteps.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('${i + 1}. ${kMoveSteps[i]}',
+                        style: TextStyle(fontSize: 12.5, color: C.muted, height: 1.35)),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           ExportExcelCard(store: store),
           const SizedBox(height: 12),
           AppCard(
