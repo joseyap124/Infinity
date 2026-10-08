@@ -296,7 +296,7 @@ class _DebtsPageState extends State<DebtsPage> {
               ],
               const SizedBox(height: 8),
               Text(
-                  'Catatan ini tidak mengubah saldo akun. Kalau uangnya memang keluar/masuk rekening, catat juga transaksinya.',
+                  'Catatan ini tidak mengubah saldo akun. Kalau uangnya memang keluar/masuk rekening, catat juga transaksinya. Pengecualian: piutang dari Patungan, yang uangnya otomatis pindah dari akun Talangan saat dibayar.',
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ],
           ),
@@ -358,7 +358,7 @@ class _DebtsPageState extends State<DebtsPage> {
                           d.settled
                               ? 'Lunas'
                               : due == null
-                                  ? 'Tanpa tenggat'
+                                  ? (d.note.isNotEmpty ? d.note : 'Tanpa tenggat')
                                   : '${late ? 'Lewat tenggat' : 'Tenggat'} ${DateFormat('d MMM yyyy', 'id_ID').format(due)}',
                           style: TextStyle(
                               fontSize: 12,

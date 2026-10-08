@@ -165,6 +165,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
   final _title = TextEditingController();
   final _total = TextEditingController();
   final _person = TextEditingController();
+  final _personFocus = FocusNode();
   final List<String> _people = [];
   final Map<String, TextEditingController> _shareCtrls = {};
   bool _includeMe = true;
@@ -190,6 +191,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
     _title.dispose();
     _total.dispose();
     _person.dispose();
+    _personFocus.dispose();
     for (final c in _shareCtrls.values) {
       c.dispose();
     }
@@ -243,6 +245,8 @@ class _PatunganSheetState extends State<PatunganSheet> {
       _person.clear();
       _error = null;
     });
+    // Tetap di kolom nama supaya bisa langsung ketik teman berikutnya.
+    _personFocus.requestFocus();
   }
 
   void _removePerson(String p) {
@@ -358,8 +362,11 @@ class _PatunganSheetState extends State<PatunganSheet> {
               Expanded(
                 child: TextField(
                   controller: _person,
+                  focusNode: _personFocus,
                   textCapitalization: TextCapitalization.words,
-                  onSubmitted: (_) => _addPerson(),
+                  textInputAction: TextInputAction.next,
+                  // Ganti perilaku bawaan (pindah fokus) dengan tambah teman.
+                  onEditingComplete: _addPerson,
                   decoration: fieldDeco('Nama teman',
                       icon: Icons.person_add_alt_rounded),
                 ),
