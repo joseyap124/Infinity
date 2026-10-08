@@ -29,8 +29,13 @@ class Debt {
     required this.date,
     this.due,
     this.note = '',
+    this.holdAccountId,
     List<DebtPayment>? payments,
   }) : payments = payments ?? [];
+
+  /// Akun penampung talangan (patungan). Kalau ada, pembayaran dari teman
+  /// dipindah dari akun ini ke akun penerima supaya saldo tetap benar.
+  final String? holdAccountId;
 
   final String id;
   String person;
@@ -60,6 +65,7 @@ class Debt {
         'date': date.toIso8601String(),
         'due': due?.toIso8601String(),
         'note': note,
+        if (holdAccountId != null) 'holdAccountId': holdAccountId,
         'payments': payments.map((p) => p.toJson()).toList(),
       };
 
@@ -71,6 +77,7 @@ class Debt {
         date: DateTime.tryParse(_s(j['date']) ?? '') ?? DateTime.now(),
         due: DateTime.tryParse(_s(j['due']) ?? ''),
         note: _s(j['note']) ?? '',
+        holdAccountId: _s(j['holdAccountId']),
         payments: _list(j['payments']).map(DebtPayment.fromJson).toList(),
       );
 }
@@ -220,7 +227,14 @@ class _DebtsPageState extends State<DebtsPage> {
         final done = list.where((d) => d.settled).toList()
           ..sort((a, b) => b.date.compareTo(a.date));
         return Scaffold(
-          appBar: pageBar('Utang & Piutang'),
+          appBar: pageBar('Utang & Piutang', actions: [
+            TextButton.icon(
+              onPressed: () =>
+                  showSheet<void>(context, PatunganSheet(store: store)),
+              icon: const Icon(Icons.groups_rounded),
+              label: const Text('Patungan'),
+            ),
+          ]),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => showSheet<void>(context,
                 DebtEditorSheet(store: store, theyOwe: _theyOwe)),
@@ -384,6 +398,19 @@ class DebtDetailSheet extends StatelessWidget {
   final AppStore store;
   final Debt debt;
 
+  /// Piutang patungan: tanya uangnya masuk ke akun mana, lalu pindahkan dari
+  /// akun Talangan. Piutang biasa: cukup catat pembayarannya.
+  Future<bool> _receive(BuildContext context, double amount) async {
+    if (debt.theyOwe && debt.holdAccountId != null) {
+      final to = await pickReceiveAccount(context, store);
+      if (to == null) return false;
+      store.receiveDebt(debt, amount, toAccountId: to);
+    } else {
+      store.payDebt(debt, amount);
+    }
+    return true;
+  }
+
   Future<void> _pay(BuildContext context) async {
     final ctrl = TextEditingController(text: amountToInput(debt.remaining, 'IDR'));
     final v = await showDialog<double>(
@@ -412,8 +439,8 @@ class DebtDetailSheet extends StatelessWidget {
         ],
       ),
     );
-    if (v == null || v <= 0) return;
-    store.payDebt(debt, v);
+    if (v == null || v <= 0 || !context.mounted) return;
+    if (!await _receive(context, v)) return;
     if (context.mounted) {
       snack(context, debt.settled ? '${debt.person}: lunas 🎉' : 'Pembayaran dicatat');
     }
@@ -502,9 +529,9 @@ class DebtDetailSheet extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               OutlinedButton(
-                onPressed: () {
-                  store.settleDebt(debt);
-                  snack(context, '${debt.person}: lunas 🎉');
+                onPressed: () async {
+                  if (!await _receive(context, debt.remaining)) return;
+                  if (context.mounted) snack(context, '${debt.person}: lunas 🎉');
                 },
                 style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
@@ -610,6 +637,7 @@ class _DebtEditorSheetState extends State<DebtEditorSheet> {
       date: _date,
       due: _due,
       note: _note.text.trim(),
+      holdAccountId: old?.holdAccountId,
       payments: old?.payments,
     ));
     Navigator.pop(context);

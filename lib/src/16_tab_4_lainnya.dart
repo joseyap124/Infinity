@@ -165,6 +165,13 @@ class MoreTab extends StatelessWidget {
                         : 'Catat pinjam-meminjam',
                     onTap: () => _push(context, DebtsPage(store: store))),
                 _tile(context,
+                    icon: Icons.groups_rounded,
+                    color: Colors.deepOrange,
+                    title: 'Patungan',
+                    subtitle: 'Bayar dulu, bagi ke teman jadi piutang',
+                    onTap: () => showSheet<void>(
+                        context, PatunganSheet(store: store))),
+                _tile(context,
                     icon: Icons.savings_rounded,
                     color: Colors.teal,
                     title: 'Target Tabungan',

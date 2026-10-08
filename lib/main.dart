@@ -80,6 +80,7 @@ part 'src/31_utang_piutang_target_tabungan.dart';
 part 'src/32_ekspor_excel_ringkasan_bulanan.dart';
 part 'src/33_aman_dibelanjakan_insight.dart';
 part 'src/34_riwayat_akun.dart';
+part 'src/35_patungan.dart';
 // WIDGET-IMPORTS-END
 
 Future<void> main() async {

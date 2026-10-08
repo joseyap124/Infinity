@@ -6,6 +6,7 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya
 
 ### Ditambah
+- **Patungan / split bill** (Lainnya → Patungan, atau tombol *Patungan* di Utang & Piutang): isi total tagihan, akun yang dipakai bayar, dan nama teman. Dibagi rata (sisa pembulatan masuk bagianmu) atau atur bagian masing-masing. Bagianmu dicatat sebagai **pengeluaran**; bagian teman dipindah ke akun **Talangan Patungan** dan tiap teman jadi **piutang**. Jadi saldo akun pembayar turun sesuai yang benar-benar keluar, sementara statistik dan anggaran hanya menghitung bagianmu. Saat teman bayar (*Terima pembayaran* atau *Tandai lunas*), kamu pilih uangnya masuk ke akun mana, dan uangnya pindah dari Talangan ke akun itu.
 - **Pilih bulan langsung di riwayat akun**: ketuk nama bulan untuk melompat ke bulan mana saja (lengkap dengan jumlah transaksinya), atau pilih **Semua** untuk melihat seluruh riwayat akun sekaligus.
 - **Akun yang tidak dihitung di "Aman dibelanjakan"**: di edit akun ada saklar *Jangan hitung di "Aman dibelanjakan"* untuk rekening tabungan atau dana darurat. Saldonya tetap masuk total saldo, tapi tidak dianggap uang belanja. Rinciannya menyebut berapa yang tidak dihitung.
 - **Pengingat kurs**: halaman Mata Uang & Kurs menampilkan kapan kurs terakhir diperbarui, plus tombol *Isi kurs BI 7 Okt 2026*. Kalau ada akun mata uang asing dan kurs belum diperbarui lebih dari 30 hari, muncul kartu di *Perlu perhatian*.

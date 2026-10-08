@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:archive/archive.dart';
+import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:infinity/main.dart';
 
@@ -518,6 +519,47 @@ void main() {
       expect(r.excluded, 9000000);
       final back = Account.fromJson(s.accounts[1].toJson());
       expect(back.excludeSafe, isTrue);
+    });
+  });
+
+  group('Patungan', () {
+    test('bagi rata dalam rupiah bulat, sisa ke bagian pertama', () {
+      expect(splitEvenly(100000, 3), [33334, 33333, 33333]);
+      expect(splitEvenly(300000, 4), [75000, 75000, 75000, 75000]);
+    });
+
+    test('saldo turun penuh, pengeluaran hanya bagianku, teman jadi piutang', () {
+      final s = storeWith([acc('gopay', initial: 500000, type: AccountType.ewallet), acc('bca', initial: 0)]);
+      s.categories = [TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0)];
+      final n = s.recordSplit(
+        title: 'Makan malam',
+        payerAccountId: 'gopay',
+        categoryId: 'makan',
+        myShare: 75000,
+        others: const [SplitShare('Andi', 75000), SplitShare('Budi', 75000), SplitShare('Cici', 75000)],
+        date: DateTime(2026, 10, 8, 19),
+      );
+      expect(n, 3);
+      expect(s.balanceOf('gopay'), 200000); // 500rb - 300rb
+      expect(s.balanceOf(kTalanganId), 225000);
+      expect(s.accountById(kTalanganId)!.excludeSafe, isTrue);
+      final month = DateTimeRange(start: DateTime(2026, 10, 1), end: DateTime(2026, 11, 1));
+      expect(s.sumIDR(TxType.expense, month), 75000); // hanya bagianku
+      expect(s.debtTotal(theyOwe: true), 225000);
+
+      // Andi bayar ke BCA: pindah dari Talangan ke BCA.
+      final andi = s.debts.firstWhere((d) => d.person == 'Andi');
+      s.receiveDebt(andi, 75000, toAccountId: 'bca');
+      expect(andi.settled, isTrue);
+      expect(s.balanceOf(kTalanganId), 150000);
+      expect(s.balanceOf('bca'), 75000);
+      expect(s.sumIDR(TxType.income, month), 0); // bukan pemasukan
+      // Bayar lebih dari sisa tidak membuat saldo talangan minus.
+      final budi = s.debts.firstWhere((d) => d.person == 'Budi');
+      s.receiveDebt(budi, 999999, toAccountId: 'bca');
+      expect(s.balanceOf(kTalanganId), 75000);
+      final back = Debt.fromJson(budi.toJson());
+      expect(back.holdAccountId, kTalanganId);
     });
   });
 }
