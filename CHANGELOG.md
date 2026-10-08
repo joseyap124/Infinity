@@ -6,6 +6,13 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya
 
 ### Ditambah
+- **Acara** (Lainnya → Acara): buat acara seperti "Trip Bali" atau "Lebaran" dengan tanggal mulai–selesai dan anggaran (opsional). Transaksi bisa ditandai lewat baris *Acara* di form catat; selama acara berlangsung, transaksi baru otomatis ditandai (bisa dimatikan per acara). Halaman acara menampilkan total, sisa anggaran, rincian per kategori, dan semua transaksinya. Refund yang ditandai acara mengurangi total. Kalau anggaran acara terpakai 80% atau lebih, muncul kartu di *Perlu perhatian*. Menghapus acara tidak menghapus transaksinya.
+- **Kekayaan bersih per bulan** (Statistik): grafik total saldo semua akun di akhir tiap bulan selama 12 bulan terakhir, dengan selisih dari bulan lalu dan dalam 12 bulan. Kartu kredit dihitung minus; akun mata uang asing memakai kurs sekarang.
+- **Perkiraan saldo akhir bulan per akun**: di riwayat akun (bulan berjalan) muncul *Perkiraan akhir bulan* dari transaksi berulang yang belum tercatat (gaji, kos, isi saldo rutin, dll.); ketuk untuk melihat jadwalnya. Kalau ada akun yang diperkirakan minus sebelum akhir bulan, muncul peringatan di *Perlu perhatian*.
+
+## v2.6 (8 Okt 2026)
+
+### Ditambah
 - **Patungan / split bill** (Lainnya → Patungan, atau tombol *Patungan* di Utang & Piutang): isi total tagihan, akun yang dipakai bayar, dan nama teman. Dibagi rata (sisa pembulatan masuk bagianmu) atau atur bagian masing-masing. Bagianmu dicatat sebagai **pengeluaran**; bagian teman dipindah ke akun **Talangan Patungan** dan tiap teman jadi **piutang**. Jadi saldo akun pembayar turun sesuai yang benar-benar keluar, sementara statistik dan anggaran hanya menghitung bagianmu. Saat teman bayar (*Terima pembayaran* atau *Tandai lunas*), kamu pilih uangnya masuk ke akun mana, dan uangnya pindah dari Talangan ke akun itu.
 - **Pilih bulan langsung di riwayat akun**: ketuk nama bulan untuk melompat ke bulan mana saja (lengkap dengan jumlah transaksinya), atau pilih **Semua** untuk melihat seluruh riwayat akun sekaligus.
 - **Akun yang tidak dihitung di "Aman dibelanjakan"**: di edit akun ada saklar *Jangan hitung di "Aman dibelanjakan"* untuk rekening tabungan atau dana darurat. Saldonya tetap masuk total saldo, tapi tidak dianggap uang belanja. Rinciannya menyebut berapa yang tidak dihitung.

@@ -22,6 +22,7 @@ class AppStore extends ChangeNotifier {
   List<TxTemplate> templates = [];
   List<Debt> debts = [];
   List<Goal> goals = [];
+  List<TxEvent> events = [];
   AppSettings settings = AppSettings();
 
   int _idCounter = 0;
@@ -141,6 +142,7 @@ class AppStore extends ChangeNotifier {
         'templates': templates.map((t) => t.toJson()).toList(),
         'debts': debts.map((d) => d.toJson()).toList(),
         'goals': goals.map((g) => g.toJson()).toList(),
+        'events': events.map((e) => e.toJson()).toList(),
         'settings': settings.toJson(includeSecrets: includeSecrets),
         if (includeSecrets)
           'pendingCaptures': pendingCaptures.map((c) => c.toJson()).toList(),
@@ -172,6 +174,7 @@ class AppStore extends ChangeNotifier {
         : AppSettings();
     final dbt = _list(j['debts']).map(Debt.fromJson).toList();
     final gls = _list(j['goals']).map(Goal.fromJson).toList();
+    final evs = _list(j['events']).map(TxEvent.fromJson).toList();
 
     final pend = _list(j['pendingCaptures']).map(CapturedNotif.fromJson).toList();
     final seen = j['seenCaptureKeys'] is List
@@ -185,6 +188,7 @@ class AppStore extends ChangeNotifier {
     templates = tpl;
     debts = dbt;
     goals = gls;
+    events = evs;
     settings = st;
     pendingCaptures = pend;
     _seenCaptureKeys = seen;
@@ -248,6 +252,7 @@ class AppStore extends ChangeNotifier {
     templates = [];
     debts = [];
     goals = [];
+    events = [];
     settings = AppSettings();
     pendingCaptures = [];
     _seenCaptureKeys = [];

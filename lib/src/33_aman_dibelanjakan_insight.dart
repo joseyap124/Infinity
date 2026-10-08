@@ -40,7 +40,7 @@ class SafeSpend {
       perDay <= 0 ? (spentToday > 0 ? 1 : 0) : (spentToday / perDay).clamp(0.0, 1.0);
 }
 
-enum InsightKind { capture, balance, rates, debt, bill, subscription, unusual, goal }
+enum InsightKind { capture, balance, projection, rates, event, debt, bill, subscription, unusual, goal }
 
 /// Saldo di notifikasi bank/e-wallet berbeda dengan hitungan Infinity.
 class BalanceMismatch {
@@ -398,6 +398,25 @@ extension InsightStore on AppStore {
         payload: m,
       ));
     }
+    for (final a in accounts) {
+      if (a.type == AccountType.credit || a.id == kTalanganId) continue;
+      final items = upcomingForAccount(a.id, now);
+      if (items.isEmpty) continue;
+      final proj = projectedMonthEnd(a.id, now);
+      if (proj >= 0) continue;
+      final id = 'proj_${a.id}_${now.month}';
+      if (hidden(id)) continue;
+      out.add(Insight(
+        id: id,
+        kind: InsightKind.projection,
+        title: 'Saldo ${a.name} bisa minus',
+        body: 'Perkiraan akhir bulan ${money(proj, a.currency)} setelah ${items.length} tagihan/transfer berulang. Isi saldonya dulu.',
+        icon: Icons.warning_amber_rounded,
+        color: C.redDark,
+        action: 'Lihat',
+        payload: a,
+      ));
+    }
     final stale = staleRatesDays(now);
     if (stale != null && !hidden('rates')) {
       out.add(Insight(
@@ -410,6 +429,25 @@ extension InsightStore on AppStore {
         icon: Icons.currency_exchange_rounded,
         color: C.amberDark,
         action: 'Perbarui',
+      ));
+    }
+    for (final e in events) {
+      if (e.budget <= 0 || !e.ongoing(now)) continue;
+      final spent = eventSpent(e.id);
+      if (spent < e.budget * 0.8) continue;
+      final id = 'event_${e.id}_${spent >= e.budget ? 'over' : '80'}';
+      if (hidden(id)) continue;
+      out.add(Insight(
+        id: id,
+        kind: InsightKind.event,
+        title: spent >= e.budget
+            ? '${e.name}: lewat anggaran'
+            : '${e.name}: anggaran tinggal ${money(e.budget - spent)}',
+        body: 'Terpakai ${money(spent)} dari ${money(e.budget)} (${(spent / e.budget * 100).round()}%).',
+        icon: Icons.local_activity_rounded,
+        color: spent >= e.budget ? C.redDark : C.amberDark,
+        action: 'Lihat',
+        payload: e,
       ));
     }
     for (final d in debts) {
@@ -691,6 +729,15 @@ class InsightStrip extends StatelessWidget {
     switch (i.kind) {
       case InsightKind.capture:
         onOpenCaptures();
+      case InsightKind.projection:
+        final a = i.payload;
+        if (a is Account) openAccountHistory(context, store, a);
+      case InsightKind.event:
+        final e = i.payload;
+        if (e is TxEvent) {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => EventDetailPage(store: store, eventId: e.id)));
+        }
       case InsightKind.rates:
         Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => CurrencyPage(store: store)));

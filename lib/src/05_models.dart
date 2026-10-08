@@ -120,10 +120,14 @@ class Transaction {
     this.note = '',
     this.recurringId,
     this.photos = const [],
+    this.eventId,
   });
 
   final String id;
   final String title;
+
+  /// Acara/tag (mis. "Trip Bali") untuk menjumlah pengeluaran satu acara.
+  final String? eventId;
 
   /// Nama file foto struk di folder pribadi app (lihat [Receipts]).
   final List<String> photos;
@@ -159,6 +163,7 @@ class Transaction {
         'note': note,
         'recurringId': recurringId,
         if (photos.isNotEmpty) 'photos': photos,
+        if (eventId != null) 'eventId': eventId,
       };
 
   factory Transaction.fromJson(Map<String, dynamic> j) => Transaction(
@@ -176,6 +181,7 @@ class Transaction {
         photos: j['photos'] is List
             ? (j['photos'] as List).whereType<String>().toList()
             : const [],
+        eventId: _s(j['eventId']),
       );
 }
 
@@ -306,8 +312,12 @@ class TxDraft {
     DateTime? date,
     this.note = '',
     List<String>? photos,
+    this.eventId,
   })  : date = date ?? DateTime.now(),
         photos = photos ?? [];
+
+  /// Acara/tag transaksi (boleh kosong).
+  String? eventId;
 
   /// Foto struk (nama file).
   List<String> photos;
@@ -333,6 +343,7 @@ class TxDraft {
         date: t.date,
         note: t.note,
         photos: [...t.photos],
+        eventId: t.eventId,
       );
 
   factory TxDraft.fromTemplate(TxTemplate t) => TxDraft(
@@ -359,6 +370,7 @@ class TxDraft {
         note: note,
         recurringId: recurringId,
         photos: List.unmodifiable(photos),
+        eventId: eventId,
       );
 
   TxTemplate toTemplate(String id) => TxTemplate(

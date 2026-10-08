@@ -47,6 +47,11 @@ Semua APK ditandatangani dengan **kunci yang sama** (secret `DEBUG_KEYSTORE_BASE
 - **Ketuk akun** untuk melihat riwayatnya per bulan, dengan saldo setelah tiap transaksi.
 - Urutan akun bisa diatur, dan ada **akun default** untuk transaksi baru.
 
+### Patungan, acara & perkiraan
+- **Patungan**: bayar dulu, bagianmu jadi pengeluaran, bagian teman jadi piutang lewat akun *Talangan Patungan*.
+- **Acara**: tandai transaksi ke acara (mis. "Trip Bali") untuk melihat total dan anggarannya.
+- **Kekayaan bersih per bulan** di Statistik, dan **perkiraan saldo akhir bulan** per akun dari transaksi berulang.
+
 ### Utang, piutang & target tabungan
 - **Utang & Piutang**: siapa meminjam berapa, tenggat, cicilan, tandai lunas, dengan pengingat.
 - **Target Tabungan**: progres dari saldo akun atau setoran manual, dan berapa yang perlu disisihkan per bulan.

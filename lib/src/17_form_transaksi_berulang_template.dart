@@ -37,6 +37,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
   late Frequency _frequency;
   bool _saveTemplate = false;
   bool _toTouched = false;
+
+  /// Acara/tag transaksi (null = tanpa acara).
+  String? _eventId;
   String? _error;
   String? _info;
 
@@ -80,6 +83,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
     }
     _titleCtrl.text = d.title;
     _noteCtrl.text = d.note;
+    _eventId = store.eventById(d.eventId)?.id ??
+        ((widget.mode == FormMode.transaction && !widget.isEditing)
+            ? store.autoEventFor(d.date)?.id
+            : null);
   }
 
   @override
@@ -398,6 +405,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       date: date,
       note: _noteCtrl.text.trim(),
       photos: _photos,
+      eventId: widget.mode == FormMode.transaction ? _eventId : null,
     );
     final title = _titleCtrl.text.trim();
     draft.title = title.isEmpty ? _defaultTitle(store, draft) : title;
@@ -684,6 +692,18 @@ class _TxFormSheetState extends State<TxFormSheet> {
                     helperText: 'Otomatis dari kurs, ubah kalau beda.',
                   ),
                 ),
+              ),
+            if (mode == FormMode.transaction && store.events.isNotEmpty)
+              FormRow(
+                label: 'Acara',
+                accent: accent,
+                onTap: () async {
+                  final id = await pickEvent(context, store, _eventId);
+                  if (id == null || !mounted) return;
+                  setState(() => _eventId = id.isEmpty ? null : id);
+                },
+                child: FormValue(store.eventById(_eventId)?.name,
+                    placeholder: 'Tanpa acara'),
               ),
             FormRow(
               label: mode == FormMode.template ? 'Nama' : 'Catatan',

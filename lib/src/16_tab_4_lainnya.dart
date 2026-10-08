@@ -172,6 +172,14 @@ class MoreTab extends StatelessWidget {
                     onTap: () => showSheet<void>(
                         context, PatunganSheet(store: store))),
                 _tile(context,
+                    icon: Icons.local_activity_rounded,
+                    color: Colors.purple,
+                    title: 'Acara',
+                    subtitle: store.events.isEmpty
+                        ? 'Mis. trip, Lebaran: total & anggaran per acara'
+                        : '${store.events.length} acara',
+                    onTap: () => _push(context, EventsPage(store: store))),
+                _tile(context,
                     icon: Icons.savings_rounded,
                     color: Colors.teal,
                     title: 'Target Tabungan',

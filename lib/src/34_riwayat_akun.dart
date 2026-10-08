@@ -40,6 +40,41 @@ extension AccountLedger on AppStore {
     }
     return out;
   }
+
+  /// Transaksi berulang yang belum tercatat dari [now] sampai akhir bulan,
+  /// dilihat dari sisi akun: (tanggal, judul, perubahan saldo).
+  List<(DateTime, String, double)> upcomingForAccount(
+      String accountId, DateTime now) {
+    final end = DateTime(now.year, now.month + 1);
+    final out = <(DateTime, String, double)>[];
+    for (final r in recurring) {
+      if (!r.active) continue;
+      double delta;
+      switch (r.type) {
+        case TxType.income:
+          delta = r.accountId == accountId ? r.amount : 0;
+        case TxType.expense:
+          delta = r.accountId == accountId ? -r.amount : 0;
+        case TxType.transfer:
+          delta = 0;
+          if (r.accountId == accountId) delta -= r.amount;
+          if (r.toAccountId == accountId) delta += r.toAmount ?? r.amount;
+      }
+      if (delta == 0) continue;
+      for (var k = 0; k < 400; k++) {
+        final d = occurrence(r.start, r.frequency, r.generated + k);
+        if (!d.isBefore(end)) break;
+        if (d.isAfter(now)) out.add((d, r.title, delta));
+      }
+    }
+    out.sort((a, b) => a.$1.compareTo(b.$1));
+    return out;
+  }
+
+  /// Perkiraan saldo akhir bulan = saldo sekarang + jadwal berulang.
+  double projectedMonthEnd(String accountId, DateTime now) =>
+      balanceOf(accountId) +
+      upcomingForAccount(accountId, now).fold(0.0, (s, e) => s + e.$3);
 }
 
 void openAccountHistory(BuildContext context, AppStore store, Account a) {
@@ -221,6 +256,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                         ),
                       ],
                     ),
+                    if (!_all && isCurrent) _projection(context, a),
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -302,6 +338,95 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
           ),
         );
       },
+    );
+  }
+
+  /// "Perkiraan akhir bulan" dari transaksi berulang yang belum tercatat.
+  Widget _projection(BuildContext context, Account a) {
+    final now = DateTime.now();
+    final items = store.upcomingForAccount(a.id, now);
+    if (items.isEmpty) return const SizedBox.shrink();
+    final proj = store.projectedMonthEnd(a.id, now);
+    final hide = store.settings.hideBalance;
+    final df = DateFormat('d MMM', 'id_ID');
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => showSheet<void>(
+          context,
+          SheetFrame(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Jadwal sampai akhir bulan',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 4),
+                Text('Dari transaksi berulang yang belum tercatat.',
+                    style: TextStyle(fontSize: 12.5, color: C.muted)),
+                const SizedBox(height: 10),
+                for (final (d, title, delta) in items)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                            width: 56,
+                            child: Text(df.format(d),
+                                style: TextStyle(
+                                    fontSize: 12.5, color: C.muted))),
+                        Expanded(
+                            child: Text(title,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700))),
+                        Text(
+                            '${delta >= 0 ? '+' : '−'}${money(delta.abs(), a.currency)}',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: delta >= 0 ? C.income : C.redDark)),
+                      ],
+                    ),
+                  ),
+                Divider(color: C.line),
+                Row(
+                  children: [
+                    const Expanded(
+                        child: Text('Perkiraan saldo akhir bulan',
+                            style: TextStyle(fontWeight: FontWeight.w800))),
+                    Text(money(proj, a.currency),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: proj < 0 ? C.redDark : C.carbon)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: (proj < 0 ? C.redDark : C.blueDark).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.event_note_rounded,
+                  size: 18, color: proj < 0 ? C.redDark : C.blueDark),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                    'Perkiraan akhir bulan: ${hide ? '••••' : money(proj, a.currency)} · ${items.length} jadwal',
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: proj < 0 ? C.redDark : C.carbon)),
+              ),
+              Icon(Icons.chevron_right_rounded, size: 18, color: C.muted),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

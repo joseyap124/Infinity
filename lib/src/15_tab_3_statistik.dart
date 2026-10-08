@@ -265,6 +265,8 @@ class _StatsTabState extends State<StatsTab> {
             ),
           ),
           const SizedBox(height: 12),
+          NetWorthCard(store: store),
+          const SizedBox(height: 12),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

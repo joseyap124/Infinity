@@ -21,6 +21,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -81,6 +82,8 @@ part 'src/32_ekspor_excel_ringkasan_bulanan.dart';
 part 'src/33_aman_dibelanjakan_insight.dart';
 part 'src/34_riwayat_akun.dart';
 part 'src/35_patungan.dart';
+part 'src/36_kekayaan_bersih.dart';
+part 'src/37_acara.dart';
 // WIDGET-IMPORTS-END
 
 Future<void> main() async {

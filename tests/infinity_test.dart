@@ -562,4 +562,67 @@ void main() {
       expect(back.holdAccountId, kTalanganId);
     });
   });
+
+  group('Kekayaan bersih', () {
+    test('saldo akhir tiap bulan, kartu kredit minus, akun asing dikurs', () {
+      final s = storeWith([
+        acc('bca', initial: 1000000),
+        acc('cc', initial: 0, type: AccountType.credit),
+        acc('usd', initial: 10, currency: 'USD'),
+      ], [
+        tx('1', TxType.income, 500000, 'bca', date: DateTime(2026, 8, 25)),
+        tx('2', TxType.expense, 200000, 'cc', date: DateTime(2026, 9, 3)),
+        tx('3', TxType.transfer, 100000, 'bca', to: 'cc', date: DateTime(2026, 10, 2)),
+      ]);
+      s.settings.rates['USD'] = 17000;
+      final pts = s.netWorthHistory(DateTime(2026, 10, 8), months: 3);
+      expect(pts.map((p) => p.month.month), [8, 9, 10]);
+      expect(pts[0].value, 1500000 + 170000);
+      expect(pts[1].value, 1300000 + 170000);
+      // Transfer ke kartu kredit tidak mengubah kekayaan bersih.
+      expect(pts[2].value, 1300000 + 170000);
+    });
+  });
+
+  group('Acara', () {
+    test('total acara, tandai otomatis, hapus acara melepas tanda', () {
+      final s = storeWith([acc('a', initial: 5000000)]);
+      final e = TxEvent(id: 'bali', name: 'Trip Bali', start: DateTime(2026, 12, 20), end: DateTime(2026, 12, 24), budget: 3000000);
+      s.events.add(e);
+      expect(s.autoEventFor(DateTime(2026, 12, 22, 10))?.id, 'bali');
+      expect(s.autoEventFor(DateTime(2026, 12, 25, 0, 1)), isNull);
+      s.transactions.addAll([
+        Transaction(id: '1', title: 'Hotel', amount: 1500000, type: TxType.expense, accountId: 'a', date: DateTime(2026, 12, 20), eventId: 'bali'),
+        Transaction(id: '2', title: 'Refund', amount: 200000, type: TxType.income, accountId: 'a', date: DateTime(2026, 12, 21), eventId: 'bali'),
+        Transaction(id: '3', title: 'Lain', amount: 50000, type: TxType.expense, accountId: 'a', date: DateTime(2026, 12, 21)),
+      ]);
+      expect(s.eventSpent('bali'), 1300000);
+      expect(Transaction.fromJson(s.transactions.first.toJson()).eventId, 'bali');
+      expect(TxDraft.fromTransaction(s.transactions.first).toTransaction('x').eventId, 'bali');
+      final back = TxEvent.fromJson(e.toJson());
+      expect(back.budget, 3000000);
+      expect(back.end, DateTime(2026, 12, 24));
+      s.deleteEvent('bali');
+      expect(s.events, isEmpty);
+      expect(s.transactions.where((t) => t.eventId != null), isEmpty);
+      expect(s.transactions, hasLength(3));
+    });
+  });
+
+  group('Perkiraan akhir bulan', () {
+    test('saldo sekarang + jadwal berulang yang belum tercatat', () {
+      final now = DateTime(2026, 10, 8, 12);
+      final s = storeWith([acc('bca', initial: 1000000), acc('gopay')]);
+      s.recurring.addAll([
+        RecurringRule(id: 'kos', title: 'Kos', amount: 1500000, type: TxType.expense, accountId: 'bca', frequency: Frequency.monthly, start: DateTime(2026, 10, 25, 8)),
+        RecurringRule(id: 'isi', title: 'Isi GoPay', amount: 100000, type: TxType.transfer, accountId: 'bca', toAccountId: 'gopay', frequency: Frequency.weekly, start: DateTime(2026, 10, 10, 8)),
+        RecurringRule(id: 'old', title: 'Lewat', amount: 999, type: TxType.expense, accountId: 'bca', frequency: Frequency.monthly, start: DateTime(2026, 11, 2, 8)),
+      ]);
+      final items = s.upcomingForAccount('bca', now);
+      // Isi GoPay 10, 17, 24, 31 Okt + Kos 25 Okt. Jadwal November tidak ikut.
+      expect(items, hasLength(5));
+      expect(s.projectedMonthEnd('bca', now), 1000000 - 1500000 - 400000);
+      expect(s.projectedMonthEnd('gopay', now), 400000);
+    });
+  });
 }
