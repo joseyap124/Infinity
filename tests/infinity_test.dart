@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:infinity/main.dart';
 
 Account acc(String id, {double initial = 0, AccountType type = AccountType.bank, String currency = 'IDR'}) =>
@@ -30,6 +31,11 @@ AppStore storeWith(List<Account> accounts, [List<Transaction> txs = const []]) {
 }
 
 void main() {
+  setUpAll(() async {
+    // Sama seperti main() app: format tanggal Indonesia.
+    await initializeDateFormatting('id_ID', null);
+  });
+
   group('Saldo', () {
     test('pemasukan, pengeluaran, transfer', () {
       final s = storeWith([acc('a', initial: 100000), acc('b')], [
