@@ -3,7 +3,14 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya
+## Berikutnya (v1.7.1)
+
+### Diperbaiki
+- **Izin internet dibuang lagi**: library baca struk (Google ML Kit) diam-diam menambah izin INTERNET untuk mengirim log pemakaian ke Google. Izin itu sekarang dibuang, jadi Infinity kembali 100% offline. Baca struk tetap jalan karena modelnya ada di dalam app. Setiap build sekarang dicek otomatis dan gagal kalau izin INTERNET muncul lagi.
+
+## v1.7 (8 Okt 2026)
+
+> ⚠️ Pakai **v1.7.1**. APK v1.7 tidak sengaja membawa izin internet dari library ML Kit.
 
 ### Ditambah
 - **Baca struk otomatis (offline)**: saat menambah foto struk dan nominal masih kosong, Infinity membaca fotonya langsung di HP (Google ML Kit, tanpa internet) lalu mengisi nominal total, nama toko sebagai catatan, dan kategori kalau tertebak. Baris *Subtotal*, *Total item*, *Diskon*, dan *Tunai/Kembali* diabaikan. Hasilnya tebakan, jadi tetap dicek sebelum simpan.

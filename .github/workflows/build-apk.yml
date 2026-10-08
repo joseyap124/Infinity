@@ -78,7 +78,7 @@ jobs:
           set -o pipefail
           flutter analyze lib --no-fatal-infos --no-fatal-warnings 2>&1 | tee "$RUNNER_TEMP/analyze.txt"
 
-      # Versi naik 1 setiap rilis yang terbit: v1.1, v1.2, v1.3, ...
+      # Versi naik 1 dari rilis terakhir: v1.6 -> v1.7, v2.0 -> v2.1, ...
       # (build yang gagal tidak memakan nomor).
       - name: Tentukan nomor versi
         id: ver
@@ -86,9 +86,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          LAST=$(gh release list -R "${{ github.repository }}" --limit 200 --json tagName \
-            --jq '[.[].tagName | select(test("^v1\\.[0-9]+$")) | ltrimstr("v1.") | tonumber] | max // 0')
-          V="1.$((LAST + 1))"
+          V=$(gh release list -R "${{ github.repository }}" --limit 200 --json tagName \
+            --jq '[.[].tagName | select(test("^v[0-9]+\\.[0-9]+$")) | ltrimstr("v") | split(".") | map(tonumber)] | (max // [1,0]) | "\(.[0]).\(.[1] + 1)"')
           # Versi bisa ditentukan manual di CHANGELOG.md: "## Berikutnya (v1.3.1)"
           WANT=$(grep -m1 -oP '^## Berikutnya \(v\K[0-9]+\.[0-9]+(\.[0-9]+)?(?=\))' CHANGELOG.md || true)
           if [ -n "$WANT" ] && ! gh release view "v$WANT" -R "${{ github.repository }}" >/dev/null 2>&1; then V="$WANT"; fi
@@ -110,6 +109,18 @@ jobs:
           V=${{ steps.ver.outputs.version }}
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "Infinity-v$V.apk"
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "Infinity-v$V-hp-lama-32bit.apk"
+
+      - name: Pastikan APK tanpa izin internet
+        shell: bash
+        run: |
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          for f in Infinity*.apk; do
+            "$AAPT" dump permissions "$f" | tee -a "$RUNNER_TEMP/build.txt"
+            if "$AAPT" dump permissions "$f" | grep -q "android.permission.INTERNET"; then
+              echo "GAGAL: $f punya izin INTERNET" | tee -a "$RUNNER_TEMP/build.txt"
+              exit 1
+            fi
+          done
 
       - uses: actions/upload-artifact@v4
         with:
