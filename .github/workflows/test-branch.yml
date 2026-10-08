@@ -53,6 +53,15 @@ jobs:
           set -o pipefail
           flutter analyze lib --no-fatal-infos --no-fatal-warnings 2>&1 | tee "$RUNNER_TEMP/analyze.txt"
 
+      - name: Kompilasi prototipe web (untuk dicek sebelum rilis)
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter create --org com.jose --project-name infinity --platforms web . > /dev/null
+          flutter build web --release --no-web-resources-cdn --dart-define=APP_VERSION=branch 2>&1 | tee "$RUNNER_TEMP/web.txt"
+          python3 tool/web_prototype.py build/web
+          (cd build/web && zip -qr "$RUNNER_TEMP/web.zip" .)
+
       - name: Simpan hasil ke branch ci-out
         if: always()
         shell: bash
@@ -60,6 +69,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/out"
           cp "$RUNNER_TEMP"/*.txt "$RUNNER_TEMP/out/" 2>/dev/null || true
           cp pubspec.lock "$RUNNER_TEMP/out/pubspec.lock" 2>/dev/null || true
+          cp "$RUNNER_TEMP/web.zip" "$RUNNER_TEMP/out/web.zip" 2>/dev/null || true
           flutter --version --machine > "$RUNNER_TEMP/out/flutter.json" 2>/dev/null || true
           echo "branch ${{ github.ref_name }} run ${{ github.run_number }} commit ${{ github.sha }} status ${{ job.status }}" > "$RUNNER_TEMP/out/info.txt"
           cd "$RUNNER_TEMP/out"

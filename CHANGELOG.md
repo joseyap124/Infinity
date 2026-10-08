@@ -3,6 +3,24 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.0)
+
+Versi matang untuk dipakai lama tanpa update: fokusnya data aman, tahan HP Android baru, dan bisa dirawat tanpa bertanya.
+
+### Ditambah
+- **Panduan pertama kali**: install baru disambut 4 layar singkat (cara kerja Infinity, isi akun & saldo, aktifkan catat otomatis, pasang PIN & kata sandi backup) dengan tombol langsung ke halamannya. Pengguna lama tidak melihatnya; bisa dibuka lagi dari Bantuan.
+- **Bantuan** (Lainnya → Bantuan): langkah pindah HP dan FAQ (arti "Aman dibelanjakan", catat otomatis tidak jalan, nominal salah, backup, update tanpa hapus data, lupa PIN, kurs, Talangan Patungan, laporan error).
+- **Cek kesehatan data** (Lainnya): mencari kemungkinan transaksi dobel, transaksi yang kategorinya sudah dihapus (bisa diperbaiki sekali tekan), saldo minus yang tidak wajar, talangan patungan yang tidak cocok dengan piutangnya, transaksi bertanggal jauh ke depan, dan backup yang sudah lama.
+- **Laporan error** (Lainnya): error app dicatat ke file di HP (tidak dikirim ke mana pun), bisa disimpan ke Download atau disalin untuk dikirim. Bagian layar yang gagal digambar sekarang menampilkan pesan yang jelas, bukan kotak abu-abu.
+- **Rekap tahunan** (Statistik → Rekap tahun): pemasukan, pengeluaran, porsi yang ditabung, rata-rata keluar per hari, bulan paling boros & paling hemat, pengeluaran terbesar, kategori dan catatan dengan pengeluaran terbesar, grafik per bulan, serta kekayaan bersih awal vs akhir tahun. Tahun lain bisa dipilih.
+- **Langkah pindah HP** juga ada di halaman Backup & Pulihkan.
+
+### Diubah
+- **Backup lebih aman**: backup otomatis menyimpan **8 backup terakhir** di Download/Infinity (yang lebih lama dihapus otomatis, hanya file buatan Infinity), dan setiap backup **dicoba dibuka dulu** sebelum disimpan supaya tidak ada backup rusak.
+- **Lebih cepat untuk data besar**: saldo semua akun dihitung sekali jalan dan disimpan sampai data berubah. Diuji dengan 20.000 transaksi selama 5 tahun: semua hitungan Beranda, statistik, dan cek kesehatan selesai sekitar 0,1 detik.
+- **Siap Android 15/16**: isi halaman tidak lagi tertutup tombol navigasi sistem (tampilan layar penuh/edge-to-edge), dan setiap build dicek bahwa library native rata 16 KB (syarat HP baru dengan halaman memori 16 KB).
+- **Build dikunci**: versi Flutter (3.47.6) dan semua paket dikunci, jadi APK bisa dibangun ulang kapan pun dengan hasil yang sama walau paket di internet sudah berubah.
+
 ## v2.7 (8 Okt 2026)
 
 ### Ditambah

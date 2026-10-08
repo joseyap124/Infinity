@@ -60,6 +60,7 @@ Semua APK ditandatangani dengan **kunci yang sama** (secret `DEBUG_KEYSTORE_BASE
 Bawaannya kategori Money Manager yang biasa dipakai, misalnya Kebutuhan Pokok 📅 (Makan dan Minum, Transportasi, Bills, Kos, Keperluan Rumah), Kesehatan dan Kebersihan 🏥, Education 🏫, Social Dan Relasi 💑, Hiburan dan Gaya Hidup 🛍️, Investasi 💰, Cicilan & Utang 💳, Darurat / Lain lain 🆘, Admin Bank 🏧, dan sisi pemasukan (Main Income, Gift / Support, Passive Income, Cashback / Refund). Semua bisa ditambah, diubah, dan dihapus, lengkap dengan sub-kategori.
 
 ### Riwayat, kalender, statistik, anggaran
+- **Rekap tahunan** (Statistik): total setahun, porsi yang ditabung, bulan paling boros/hemat, kategori terbesar, pengeluaran terbesar, dan kekayaan bersih awal vs akhir tahun.
 - **Riwayat**: cari, filter Hari Ini / Minggu Ini / Bulan Ini / Semua, total per hari.
 - **Kalender**: pemasukan dan pengeluaran per tanggal.
 - **Statistik**: mingguan/bulanan/tahunan, donut per kategori, selisih bersih, rata-rata pengeluaran per hari.
@@ -115,7 +116,7 @@ Lainnya → **Import dari Money Manager** → pilih file `.xlsx` hasil *Money Ma
 ## Backup & pulihkan
 
 Lainnya → **Backup & Pulihkan**:
-- **Backup otomatis mingguan** ke `Download/Infinity/`. File ini tetap ada walau app di-uninstall. Bisa dimatikan, atau tekan **Backup sekarang**.
+- **Backup otomatis mingguan** ke `Download/Infinity/`. File ini tetap ada walau app di-uninstall. Disimpan 8 backup terakhir, dan setiap backup dicoba dibuka dulu sebelum disimpan. Bisa dimatikan, atau tekan **Backup sekarang**.
 - **Kata sandi backup**: kalau diatur, backup jadi file `.infb` terenkripsi (AES-256) yang ikut menyimpan foto struk. Tanpa kata sandi, backup berupa `.json` biasa.
 - **Simpan ke Google Drive**: lewat layar simpan Android (Drive yang meng-upload, Infinity tetap tanpa internet). Selalu `.infb` terkunci kata sandi.
 - **Pulihkan dari file**: pilih `.infb` atau `.json` dari HP atau Google Drive.
@@ -123,20 +124,38 @@ Lainnya → **Backup & Pulihkan**:
 - **Salin backup**: data sebagai teks JSON ke clipboard (dihapus otomatis dari clipboard setelah 60 detik).
 - **Pulihkan**: tempel isi JSON. PIN dan setelan keamanan tidak ikut ditimpa.
 - **Reset semua data**: harus mengetik `HAPUS` dulu supaya tidak terpencet.
+- **Pindah HP**: langkahnya ada di halaman Backup & Pulihkan dan di Bantuan.
+
+## Perawatan
+
+Lainnya → bagian bawah:
+- **Bantuan**: FAQ (catat otomatis, backup, lupa PIN, kurs, patungan) dan langkah pindah HP.
+- **Cek kesehatan data**: mencari transaksi dobel, kategori yang sudah dihapus (bisa diperbaiki sekali tekan), saldo minus yang tidak wajar, talangan patungan yang tidak cocok, dan backup yang sudah lama.
+- **Laporan error**: error app dicatat ke file lokal (tidak dikirim ke mana pun). Simpan ke Download lalu kirim filenya kalau ada masalah.
 
 ## Build sendiri
 
 APK dibangun oleh `.github/workflows/build-apk.yml`:
 
-1. `flutter create` proyek Android baru, pasang paket (`flutter pub add ...`).
+1. `tool/ci_setup.sh` membuat proyek Flutter baru dan memasang paket dengan **versi terkunci**: versi Flutter dan paket langsung ada di `tool/versions.env`, dependensi tidak langsung dikunci lewat `tool/pubspec.lock` (`flutter pub get --enforce-lockfile`). Jadi build ulang kapan pun hasilnya sama.
 2. `tool/setup_android.py` menyalin `android_overlay/` (Kotlin, manifest, widget, ikon, tema) dan menyetel Gradle (desugaring, minSdk 24, tanda tangan dari `INFINITY_KEYSTORE`).
 3. `flutter test` (tes saldo, import, backup, pembacaan notifikasi, dll.), `flutter analyze`, lalu `flutter build apk --release --split-per-abi`.
-4. APK dicek: harus tanpa izin INTERNET.
+4. APK dicek: harus tanpa izin INTERNET, dan semua library native rata 16 KB (`tool/check_apk.py`, syarat HP Android 15+ dengan halaman memori 16 KB).
 5. APK diterbitkan di Releases. Kalau gagal, log `test.txt`/`analyze.txt`/`build.txt` disimpan di branch **`ci-logs`**.
 
-Secret yang dipakai: **`DEBUG_KEYSTORE_BASE64`** (keystore dalam base64, alias `androiddebugkey`, password `android`). Tanpa secret ini APK tetap jadi, tapi tiap build punya tanda tangan berbeda.
+Branch selain `main` hanya dites (workflow *Tes branch*, tanpa rilis); hasilnya (log, `pubspec.lock`, versi Flutter) disimpan di branch **`ci-out`**.
 
-Di PC: butuh Flutter 3.38.1+ dan Android SDK. Jalankan langkah yang sama seperti di workflow.
+Secret yang dipakai: **`DEBUG_KEYSTORE_BASE64`** (keystore dalam base64, alias `androiddebugkey`, password `android`, sidik jari SHA-256 diawali `4F338CE994351349`). Tanpa secret ini APK tetap jadi, tapi tiap build punya tanda tangan berbeda.
+
+### Kalau secret keystore hilang
+
+Simpan file `infinity.keystore` di tempat aman di luar GitHub. Untuk memasangnya lagi: buat base64-nya (`base64 -w0 infinity.keystore` di Linux/Mac, atau `certutil -encode` di Windows lalu buang baris header/footer), lalu isi ke **Settings → Secrets and variables → Actions → `DEBUG_KEYSTORE_BASE64`**. APK berikutnya kembali bisa dipasang di atas versi lama tanpa hapus data.
+
+### Memperbarui versi Flutter/paket
+
+Kosongkan `FLUTTER_VERSION` dan nomor versi di `tool/versions.env`, hapus `tool/pubspec.lock`, lalu push ke branch lain (bukan `main`). Ambil `pubspec.lock` dan versi Flutter dari branch `ci-out`, isi kembali ke `tool/`, pastikan tesnya lolos, baru gabung ke `main`.
+
+Di PC: butuh Flutter 3.47.6 dan Android SDK. Jalankan `bash tool/ci_setup.sh android`, lalu `flutter test` dan `flutter build apk --release --split-per-abi`.
 
 ## Keputusan desain
 
@@ -165,6 +184,10 @@ android_overlay/app/src/main/
   kotlin/.../QuickBar.kt          notifikasi pintasan 4 ikon
   kotlin/.../InfinityWidgetProvider.kt       widget 4x2
   res/                            layout widget & pintasan, ikon celengan, warna terang/gelap
+tool/versions.env                 versi Flutter & paket yang dikunci
+tool/pubspec.lock                 kunci semua dependensi
+tool/ci_setup.sh                  siapkan proyek Flutter (dipakai semua workflow)
+tool/check_apk.py                 cek library native rata 16 KB
 tool/setup_android.py             pasang android_overlay ke proyek hasil flutter create
 tool/make_icons.py                gambar ikon celengan (vector adaptif + PNG)
 tool/mockup/                      generator gambar mockup di README
