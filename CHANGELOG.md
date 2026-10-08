@@ -8,6 +8,7 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ### Diubah
 - **Catat Cepat di Beranda lebih rapi**: template tampil sebagai tombol 2 kolom dengan lebar sama (ikon, nama, nominal), bukan lagi chip yang lebarnya mengikuti panjang teks sehingga sisi kanannya bolong. Maksimal 6 tombol; sisanya lewat *Semua*.
 - Jarak antar bagian di bawah Beranda diseragamkan.
+- **Halaman Template lebih lega**: tombol edit dan hapus digabung ke menu ⋮, nama panjang tidak lagi turun baris, dan menghapus template sekarang minta konfirmasi dulu.
 
 ## v2.3 (8 Okt 2026)
 

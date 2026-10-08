@@ -25,7 +25,7 @@ class TemplatesPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
           children: [
             Text(
-                'Untuk pengeluaran yang sering diulang. Ketuk template untuk mencatat (nominal, tanggal, dan jam masih bisa diubah sebelum simpan). Ketuk ✏️ untuk mengubah templatenya.',
+                'Untuk pengeluaran yang sering diulang. Ketuk template untuk mencatat (nominal, tanggal, dan jam masih bisa diubah sebelum simpan). Ketuk ⋮ untuk mengubah atau menghapus template.',
                 style: TextStyle(color: C.muted, fontSize: 13)),
             const SizedBox(height: 12),
             if (store.templates.isEmpty)
@@ -55,6 +55,8 @@ class TemplatesPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(t.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w800)),
                               Text(
@@ -68,17 +70,37 @@ class TemplatesPage extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.w900,
                                 color: t.type.color)),
-                        IconButton(
-                          tooltip: 'Edit template',
-                          icon: Icon(Icons.edit_outlined, color: C.muted),
-                          onPressed: () =>
-                              openTemplateForm(context, store, existing: t),
-                        ),
-                        IconButton(
-                          tooltip: 'Hapus template',
-                          icon: Icon(Icons.delete_outline_rounded,
-                              color: C.redDark),
-                          onPressed: () => store.deleteTemplate(t.id),
+                        PopupMenuButton<String>(
+                          tooltip: 'Pilihan',
+                          icon: Icon(Icons.more_vert_rounded, color: C.muted),
+                          onSelected: (v) async {
+                            if (v == 'edit') {
+                              openTemplateForm(context, store, existing: t);
+                            } else if (v == 'hapus') {
+                              final ok = await confirmDialog(context,
+                                  title: 'Hapus template?',
+                                  message: 'Template "${t.title}" akan dihapus. Transaksi yang sudah dicatat tidak ikut terhapus.',
+                                  confirmLabel: 'Hapus',
+                                  destructive: true);
+                              if (ok) store.deleteTemplate(t.id);
+                            }
+                          },
+                          itemBuilder: (_) => [
+                            const PopupMenuItem(
+                                value: 'edit',
+                                child: ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: Icon(Icons.edit_outlined),
+                                    title: Text('Edit'))),
+                            PopupMenuItem(
+                                value: 'hapus',
+                                child: ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: Icon(Icons.delete_outline_rounded,
+                                        color: C.redDark),
+                                    title: Text('Hapus',
+                                        style: TextStyle(color: C.redDark)))),
+                          ],
                         ),
                       ],
                     ),
