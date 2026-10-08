@@ -6,6 +6,11 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya
 
 ### Ditambah
+- **Baca struk otomatis (offline)**: saat menambah foto struk dan nominal masih kosong, Infinity membaca fotonya langsung di HP (Google ML Kit, tanpa internet) lalu mengisi nominal total, nama toko sebagai catatan, dan kategori kalau tertebak. Baris *Subtotal*, *Total item*, *Diskon*, dan *Tunai/Kembali* diabaikan. Hasilnya tebakan, jadi tetap dicek sebelum simpan.
+
+## v1.6 (8 Okt 2026)
+
+### Ditambah
 - **Ekspor ke Excel** (Backup & Pulihkan): bulan ini, tahun ini, atau semua, disimpan sebagai `.xlsx` di Download/Infinity. Kolomnya sama seperti ekspor Money Manager, jadi bisa dibuka di Excel/Google Sheets atau diimpor ulang.
 - **Ringkasan bulanan** di Beranda: pengeluaran bulan ini dibanding bulan lalu pada tanggal yang sama (naik/turun berapa persen) dan 3 kategori yang naik paling banyak.
 

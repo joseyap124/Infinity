@@ -33,7 +33,7 @@ jobs:
         run: |
           flutter create --org com.jose --project-name infinity --platforms web .
           rm -rf test
-          flutter pub add intl flutter_secure_storage local_auth flutter_local_notifications timezone home_widget image_picker path_provider archive cryptography
+          flutter pub add intl flutter_secure_storage local_auth flutter_local_notifications timezone home_widget image_picker path_provider archive cryptography google_mlkit_text_recognition
 
       - name: Build web
         shell: bash

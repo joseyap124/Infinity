@@ -26,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:archive/archive.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 // NOTIF-IMPORTS-BEGIN
@@ -3837,6 +3838,48 @@ double? _parseIdNumber(String raw) {
   return double.tryParse(s);
 }
 
+/// Total belanja dari teks struk hasil foto (OCR). Mengutamakan baris
+/// "TOTAL"/"GRAND TOTAL"/"TOTAL BAYAR" (bukan subtotal/total item/diskon);
+/// angkanya boleh di baris yang sama atau baris berikutnya. Null kalau tidak
+/// ketemu. Hasilnya tebakan: tetap dicek user.
+double? receiptTotal(String text) {
+  final lines = text
+      .split('\n')
+      .map((l) => l.trim())
+      .where((l) => l.isNotEmpty)
+      .toList();
+  final numRe = RegExp(r'(\d{1,3}(?:[.,]\d{3})+|\d{4,})(?:[.,]\d{2})?');
+  const skip = ['sub', 'item', 'qty', 'disc', 'diskon', 'hemat', 'pajak', 'ppn', 'tax', 'poin', 'point'];
+  double? best;
+  for (var i = 0; i < lines.length; i++) {
+    final l = lines[i].toLowerCase();
+    if (!RegExp(r'\btotal\b').hasMatch(l) || skip.any(l.contains)) continue;
+    var m = numRe.firstMatch(lines[i]);
+    if (m == null && i + 1 < lines.length) m = numRe.firstMatch(lines[i + 1]);
+    final v = m == null ? null : _parseIdNumber(m.group(0)!);
+    if (v != null && v >= 100 && (best == null || v > best)) best = v;
+  }
+  return best;
+}
+
+/// Nama toko: biasanya baris pertama struk yang berisi huruf.
+String? receiptMerchant(String text) {
+  for (final raw in text.split('\n').take(4)) {
+    final l = raw.trim();
+    if (l.length >= 3 &&
+        l.length <= 32 &&
+        RegExp(r'[A-Za-z]{3}').hasMatch(l) &&
+        !RegExp(r'\d{4,}').hasMatch(l)) {
+      return l
+          .toLowerCase()
+          .split(RegExp(r'\s+'))
+          .map((w) => w.isEmpty ? w : w[0].toUpperCase() + w.substring(1))
+          .join(' ');
+    }
+  }
+  return null;
+}
+
 const Map<String, List<String>> _categoryHints = {
   'cafe': ['kopi', 'coffee', 'cafe', 'kafe', 'starbucks', 'janji jiwa', 'kenangan'],
   'makan': ['gofood', 'grabfood', 'shopeefood', 'makan', 'resto', 'warung', 'bakso', 'nasi', 'ayam'],
@@ -4608,6 +4651,21 @@ class Receipts {
     final name = 'r_${DateTime.now().millisecondsSinceEpoch}.jpg';
     await File(x.path).copy('$_dir/$name');
     return name;
+  }
+
+  /// Baca teks dari foto struk di HP (ML Kit, offline). Null kalau gagal.
+  static Future<String?> readText(String name) async {
+    final f = file(name);
+    if (f == null || !f.existsSync()) return null;
+    final r = TextRecognizer(script: TextRecognitionScript.latin);
+    try {
+      final res = await r.processImage(InputImage.fromFilePath(f.path));
+      return res.text;
+    } catch (_) {
+      return null;
+    } finally {
+      unawaited(r.close());
+    }
   }
 
   /// Simpan bytes (saat memulihkan backup).
@@ -7074,10 +7132,45 @@ class _TxFormSheetState extends State<TxFormSheet> {
     if (src == null) return;
     try {
       final name = await Receipts.add(src);
-      if (name != null && mounted) setState(() => _photos.add(name));
+      if (name != null && mounted) {
+        setState(() => _photos.add(name));
+        if (_amount <= 0 && _type != TxType.transfer) await _readReceipt(name);
+      }
     } catch (_) {
       if (mounted) snack(context, 'Gagal mengambil foto.');
     }
+  }
+
+  /// Isi nominal (dan catatan/kategori) dari foto struk, offline.
+  Future<void> _readReceipt(String name) async {
+    setState(() {
+      _error = null;
+      _info = 'Membaca struk…';
+    });
+    final text = await Receipts.readText(name);
+    if (!mounted) return;
+    if (text == null || text.trim().isEmpty) {
+      setState(() => _info = null);
+      return;
+    }
+    final p = parseReceipt(text, store);
+    final amount = receiptTotal(text) ?? p.amount;
+    final merchant = receiptMerchant(text);
+    setState(() {
+      if (amount == null) {
+        _info = 'Nominal di struk tidak terbaca. Isi manual ya.';
+        return;
+      }
+      _amountCtrl.text = amountToInput(amount, _fromCur);
+      _syncToAmount();
+      if (_titleCtrl.text.trim().isEmpty && merchant != null) {
+        _titleCtrl.text = merchant;
+      }
+      final cat = p.categoryId;
+      if (cat != null && _type == TxType.expense) _categoryId = cat;
+      _info =
+          'Terbaca dari struk: ${money(amount, _fromCur)}${merchant != null ? ' · $merchant' : ''}. Cek dulu sebelum simpan.';
+    });
   }
 
   /// Pilih saran Catatan: kategori (dan akun) ikut diisi dari transaksi

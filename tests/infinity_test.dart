@@ -208,6 +208,21 @@ void main() {
     });
   });
 
+  group('Struk (OCR)', () {
+    test('total di baris yang sama, abaikan subtotal & total item', () {
+      const text = 'INDOMARET\nJL MERDEKA 1\nRoti 12.500\nSusu 18.900\nSUBTOTAL 31.400\nTOTAL ITEM 2\nTOTAL 31.400\nTUNAI 50.000\nKEMBALI 18.600';
+      expect(receiptTotal(text), 31400);
+      expect(receiptMerchant(text), 'Indomaret');
+    });
+    test('angka total di baris berikutnya', () {
+      const text = 'Kopi Kenangan\nGRAND TOTAL\nRp 48.000';
+      expect(receiptTotal(text), 48000);
+    });
+    test('tanpa kata total = null', () {
+      expect(receiptTotal('Parkir 5000'), isNull);
+    });
+  });
+
   group('Teks cepat', () {
     const cases = {
       '25rb kopi': 25000.0,
