@@ -168,6 +168,46 @@ void main() {
     });
   });
 
+  group('Ekspor Excel', () {
+    test('ekspor lalu impor ulang menghasilkan transaksi yang sama', () {
+      final s = storeWith([acc('bca', initial: 100), acc('gopay')], [
+        tx('1', TxType.expense, 25000, 'bca', cat: 'makan', title: 'Nasi & teh <manis>', date: DateTime(2026, 10, 3, 12, 30)),
+        tx('2', TxType.transfer, 50000, 'bca', to: 'gopay', date: DateTime(2026, 10, 4, 9)),
+        tx('3', TxType.income, 7000000, 'bca', title: 'Gaji', date: DateTime(2026, 10, 1, 8)),
+      ]);
+      s.categories = [
+        TxCategory(id: 'pokok', name: 'Kebutuhan Pokok', type: TxType.expense, icon: 'home', color: 0),
+        TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0, parentId: 'pokok'),
+      ];
+      final rows = parseMoneyManagerXlsx(buildXlsx('Infinity', s.exportRows(null)));
+      expect(rows, hasLength(3));
+      final makan = rows.firstWhere((r) => r.kind == 'Expense');
+      expect(makan.category, 'Kebutuhan Pokok');
+      expect(makan.subcategory, 'Makan');
+      expect(makan.note, 'Nasi & teh <manis>');
+      expect(makan.date, DateTime(2026, 10, 3, 12, 30));
+      final tf = rows.firstWhere((r) => r.kind == 'Transfer-Out');
+      expect(tf.category, 'GOPAY');
+      final fresh = storeWith([acc('bca'), acc('gopay')]);
+      fresh.categories = s.categories;
+      final plan = fresh.planMoneyManagerImport(rows);
+      expect(plan.transactions, hasLength(3));
+      expect(plan.newAccounts, isEmpty);
+    });
+
+    test('ringkasan bulan ini vs bulan lalu (hari yang sama)', () {
+      final s = storeWith([acc('a')], [
+        tx('1', TxType.expense, 100000, 'a', cat: 'x', date: DateTime(2026, 10, 5)),
+        tx('2', TxType.expense, 50000, 'a', cat: 'x', date: DateTime(2026, 9, 4)),
+        tx('3', TxType.expense, 999999, 'a', cat: 'x', date: DateTime(2026, 9, 20)), // setelah tgl 8, tidak dihitung
+      ]);
+      final m = s.monthCompare(DateTime(2026, 10, 8, 10));
+      expect(m.expenseNow, 100000);
+      expect(m.expenseBefore, 50000);
+      expect(m.expensePct, closeTo(100, 0.001));
+    });
+  });
+
   group('Teks cepat', () {
     const cases = {
       '25rb kopi': 25000.0,

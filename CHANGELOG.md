@@ -6,6 +6,12 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya
 
 ### Ditambah
+- **Ekspor ke Excel** (Backup & Pulihkan): bulan ini, tahun ini, atau semua, disimpan sebagai `.xlsx` di Download/Infinity. Kolomnya sama seperti ekspor Money Manager, jadi bisa dibuka di Excel/Google Sheets atau diimpor ulang.
+- **Ringkasan bulanan** di Beranda: pengeluaran bulan ini dibanding bulan lalu pada tanggal yang sama (naik/turun berapa persen) dan 3 kategori yang naik paling banyak.
+
+## v1.5 (8 Okt 2026)
+
+### Ditambah
 - **Utang & Piutang** (Lainnya): catat siapa meminjam berapa, tanggal dan tenggat, cicilan pembayaran, lalu tandai lunas. Total piutang dan utang tampil di atas, yang lewat tenggat ditandai merah. Pengingat sehari sebelum dan saat tenggat (bisa dimatikan di Notifikasi). Catatan ini tidak mengubah saldo akun.
 - **Target Tabungan** (Lainnya): mis. "Dana darurat Rp10 juta". Progres bisa ikut saldo akun (mis. akun Tabungan) atau diisi manual dengan *Setor* / *Ambil*. Kalau ada tenggat, ditampilkan berapa yang perlu disisihkan per bulan. Target pertama juga tampil di Beranda.
 
