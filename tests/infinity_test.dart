@@ -493,4 +493,31 @@ void main() {
       expect(currencySymbol('AUD'), 'A\$');
     });
   });
+
+  group('Kurs & tabungan', () {
+    test('kurs basi diingatkan hanya kalau ada akun asing', () {
+      final now = DateTime(2026, 10, 8);
+      final s = storeWith([acc('a')]);
+      expect(s.staleRatesDays(now), isNull); // semua Rupiah
+      s.accounts.add(acc('u', currency: 'USD'));
+      expect(s.staleRatesDays(now), -1); // belum pernah diisi
+      s.setRates({'USD': 17910}, at: DateTime(2026, 10, 1));
+      expect(s.staleRatesDays(now), isNull);
+      expect(s.staleRatesDays(DateTime(2026, 11, 15)), 45);
+      expect(kDefaultRates['USD'], 17910);
+    });
+
+    test('akun tabungan tidak dihitung di aman dibelanjakan', () {
+      final now = DateTime(2026, 10, 22, 10);
+      final s = storeWith([
+        acc('harian', initial: 1000000),
+        const Account(id: 'tab', name: 'Tabungan', type: AccountType.bank, initialBalance: 9000000, color: 0, excludeSafe: true),
+      ]);
+      final r = s.safeToSpend(now);
+      expect(r.perDay, closeTo(100000, 0.01)); // 1 juta / 10 hari
+      expect(r.excluded, 9000000);
+      final back = Account.fromJson(s.accounts[1].toJson());
+      expect(back.excludeSafe, isTrue);
+    });
+  });
 }

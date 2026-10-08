@@ -14,7 +14,11 @@ class SafeSpend {
     required this.fromBudget,
     required this.parts,
     required this.periodEnd,
+    this.excluded = 0,
   });
+
+  /// Saldo akun yang ditandai "jangan hitung" (dalam Rupiah).
+  final double excluded;
 
   /// Jatah per hari mulai hari ini (belum dikurangi belanja hari ini).
   final double perDay;
@@ -36,7 +40,7 @@ class SafeSpend {
       perDay <= 0 ? (spentToday > 0 ? 1 : 0) : (spentToday / perDay).clamp(0.0, 1.0);
 }
 
-enum InsightKind { capture, balance, debt, bill, subscription, unusual, goal }
+enum InsightKind { capture, balance, rates, debt, bill, subscription, unusual, goal }
 
 /// Saldo di notifikasi bank/e-wallet berbeda dengan hitungan Infinity.
 class BalanceMismatch {
@@ -115,6 +119,7 @@ extension InsightStore on AppStore {
     DateTime end;
     final s = settings;
     final fromBudget = s.globalBudget > 0;
+    var skipped = 0.0;
     if (fromBudget) {
       final r = s.budgetPeriod.range(now);
       end = r.end;
@@ -129,6 +134,10 @@ extension InsightStore on AppStore {
       var liquid = 0.0;
       for (final a in accounts) {
         if (a.type == AccountType.credit || a.type == AccountType.investment) {
+          continue;
+        }
+        if (a.excludeSafe) {
+          skipped += toIDR(balanceOf(a.id), a.currency);
           continue;
         }
         liquid += toIDR(balanceOf(a.id), a.currency);
@@ -189,6 +198,7 @@ extension InsightStore on AppStore {
       fromBudget: fromBudget,
       parts: parts,
       periodEnd: end,
+      excluded: fromBudget ? 0 : skipped,
     );
   }
 
@@ -386,6 +396,20 @@ extension InsightStore on AppStore {
         color: C.amberDark,
         action: 'Samakan',
         payload: m,
+      ));
+    }
+    final stale = staleRatesDays(now);
+    if (stale != null && !hidden('rates')) {
+      out.add(Insight(
+        id: 'rates',
+        kind: InsightKind.rates,
+        title: 'Kurs mata uang sudah lama',
+        body: stale < 0
+            ? 'Kurs belum pernah diperbarui, jadi total saldo akun asing bisa meleset.'
+            : 'Terakhir diperbarui $stale hari lalu. Cek kurs terbaru supaya total saldo akurat.',
+        icon: Icons.currency_exchange_rounded,
+        color: C.amberDark,
+        action: 'Perbarui',
       ));
     }
     for (final d in debts) {
@@ -618,6 +642,13 @@ class SafeSpendSheet extends StatelessWidget {
               style: TextStyle(fontSize: 12.5, color: C.muted)),
           const SizedBox(height: 10),
           for (final (label, v) in s.parts) line(label, v),
+          if (s.excluded != 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                  'Tidak dihitung: ${money(s.excluded)} di akun yang ditandai "jangan hitung" (tabungan/dana darurat).',
+                  style: TextStyle(fontSize: 12, color: C.muted)),
+            ),
           Divider(color: C.line),
           line('Boleh dipakai sampai akhir periode', s.base, bold: true),
           line('Dibagi ${s.daysLeft} hari (termasuk hari ini)', s.perDay, bold: true),
@@ -660,6 +691,9 @@ class InsightStrip extends StatelessWidget {
     switch (i.kind) {
       case InsightKind.capture:
         onOpenCaptures();
+      case InsightKind.rates:
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => CurrencyPage(store: store)));
       case InsightKind.balance:
         final m = i.payload;
         if (m is BalanceMismatch) _confirmReconcile(context, m);

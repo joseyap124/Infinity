@@ -22,11 +22,15 @@ class Account {
     required this.color,
     this.creditLimit = 0,
     this.dueDay = 25,
+    this.excludeSafe = false,
   });
 
   final String id;
   final String name;
   final AccountType type;
+
+  /// Tidak ikut dihitung di "Aman dibelanjakan" (mis. tabungan, dana darurat).
+  final bool excludeSafe;
   final String currency;
 
   /// Saldo awal. Saldo berjalan selalu dihitung ulang dari saldo awal + semua
@@ -47,6 +51,7 @@ class Account {
         'color': color,
         'creditLimit': creditLimit,
         'dueDay': dueDay,
+        if (excludeSafe) 'excludeSafe': true,
       };
 
   factory Account.fromJson(Map<String, dynamic> j) => Account(
@@ -58,6 +63,7 @@ class Account {
         color: _i(j['color'], kPalette.first),
         creditLimit: _d(j['creditLimit']),
         dueDay: _i(j['dueDay'], 25),
+        excludeSafe: j['excludeSafe'] == true,
       );
 }
 
@@ -405,6 +411,9 @@ class AppSettings {
   /// (id akun -> "nominal|waktu ISO"), untuk mencocokkan saldo.
   Map<String, String> reportedBalance = {};
 
+  /// Kapan kurs terakhir disimpan user (null = belum pernah).
+  DateTime? ratesUpdatedAt;
+
   /// Backup JSON otomatis ke Download/Infinity tiap 7 hari.
   bool autoBackup = true;
   DateTime? lastAutoBackup;
@@ -457,6 +466,7 @@ class AppSettings {
         'reportedBalance': reportedBalance,
         'autoBackup': autoBackup,
         'lastAutoBackup': lastAutoBackup?.toIso8601String(),
+        'ratesUpdatedAt': ratesUpdatedAt?.toIso8601String(),
         'displayName': displayName,
         'avatarPath': avatarPath,
         'greetingMode': greetingMode,
@@ -527,6 +537,7 @@ class AppSettings {
       };
     }
     s.lastAutoBackup = DateTime.tryParse(_s(j['lastAutoBackup']) ?? '');
+    s.ratesUpdatedAt = DateTime.tryParse(_s(j['ratesUpdatedAt']) ?? '');
     final dn = _s(j['displayName'])?.trim();
     s.displayName = (dn == null || dn.isEmpty) ? 'Infinity' : dn;
     s.avatarPath = _s(j['avatarPath']);

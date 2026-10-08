@@ -8,18 +8,23 @@ const List<String> kCurrencies = [
   'IDR', 'USD', 'SGD', 'MYR', 'CNY', 'TWD', 'AUD', 'EUR', 'JPY',
 ];
 
-/// Kurs bawaan ke Rupiah. HANYA PERKIRAAN, ubah di menu Mata Uang & Kurs.
+/// Kurs bawaan ke Rupiah: kurs tengah Bank Indonesia 7 Okt 2026 (rata-rata
+/// kurs jual dan beli). TWD tidak ada di daftar BI, dihitung silang dari USD.
+/// TIDAK update otomatis (app offline); ubah di menu Mata Uang & Kurs.
 const Map<String, double> kDefaultRates = {
   'IDR': 1,
-  'USD': 16300,
-  'SGD': 12600,
-  'MYR': 3850,
-  'CNY': 2280,
-  'TWD': 564, // kurs awal 6 Okt 2026, bisa diubah di Mata Uang & Kurs
-  'AUD': 12460, // kurs awal 7 Okt 2026
-  'EUR': 17700,
-  'JPY': 108,
+  'USD': 17910,
+  'SGD': 14008,
+  'MYR': 4383,
+  'CNY': 2671,
+  'TWD': 564,
+  'AUD': 12496,
+  'EUR': 20133,
+  'JPY': 113.28,
 };
+
+/// Tanggal kurs bawaan di atas.
+final DateTime kDefaultRatesDate = DateTime(2026, 10, 7);
 
 String currencySymbol(String c) {
   const symbols = {

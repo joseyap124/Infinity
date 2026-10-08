@@ -61,6 +61,9 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
   AppStore get store => widget.store;
   late DateTime _month;
 
+  /// true = tampilkan seluruh riwayat, bukan per bulan.
+  bool _all = false;
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +73,64 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
 
   void _shift(int months) =>
       setState(() => _month = DateTime(_month.year, _month.month + months));
+
+  /// Pilih bulan langsung (bulan yang ada transaksinya) atau "Semua".
+  Future<void> _pickMonth(List<(Transaction, double)> ledger) async {
+    final now = DateTime.now();
+    final counts = <DateTime, int>{};
+    for (final (t, _) in ledger) {
+      final m = DateTime(t.date.year, t.date.month);
+      counts[m] = (counts[m] ?? 0) + 1;
+    }
+    counts.putIfAbsent(DateTime(now.year, now.month), () => 0);
+    final months = counts.keys.toList()..sort((a, b) => b.compareTo(a));
+    final fmt = DateFormat('MMMM yyyy', 'id_ID');
+    final picked = await showSheet<DateTime>(
+      context,
+      SheetFrame(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Text('Pilih bulan',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            ),
+
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.all_inclusive_rounded),
+                title: const Text('Semua',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+                trailing: Text('${ledger.length} transaksi',
+                    style: TextStyle(color: C.muted, fontSize: 12.5)),
+                selected: _all,
+                onTap: () => Navigator.pop(context, DateTime(0)),
+              ),
+              for (final m in months)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.calendar_month_rounded),
+                  title: Text(fmt.format(m)),
+                  trailing: Text('${counts[m]} transaksi',
+                      style: TextStyle(color: C.muted, fontSize: 12.5)),
+                  selected: !_all && m == _month,
+                  onTap: () => Navigator.pop(context, m),
+                ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      if (picked.year == 0) {
+        _all = true;
+      } else {
+        _all = false;
+        _month = picked;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +148,9 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
         final next = DateTime(_month.year, _month.month + 1);
         final inMonth = [
           for (final e in ledger)
-            if (!e.$1.date.isBefore(_month) && e.$1.date.isBefore(next)) e
+            if (_all ||
+                (!e.$1.date.isBefore(_month) && e.$1.date.isBefore(next)))
+              e
         ].reversed.toList();
         var inSum = 0.0, outSum = 0.0;
         for (final (t, _) in inMonth) {
@@ -163,19 +226,37 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                       children: [
                         IconButton(
                           tooltip: 'Bulan sebelumnya',
-                          onPressed: () => _shift(-1),
+                          onPressed: _all ? null : () => _shift(-1),
                           icon: const Icon(Icons.chevron_left_rounded),
                         ),
                         Expanded(
-                          child: Text(
-                              DateFormat('MMMM yyyy', 'id_ID').format(_month),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800)),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => _pickMonth(ledger),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                      _all
+                                          ? 'Semua transaksi'
+                                          : DateFormat('MMMM yyyy', 'id_ID')
+                                              .format(_month),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w800)),
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.expand_more_rounded,
+                                      size: 20, color: C.muted),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                         IconButton(
                           tooltip: 'Bulan berikutnya',
-                          onPressed: isCurrent ? null : () => _shift(1),
+                          onPressed:
+                              (_all || isCurrent) ? null : () => _shift(1),
                           icon: const Icon(Icons.chevron_right_rounded),
                         ),
                       ],
@@ -198,14 +279,16 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                   child: EmptyState(
                       icon: Icons.receipt_long_rounded,
                       title: 'Belum ada transaksi',
-                      subtitle: 'Tidak ada transaksi akun ini di bulan ini.'),
+                      subtitle: 'Tidak ada transaksi akun ini di periode ini.'),
                 )
               else
                 for (final day in days.keys) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
                     child: Text(
-                        DateFormat('EEEE, d MMM', 'id_ID').format(day),
+                        DateFormat(_all ? 'EEEE, d MMM yyyy' : 'EEEE, d MMM',
+                                'id_ID')
+                            .format(day),
                         style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 13,

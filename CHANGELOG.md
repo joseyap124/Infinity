@@ -6,6 +6,16 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya
 
 ### Ditambah
+- **Pilih bulan langsung di riwayat akun**: ketuk nama bulan untuk melompat ke bulan mana saja (lengkap dengan jumlah transaksinya), atau pilih **Semua** untuk melihat seluruh riwayat akun sekaligus.
+- **Akun yang tidak dihitung di "Aman dibelanjakan"**: di edit akun ada saklar *Jangan hitung di "Aman dibelanjakan"* untuk rekening tabungan atau dana darurat. Saldonya tetap masuk total saldo, tapi tidak dianggap uang belanja. Rinciannya menyebut berapa yang tidak dihitung.
+- **Pengingat kurs**: halaman Mata Uang & Kurs menampilkan kapan kurs terakhir diperbarui, plus tombol *Isi kurs BI 7 Okt 2026*. Kalau ada akun mata uang asing dan kurs belum diperbarui lebih dari 30 hari, muncul kartu di *Perlu perhatian*.
+
+### Diubah
+- **Kurs bawaan diperbarui** ke kurs tengah Bank Indonesia 7 Okt 2026: USD Rp17.910, SGD Rp14.008, MYR Rp4.383, CNY Rp2.671, AUD Rp12.496, EUR Rp20.133, JPY Rp113,28 (TWD tetap Rp564). Sebelumnya USD masih Rp16.300. Kurs yang sudah tersimpan di HP tidak berubah sendiri; pakai tombol *Isi kurs BI* lalu *Simpan Kurs*.
+
+## v2.5 (8 Okt 2026)
+
+### Ditambah
 - **Riwayat per akun**: ketuk akun (mis. SeaBank, BCA) di Beranda atau di Kelola Akun untuk melihat semua transaksinya per bulan, dikelompokkan per hari, lengkap dengan saldo setelah tiap transaksi (seperti buku tabungan). Di atasnya ada saldo sekarang serta total masuk dan keluar bulan itu. Transfer ditampilkan dari sisi akun: keluar minus, masuk plus. Edit akun lewat tombol ✏️ di pojok kanan atas, dan tombol *Catat* langsung memakai akun itu.
 - **Dolar Australia (AUD, A$)** sebagai mata uang akun dan transfer. Kurs awal 1 AUD = Rp12.460 (kurs 7 Okt 2026), bisa diubah di Lainnya → Mata Uang & Kurs.
 

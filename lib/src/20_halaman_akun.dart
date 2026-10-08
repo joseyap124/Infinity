@@ -193,6 +193,9 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
   /// Saldo minus (rekening tekor, atau kartu kredit kelebihan bayar).
   bool _negative = false;
 
+  /// Jangan dihitung di "Aman dibelanjakan".
+  bool _excludeSafe = false;
+
   bool get _editing => widget.account != null;
 
   @override
@@ -203,6 +206,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     _currency = a?.currency ?? 'IDR';
     _color = a?.color ?? kPalette[store.accounts.length % kPalette.length];
     _dueDay = a?.dueDay ?? 25;
+    _excludeSafe = a?.excludeSafe ?? false;
     _nameCtrl.text = a?.name ?? '';
     if (a != null) {
       // Saat edit, yang ditampilkan saldo SEKARANG (seperti Money Manager).
@@ -323,6 +327,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
       color: _color,
       creditLimit: isCredit ? parseAmount(_limitCtrl.text, decimals: dec) : 0,
       dueDay: _dueDay,
+      excludeSafe: _excludeSafe,
     );
     store.upsertAccount(acc);
     if (adjust != 0) store.addBalanceAdjustment(acc, adjust);
@@ -506,6 +511,20 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
                   onChanged: (v) => setState(() => _dueDay = v ?? _dueDay),
                 ),
               ],
+            ),
+          ],
+          if (_type != AccountType.credit &&
+              _type != AccountType.investment) ...[
+            const SizedBox(height: 6),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: _excludeSafe,
+              onChanged: (v) => setState(() => _excludeSafe = v),
+              title: const Text('Jangan hitung di "Aman dibelanjakan"',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+              subtitle: Text(
+                  'Untuk tabungan atau dana darurat yang tidak untuk belanja harian.',
+                  style: TextStyle(fontSize: 12, color: C.muted)),
             ),
           ],
           const SizedBox(height: 14),

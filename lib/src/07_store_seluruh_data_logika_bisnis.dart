@@ -737,9 +737,20 @@ class AppStore extends ChangeNotifier {
 
   // ---------------------------------------------------------------- setting
 
-  void setRates(Map<String, double> rates) {
+  void setRates(Map<String, double> rates, {DateTime? at}) {
     settings.rates = {...rates, 'IDR': 1};
+    settings.ratesUpdatedAt = at ?? DateTime.now();
     _commit();
+  }
+
+  /// Umur kurs dalam hari kalau ada akun non-Rupiah dan kurs sudah > 30 hari
+  /// (atau belum pernah diisi). Null = tidak perlu diingatkan.
+  int? staleRatesDays(DateTime now) {
+    if (!accounts.any((a) => a.currency != 'IDR')) return null;
+    final at = settings.ratesUpdatedAt;
+    if (at == null) return -1;
+    final d = now.difference(at).inDays;
+    return d > 30 ? d : null;
   }
 
   void setPin(String? pin) {
