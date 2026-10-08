@@ -105,6 +105,17 @@ class NativeBridge {
     }
   }
 
+  /// Layar "Simpan sebagai" Android (bisa pilih Google Drive). Mengembalikan
+  /// nama file yang disimpan, null kalau dibatalkan. Lempar kalau gagal.
+  static Future<String?> saveAs(String name, Uint8List bytes, String mime) async {
+    try {
+      return await _ch.invokeMethod<String>(
+          'saveAs', {'name': name, 'bytes': bytes, 'mime': mime});
+    } on PlatformException catch (e) {
+      throw Exception(e.message ?? e.code);
+    }
+  }
+
   /// Notifikasi pintasan 4 ikon (native, gaya Money Manager).
   static Future<void> showQuickBar() async {
     try {

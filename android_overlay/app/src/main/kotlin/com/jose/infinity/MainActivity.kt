@@ -27,11 +27,39 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private var pendingPick: MethodChannel.Result? = null
+    private var pendingSave: MethodChannel.Result? = null
+    private var pendingSaveBytes: ByteArray? = null
 
     @Deprecated("Dipakai untuk pemilih file sederhana")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_SAVE) {
+            val r = pendingSave ?: return
+            val bytes = pendingSaveBytes ?: ByteArray(0)
+            pendingSave = null
+            pendingSaveBytes = null
+            val uri = data?.data
+            if (resultCode != RESULT_OK || uri == null) {
+                r.success(null)
+                return
+            }
+            try {
+                // Ditulis lewat penyedia dokumen yang dipilih user (mis. Google
+                // Drive). Upload dikerjakan app Drive; Infinity tetap offline.
+                contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes) }
+                    ?: throw IllegalStateException("Tidak bisa menulis file")
+                var name = "backup"
+                contentResolver.query(uri, null, null, null, null)?.use { c ->
+                    val idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (idx >= 0 && c.moveToFirst()) name = c.getString(idx) ?: name
+                }
+                r.success(name)
+            } catch (e: Exception) {
+                r.error("write", e.message, null)
+            }
+            return
+        }
         if (requestCode != REQ_PICK) return
         val r = pendingPick ?: return
         pendingPick = null
@@ -55,6 +83,7 @@ class MainActivity : FlutterFragmentActivity() {
 
     companion object {
         private const val REQ_PICK = 4242
+        private const val REQ_SAVE = 4243
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -108,6 +137,21 @@ class MainActivity : FlutterFragmentActivity() {
                             }
                             @Suppress("DEPRECATION")
                             startActivityForResult(i, REQ_PICK)
+                        }
+                    }
+                    "saveAs" -> {
+                        if (pendingSave != null) {
+                            result.error("busy", "Pemilih file sedang terbuka", null)
+                        } else {
+                            pendingSave = result
+                            pendingSaveBytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
+                            val i = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = call.argument<String>("mime") ?: "application/octet-stream"
+                                putExtra(Intent.EXTRA_TITLE, call.argument<String>("name") ?: "infinity-backup")
+                            }
+                            @Suppress("DEPRECATION")
+                            startActivityForResult(i, REQ_SAVE)
                         }
                     }
                     "showQuickBar" -> {

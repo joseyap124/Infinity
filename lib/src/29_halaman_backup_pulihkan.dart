@@ -166,6 +166,34 @@ class _BackupPageState extends State<BackupPage> {
     }
   }
 
+  /// Simpan backup terenkripsi lewat layar "Simpan sebagai" Android. Google
+  /// Drive muncul di sana kalau app-nya terpasang; upload dikerjakan Drive.
+  Future<void> _saveToDrive() async {
+    if (!_hasPw) {
+      final go = await confirmDialog(context,
+          title: 'Atur kata sandi dulu',
+          message:
+              'Backup yang dikirim ke Google Drive selalu dikunci kata sandi, supaya isinya tidak bisa dibaca siapa pun selain kamu.',
+          confirmLabel: 'Atur kata sandi');
+      if (!go || !mounted) return;
+      final pw = await _askPassword(confirm: true);
+      if (pw == null || !mounted) return;
+      await store.setBackupPassword(pw);
+      if (!mounted) return;
+    }
+    final bytes = await store.encryptedBackup();
+    if (bytes == null || !mounted) return;
+    final stamp = DateFormat('yyyy-MM-dd_HHmm').format(DateTime.now());
+    try {
+      final name = await NativeBridge.saveAs(
+          'infinity-backup-$stamp.infb', bytes, 'application/octet-stream');
+      if (name == null || !mounted) return;
+      snack(context, 'Tersimpan: $name ✅');
+    } catch (e) {
+      if (mounted) snack(context, 'Gagal menyimpan: $e');
+    }
+  }
+
   Future<void> _restoreFile() async {
     final picked = await NativeBridge.pickFile();
     if (picked == null || !mounted) return;
@@ -275,6 +303,29 @@ class _BackupPageState extends State<BackupPage> {
                   },
                   icon: const Icon(Icons.download_rounded),
                   label: const Text('Backup sekarang'),
+                  style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20))),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SectionTitle('Simpan ke Google Drive'),
+                const SizedBox(height: 6),
+                Text(
+                    'Di layar simpan, pilih Google Drive (atau tempat lain). Upload dikerjakan app Drive, Infinity tetap tanpa internet. Yang dikirim selalu backup terkunci kata sandi (.infb), jadi Google tidak bisa membaca isinya. Untuk memulihkan, pakai "Pulihkan dari file" lalu pilih dari Drive.',
+                    style: TextStyle(fontSize: 12.5, color: C.muted)),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: _saveToDrive,
+                  icon: const Icon(Icons.cloud_upload_rounded),
+                  label: const Text('Simpan backup ke Drive…'),
                   style: OutlinedButton.styleFrom(
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(

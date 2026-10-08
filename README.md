@@ -111,7 +111,8 @@ Lainnya → **Import dari Money Manager** → pilih file `.xlsx` hasil *Money Ma
 Lainnya → **Backup & Pulihkan**:
 - **Backup otomatis mingguan** ke `Download/Infinity/`. File ini tetap ada walau app di-uninstall. Bisa dimatikan, atau tekan **Backup sekarang**.
 - **Kata sandi backup**: kalau diatur, backup jadi file `.infb` terenkripsi (AES-256) yang ikut menyimpan foto struk. Tanpa kata sandi, backup berupa `.json` biasa.
-- **Pulihkan dari file**: pilih `.infb` atau `.json` langsung dari HP.
+- **Simpan ke Google Drive**: lewat layar simpan Android (Drive yang meng-upload, Infinity tetap tanpa internet). Selalu `.infb` terkunci kata sandi.
+- **Pulihkan dari file**: pilih `.infb` atau `.json` dari HP atau Google Drive.
 - **Ekspor ke Excel** (bulan ini, tahun ini, atau semua) dengan kolom seperti ekspor Money Manager.
 - **Salin backup**: data sebagai teks JSON ke clipboard (dihapus otomatis dari clipboard setelah 60 detik).
 - **Pulihkan**: tempel isi JSON. PIN dan setelan keamanan tidak ikut ditimpa.

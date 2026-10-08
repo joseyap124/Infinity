@@ -1040,6 +1040,14 @@ class AppStore extends ChangeNotifier {
     return ok;
   }
 
+  /// Backup terenkripsi (.infb, ikut foto) untuk dikirim ke luar HP, mis.
+  /// Google Drive. Null kalau kata sandi backup belum diatur.
+  Future<Uint8List?> encryptedBackup() async {
+    final pw = await backupPassword();
+    if (pw == null) return null;
+    return SecureBackup.encrypt(exportJson(), _photoBytes(), pw);
+  }
+
   /// Pulihkan dari isi file .infb atau .json. Lempar FormatException.
   Future<int> restoreFromFile(List<int> bytes, {String? password}) async {
     if (SecureBackup.looksEncrypted(bytes)) {

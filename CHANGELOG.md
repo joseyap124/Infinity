@@ -5,6 +5,9 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ## Berikutnya
 
+### Ditambah
+- **Simpan backup ke Google Drive** (Backup & Pulihkan): membuka layar simpan Android, lalu pilih Google Drive. Upload dikerjakan app Drive, jadi Infinity tetap tanpa izin internet dan tanpa login Google. Yang dikirim selalu backup terkunci kata sandi (`.infb`), jadi isinya tidak bisa dibaca Google. Memulihkan cukup lewat *Pulihkan dari file* lalu pilih dari Drive.
+
 ### Diubah
 - **Splash animasi koin cuma sekali**: diputar hanya saat app pertama kali dibuka setelah dipasang. Setelah itu app langsung masuk ke Beranda (atau PIN). Yang sudah memakai versi sebelumnya tidak akan melihatnya lagi.
 - **Template catat cepat bisa diedit**: di Lainnya → Template ada tombol ✏️ untuk mengubah nama, nominal, kategori, dan akun template tanpa harus menghapus lalu membuat baru.
