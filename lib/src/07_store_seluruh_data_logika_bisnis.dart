@@ -124,9 +124,45 @@ class AppStore extends ChangeNotifier {
     } catch (_) {}
   }
 
+  /// Naik setiap data berubah; dipakai untuk cache saldo.
+  int _rev = 0;
+  Map<String, double>? _balCache;
+  Object? _balSig;
+
   void _commit() {
+    _rev++;
     notifyListeners();
     _persist();
+  }
+
+  /// Saldo semua akun dalam satu kali jalan (bukan satu jalan per akun).
+  /// Dihitung ulang hanya kalau data berubah.
+  Map<String, double> _balances() {
+    final sig = (
+      _rev,
+      identityHashCode(transactions),
+      transactions.length,
+      identityHashCode(accounts),
+      accounts.length,
+    );
+    final cached = _balCache;
+    if (cached != null && _balSig == sig) return cached;
+    final m = <String, double>{for (final a in accounts) a.id: a.initialBalance};
+    for (final t in transactions) {
+      switch (t.type) {
+        case TxType.income:
+          if (m.containsKey(t.accountId)) m[t.accountId] = m[t.accountId]! + t.amount;
+        case TxType.expense:
+          if (m.containsKey(t.accountId)) m[t.accountId] = m[t.accountId]! - t.amount;
+        case TxType.transfer:
+          if (m.containsKey(t.accountId)) m[t.accountId] = m[t.accountId]! - t.amount;
+          final to = t.toAccountId;
+          if (to != null && m.containsKey(to)) m[to] = m[to]! + t.receivedAmount;
+      }
+    }
+    _balCache = m;
+    _balSig = sig;
+    return m;
   }
 
   /// [includeSecrets] false untuk ekspor backup: tanpa PIN dan tanpa isi
@@ -424,6 +460,7 @@ class AppStore extends ChangeNotifier {
   // ---------------------------------------------------------------- saldo
 
   double balanceOf(String accountId, {String? excludeTxId}) {
+    if (excludeTxId == null) return _balances()[accountId] ?? 0;
     final acc = accountById(accountId);
     if (acc == null) return 0;
     var b = acc.initialBalance;

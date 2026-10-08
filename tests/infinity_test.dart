@@ -664,4 +664,63 @@ void main() {
       expect(await s.verifyBackupBytes(utf8.encode('{}'), json), isFalse);
     });
   });
+
+  group('Data besar', () {
+    test('20.000 transaksi 5 tahun tetap cepat dan saldo konsisten', () {
+      final now = DateTime(2026, 10, 8, 12);
+      final accs = [
+        acc('bca', initial: 10000000),
+        acc('gopay', type: AccountType.ewallet),
+        acc('cash', type: AccountType.cash),
+        acc('cc', type: AccountType.credit),
+        acc('usd', currency: 'USD'),
+        acc('tab', initial: 50000000),
+      ];
+      final ids = accs.map((a) => a.id).toList();
+      final txs = <Transaction>[];
+      for (var i = 0; i < 20000; i++) {
+        final d = now.subtract(Duration(minutes: i * 131));
+        final from = ids[i % ids.length];
+        if (i % 10 == 0) {
+          txs.add(tx('t$i', TxType.transfer, 50000, from, to: ids[(i + 1) % ids.length], date: d));
+        } else if (i % 7 == 0) {
+          txs.add(tx('t$i', TxType.income, 250000, from, cat: 'gaji', title: 'Gaji', date: d));
+        } else {
+          txs.add(tx('t$i', TxType.expense, 10000 + (i % 50) * 1000, from, cat: 'makan', title: 'Makan ${i % 40}', date: d));
+        }
+      }
+      final s = storeWith(accs, txs);
+      s.categories = [
+        TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0),
+        TxCategory(id: 'gaji', name: 'Gaji', type: TxType.income, icon: 'salary', color: 0),
+      ];
+      final sw = Stopwatch()..start();
+      for (var k = 0; k < 50; k++) {
+        for (final a in accs) {
+          s.balanceOf(a.id);
+        }
+      }
+      final tBal = sw.elapsedMilliseconds;
+      s.safeToSpend(now);
+      s.insights(now);
+      final tIns = sw.elapsedMilliseconds - tBal;
+      s.netWorthHistory(now);
+      s.accountLedger('bca');
+      s.healthCheck(now);
+      s.detectSubscriptions(now);
+      final total = sw.elapsedMilliseconds;
+      // ignore: avoid_print
+      print('20k tx: saldo x300 ${tBal}ms, insight ${tIns}ms, total ${total}ms');
+      expect(total, lessThan(5000));
+      // Cache sama dengan hitungan langsung.
+      for (final a in accs) {
+        expect(s.balanceOf(a.id), closeTo(s.balanceOf(a.id, excludeTxId: 'tidak-ada'), 0.001));
+        expect(s.accountLedger(a.id).last.$2, closeTo(s.balanceOf(a.id), 0.001));
+      }
+      // Cache ikut berubah saat data berubah.
+      final before = s.balanceOf('bca');
+      s.addBalanceAdjustment(s.accounts.first, 1000);
+      expect(s.balanceOf('bca'), closeTo(before + 1000, 0.001));
+    });
+  });
 }
