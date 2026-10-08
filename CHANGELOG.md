@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.0)
+## v3.0 (8 Okt 2026)
 
 Versi matang untuk dipakai lama tanpa update: fokusnya data aman, tahan HP Android baru, dan bisa dirawat tanpa bertanya.
 
