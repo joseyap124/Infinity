@@ -3,12 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya
+## v2.7 (8 Okt 2026)
 
 ### Ditambah
 - **Acara** (Lainnya → Acara): buat acara seperti "Trip Bali" atau "Lebaran" dengan tanggal mulai–selesai dan anggaran (opsional). Transaksi bisa ditandai lewat baris *Acara* di form catat; selama acara berlangsung, transaksi baru otomatis ditandai (bisa dimatikan per acara). Halaman acara menampilkan total, sisa anggaran, rincian per kategori, dan semua transaksinya. Refund yang ditandai acara mengurangi total. Kalau anggaran acara terpakai 80% atau lebih, muncul kartu di *Perlu perhatian*. Menghapus acara tidak menghapus transaksinya.
 - **Kekayaan bersih per bulan** (Statistik): grafik total saldo semua akun di akhir tiap bulan selama 12 bulan terakhir, dengan selisih dari bulan lalu dan dalam 12 bulan. Kartu kredit dihitung minus; akun mata uang asing memakai kurs sekarang.
 - **Perkiraan saldo akhir bulan per akun**: di riwayat akun (bulan berjalan) muncul *Perkiraan akhir bulan* dari transaksi berulang yang belum tercatat (gaji, kos, isi saldo rutin, dll.); ketuk untuk melihat jadwalnya. Kalau ada akun yang diperkirakan minus sebelum akhir bulan, muncul peringatan di *Perlu perhatian*.
+
+### Diperbaiki
+- **Patungan**: setelah menekan Enter di kolom nama teman, kursor tetap di kolom itu supaya bisa langsung mengetik teman berikutnya. Piutang dari patungan sekarang menampilkan keterangannya (mis. "Patungan: Makan malam").
 
 ## v2.6 (8 Okt 2026)
 
