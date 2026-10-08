@@ -14,7 +14,6 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ### Diubah
 - **Beranda disusun ulang**: yang pertama terlihat adalah *Aman dibelanjakan hari ini*, lalu total saldo dan akun, lalu *Perlu perhatian*.
-- **Ukuran APK jauh lebih kecil** (±35 MB jadi ±17 MB) supaya bisa dikirim lewat WhatsApp. Ukuran setelah dipasang sedikit lebih besar karena library diekstrak di HP.
 - **Isi saldo e-wallet** (mis. "berhasil isi saldo GO-PAY sebesar Rp250.000") tidak lagi dicatat otomatis sebagai pengeluaran. Notifikasinya masuk ke *Dari Notifikasi* sebagai transfer dari rekening bank ke e-wallet untuk dicek dulu.
 
 ### Diperbaiki

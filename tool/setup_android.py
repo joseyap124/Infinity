@@ -106,17 +106,6 @@ if "INFINITY_KEYSTORE" not in g:
         fail("blok buildTypes tidak ditemukan")
     info("signing pakai INFINITY_KEYSTORE kalau ada")
 
-# --- library native (.so) dikompres di dalam APK: ukuran APK ~35 MB -> ~17 MB
-# (bisa dikirim lewat WhatsApp). Saat dipasang, library diekstrak ke HP.
-if "useLegacyPackaging" not in g:
-    if kts:
-        pk = 'packaging {\n        jniLibs {\n            useLegacyPackaging = true\n        }\n    }\n\n    buildTypes {'
-    else:
-        pk = 'packaging {\n        jniLibs {\n            useLegacyPackaging true\n        }\n    }\n\n    buildTypes {'
-    g, n = re.subn(r"buildTypes\s*\{", pk, g, count=1)
-    if n == 0:
-        fail("blok buildTypes tidak ditemukan (packaging)")
-    info("library native dikompres (useLegacyPackaging)")
 
 # --- dependencies
 if "desugar_jdk_libs" not in g:
