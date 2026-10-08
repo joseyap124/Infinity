@@ -1175,7 +1175,7 @@ class AppStore extends ChangeNotifier {
   /// Rekening sumber isi saldo: akun default kalau rekening bank, kalau
   /// tidak, rekening bank pertama, kalau tidak ada, akun lain mana saja.
   String topUpSource(String target) {
-    final def = accountById(defaultAccountId ?? '');
+    final def = accountById(defaultAccountId);
     if (def != null && def.id != target && def.type == AccountType.bank) {
       return def.id;
     }

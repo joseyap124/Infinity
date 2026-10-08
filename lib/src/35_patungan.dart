@@ -177,7 +177,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
   @override
   void initState() {
     super.initState();
-    _payer = store.accountById(store.defaultAccountId ?? '')?.id ??
+    _payer = store.accountById(store.defaultAccountId)?.id ??
         store.accounts.firstWhere((a) => a.id != kTalanganId,
             orElse: () => store.accounts.first).id;
     final cats = _expenseCats();
@@ -328,7 +328,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
-            value: _payer,
+            initialValue: _payer,
             isExpanded: true,
             decoration: fieldDeco('Dibayar dari',
                 icon: Icons.account_balance_wallet_rounded),
@@ -341,7 +341,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
           const SizedBox(height: 10),
           if (cats.isNotEmpty)
             DropdownButtonFormField<String>(
-              value: _category,
+              initialValue: _category,
               isExpanded: true,
               decoration:
                   fieldDeco('Kategori bagianmu', icon: Icons.category_rounded),

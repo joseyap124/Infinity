@@ -731,4 +731,42 @@ void main() {
       expect(s.balanceOf('bca'), closeTo(before + 1000, 0.001));
     });
   });
+
+  group('Kalender & rekap tahunan', () {
+    test('tanggal 31, 29 Februari, dan pergantian tahun', () {
+      final jan31 = DateTime(2027, 1, 31, 9);
+      expect(occurrence(jan31, Frequency.monthly, 1), DateTime(2027, 2, 28, 9));
+      expect(occurrence(jan31, Frequency.monthly, 2), DateTime(2027, 3, 31, 9));
+      expect(occurrence(DateTime(2028, 1, 31), Frequency.monthly, 1), DateTime(2028, 2, 29));
+      final feb29 = DateTime(2028, 2, 29);
+      expect(occurrence(feb29, Frequency.yearly, 1), DateTime(2029, 2, 28));
+      expect(occurrence(feb29, Frequency.yearly, 4), DateTime(2032, 2, 29));
+      expect(occurrence(DateTime(2026, 12, 15), Frequency.monthly, 1), DateTime(2027, 1, 15));
+      expect(occurrence(DateTime(2026, 12, 29), Frequency.weekly, 1), DateTime(2027, 1, 5));
+      expect(occurrence(DateTime(2026, 12, 31), Frequency.daily, 1), DateTime(2027, 1, 1));
+    });
+
+    test('rekap tahun: total, bulan paling boros, kekayaan awal-akhir', () {
+      final s = storeWith([acc('a', initial: 1000000)], [
+        tx('0', TxType.income, 500000, 'a', date: DateTime(2025, 12, 31, 23)),
+        tx('1', TxType.income, 3000000, 'a', cat: 'gaji', date: DateTime(2026, 1, 25)),
+        tx('2', TxType.expense, 400000, 'a', cat: 'makan', title: 'Makan', date: DateTime(2026, 2, 3)),
+        tx('3', TxType.expense, 900000, 'a', cat: 'makan', title: 'makan', date: DateTime(2026, 3, 3)),
+        tx('4', TxType.expense, 100000, 'a', cat: 'kopi', title: 'Kopi', date: DateTime(2026, 3, 9)),
+        tx('5', TxType.expense, 50000, 'a', cat: 'kopi', title: 'Kopi', date: DateTime(2027, 1, 1, 0, 1)),
+      ]);
+      final r = s.yearRecap(2026, DateTime(2026, 12, 31, 12));
+      expect(r.income, 3000000);
+      expect(r.expense, 1400000);
+      expect(r.txCount, 4);
+      expect(r.monthlyExpense[2], 1000000); // Maret paling boros
+      expect(r.biggest!.id, '3');
+      expect(r.topTitles.first.key, 'Makan');
+      expect(r.topTitles.first.value, 1300000);
+      expect(r.netWorthStart, 1500000);
+      expect(r.netWorthEnd, 1500000 + 3000000 - 1400000);
+      expect(r.days, 365);
+      expect(s.recapYears(DateTime(2026, 10, 8)), [2027, 2026, 2025]);
+    });
+  });
 }

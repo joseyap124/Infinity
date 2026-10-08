@@ -268,6 +268,33 @@ class _StatsTabState extends State<StatsTab> {
           NetWorthCard(store: store),
           const SizedBox(height: 12),
           AppCard(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => YearRecapPage(store: store))),
+            child: Row(
+              children: [
+                CatIcon(
+                    icon: Icons.auto_graph_rounded,
+                    color: C.accentDark,
+                    size: 38),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Rekap tahun ${DateTime.now().year}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 15)),
+                      Text('Total setahun, bulan paling boros, kategori terbesar',
+                          style: TextStyle(fontSize: 12, color: C.muted)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: C.muted),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -319,7 +346,7 @@ class _StatsTabState extends State<StatsTab> {
       borderRadius: BorderRadius.circular(16),
       onTap: hasChildren
           ? () => showSheet<void>(context,
-              _SubCategorySheet(store: store, top: cat!, type: _type, range: r))
+              _SubCategorySheet(store: store, top: cat, type: _type, range: r))
           : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),

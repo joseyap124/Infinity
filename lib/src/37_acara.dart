@@ -347,8 +347,7 @@ class EventDetailPage extends StatelessWidget {
             onPressed: () => openTxForm(context, store,
                 prefill: TxDraft(
                     type: TxType.expense,
-                    accountId: store.defaultAccountId ??
-                        store.accounts.first.id,
+                    accountId: store.defaultAccountId,
                     eventId: e.id)),
             backgroundColor: C.accentDark,
             foregroundColor: Colors.white,
