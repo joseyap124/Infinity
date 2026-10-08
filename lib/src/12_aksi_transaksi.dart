@@ -325,13 +325,23 @@ Future<void> openRecurringForm(BuildContext context, AppStore store,
           : 'Transaksi berulang tersimpan 🔁');
 }
 
-Future<void> openTemplateForm(BuildContext context, AppStore store) async {
+/// Template baru, atau edit template [existing] tanpa membuat yang baru.
+Future<void> openTemplateForm(BuildContext context, AppStore store,
+    {TxTemplate? existing}) async {
   final r = await showTxForm(context, store,
-      draft: TxDraft(type: TxType.expense, accountId: store.defaultAccountId),
-      mode: FormMode.template);
+      draft: existing != null
+          ? TxDraft.fromTemplate(existing)
+          : TxDraft(type: TxType.expense, accountId: store.defaultAccountId),
+      mode: FormMode.template,
+      isEditing: existing != null);
   if (r == null || !context.mounted) return;
-  store.addTemplate(r.draft.toTemplate(store.newId()));
-  snack(context, 'Template tersimpan ⚡');
+  if (existing != null) {
+    store.updateTemplate(r.draft.toTemplate(existing.id));
+    snack(context, 'Template diperbarui ⚡');
+  } else {
+    store.addTemplate(r.draft.toTemplate(store.newId()));
+    snack(context, 'Template tersimpan ⚡');
+  }
 }
 
 /// Baris transaksi gaya Gojek + swipe kiri untuk hapus.

@@ -416,7 +416,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       case FormMode.recurring:
         return widget.isEditing ? 'Edit Transaksi Berulang' : 'Transaksi Berulang';
       case FormMode.template:
-        return 'Template Baru';
+        return widget.isEditing ? 'Edit Template' : 'Template Baru';
     }
   }
 

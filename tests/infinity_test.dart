@@ -457,4 +457,16 @@ void main() {
       expect(AppSettings.fromJson(s.toJson()).splashSeen, isTrue);
     });
   });
+
+  group('Template', () {
+    test('edit template tidak membuat template baru', () {
+      final s = storeWith([acc('a')]);
+      s.addTemplate(const TxTemplate(id: 't1', title: 'Kopi pagi', amount: 24000, type: TxType.expense, accountId: 'a'));
+      s.addTemplate(const TxTemplate(id: 't2', title: 'Ojol', amount: 17000, type: TxType.expense, accountId: 'a'));
+      s.updateTemplate(const TxTemplate(id: 't1', title: 'Kopi susu', amount: 28000, type: TxType.expense, accountId: 'a'));
+      expect(s.templates, hasLength(2));
+      expect(s.templates.first.title, 'Kopi susu');
+      expect(s.templates.first.amount, 28000);
+    });
+  });
 }

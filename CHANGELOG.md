@@ -7,6 +7,7 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ### Diubah
 - **Splash animasi koin cuma sekali**: diputar hanya saat app pertama kali dibuka setelah dipasang. Setelah itu app langsung masuk ke Beranda (atau PIN). Yang sudah memakai versi sebelumnya tidak akan melihatnya lagi.
+- **Template catat cepat bisa diedit**: di Lainnya → Template ada tombol ✏️ untuk mengubah nama, nominal, kategori, dan akun template tanpa harus menghapus lalu membuat baru.
 
 ## v2.0 (8 Okt 2026)
 

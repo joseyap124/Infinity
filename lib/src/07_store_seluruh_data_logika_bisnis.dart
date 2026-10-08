@@ -719,6 +719,17 @@ class AppStore extends ChangeNotifier {
     _commit();
   }
 
+  /// Ganti isi template yang sudah ada (id dan urutannya tetap).
+  void updateTemplate(TxTemplate t) {
+    final i = templates.indexWhere((x) => x.id == t.id);
+    if (i < 0) {
+      templates.add(t);
+    } else {
+      templates[i] = t;
+    }
+    _commit();
+  }
+
   void deleteTemplate(String id) {
     templates.removeWhere((t) => t.id == id);
     _commit();

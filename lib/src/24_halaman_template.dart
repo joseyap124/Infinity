@@ -25,7 +25,7 @@ class TemplatesPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
           children: [
             Text(
-                'Untuk pengeluaran yang sering diulang. Ketuk template untuk langsung mencatat.',
+                'Untuk pengeluaran yang sering diulang. Ketuk template untuk mencatat (nominal, tanggal, dan jam masih bisa diubah sebelum simpan). Ketuk ✏️ untuk mengubah templatenya.',
                 style: TextStyle(color: C.muted, fontSize: 13)),
             const SizedBox(height: 12),
             if (store.templates.isEmpty)
@@ -68,6 +68,12 @@ class TemplatesPage extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.w900,
                                 color: t.type.color)),
+                        IconButton(
+                          tooltip: 'Edit template',
+                          icon: Icon(Icons.edit_outlined, color: C.muted),
+                          onPressed: () =>
+                              openTemplateForm(context, store, existing: t),
+                        ),
                         IconButton(
                           tooltip: 'Hapus template',
                           icon: Icon(Icons.delete_outline_rounded,
