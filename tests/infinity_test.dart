@@ -772,4 +772,69 @@ void main() {
       expect(baru.yearRecap(2026, DateTime(2026, 10, 10, 12)).days, 10);
     });
   });
+
+  group('Rekap & saran bulanan', () {
+    test('7 tingkat menabung', () {
+      expect(savingTier(-0.5).rank, 1);
+      expect(savingTier(-0.05).rank, 2);
+      expect(savingTier(0.05).rank, 3);
+      expect(savingTier(0.15).rank, 4);
+      expect(savingTier(0.25).rank, 5);
+      expect(savingTier(0.40).rank, 6);
+      expect(savingTier(0.60).rank, 7);
+    });
+
+    AppStore scenario({required double income, required double makan}) {
+      final s = storeWith([acc('bca', initial: 5400000)]);
+      s.categories = [
+        TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0),
+        TxCategory(id: 'transport', name: 'Transportasi', type: TxType.expense, icon: 'car', color: 0),
+        TxCategory(id: 'gaji', name: 'Gaji', type: TxType.income, icon: 'salary', color: 0),
+      ];
+      var i = 0;
+      // Juli–September: pemasukan 5,5 jt, makan 1,3 jt, transport 3,2 jt.
+      for (final mo in [7, 8, 9]) {
+        s.transactions.addAll([
+          tx('g${i++}', TxType.income, 5500000, 'bca', cat: 'gaji', date: DateTime(2026, mo, 25)),
+          tx('m${i++}', TxType.expense, 1300000, 'bca', cat: 'makan', title: 'Makan', date: DateTime(2026, mo, 10)),
+          tx('t${i++}', TxType.expense, 3200000, 'bca', cat: 'transport', title: 'Bensin', date: DateTime(2026, mo, 12)),
+        ]);
+      }
+      // Oktober.
+      s.transactions.addAll([
+        tx('g${i++}', TxType.income, income, 'bca', cat: 'gaji', date: DateTime(2026, 10, 25)),
+        tx('m${i++}', TxType.expense, makan, 'bca', cat: 'makan', title: 'Makan', date: DateTime(2026, 10, 10)),
+        tx('t${i++}', TxType.expense, 3200000, 'bca', cat: 'transport', title: 'Bensin', date: DateTime(2026, 10, 12)),
+      ]);
+      return s;
+    }
+
+    test('boros: tekor, kategori naik, belum ada anggaran, dana darurat kurang', () {
+      final s = scenario(income: 5500000, makan: 3000000);
+      final r = s.monthRecap(DateTime(2026, 10), DateTime(2026, 11, 3));
+      expect(r.isCurrent, isFalse);
+      expect(r.expense, 6200000);
+      expect(r.prevMonths, 3);
+      expect(r.avgExpense, 4500000);
+      expect(r.tier!.rank, 1); // tekor 700 rb = -12,7%
+      final titles = r.advice.map((a) => a.title).join(' | ');
+      expect(titles, contains('tekor'));
+      expect(titles, contains('Pengeluaran naik 38%'));
+      expect(titles, contains('Makan naik'));
+      expect(titles, contains('Belum ada anggaran bulanan'));
+      expect(titles, contains('Dana darurat'));
+      expect(r.advice.first.level, AdviceLevel.bad); // yang paling penting di atas
+    });
+
+    test('hemat: dipuji', () {
+      final s = scenario(income: 9000000, makan: 900000);
+      final r = s.monthRecap(DateTime(2026, 10), DateTime(2026, 11, 3));
+      expect(r.tier!.rank, 7); // (9 jt - 4,1 jt) / 9 jt = 54%
+      final titles = r.advice.map((a) => a.title).join(' | ');
+      expect(titles, contains('Juara menabung'));
+      expect(titles, contains('54% pemasukan ditabung'));
+      expect(titles, contains('Makan turun 31%'));
+      expect(r.advice.where((a) => a.isPraise).length, greaterThanOrEqualTo(2));
+    });
+  });
 }

@@ -180,6 +180,10 @@ class _StatsTabState extends State<StatsTab> {
               ],
             ),
           ),
+          if (_mode == BudgetPeriod.monthly) ...[
+            const SizedBox(height: 12),
+            MonthAdviceCard(store: store, month: r.start),
+          ],
           const SizedBox(height: 12),
           AppCard(
             child: Column(

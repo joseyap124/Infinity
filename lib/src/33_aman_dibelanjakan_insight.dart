@@ -40,7 +40,7 @@ class SafeSpend {
       perDay <= 0 ? (spentToday > 0 ? 1 : 0) : (spentToday / perDay).clamp(0.0, 1.0);
 }
 
-enum InsightKind { capture, balance, projection, rates, event, debt, bill, subscription, unusual, goal }
+enum InsightKind { capture, recap, balance, projection, rates, event, debt, bill, subscription, unusual, goal }
 
 /// Saldo di notifikasi bank/e-wallet berbeda dengan hitungan Infinity.
 class BalanceMismatch {
@@ -398,6 +398,30 @@ extension InsightStore on AppStore {
         payload: m,
       ));
     }
+    // Awal bulan: rekap bulan lalu sudah siap.
+    if (now.day <= 7) {
+      final last = DateTime(now.year, now.month - 1);
+      final id = 'recap_${last.year}_${last.month}';
+      if (!hidden(id) &&
+          transactions.any((t) =>
+              t.type != TxType.transfer && inRange(t.date, monthRange(last)))) {
+        final rc = monthRecap(last, now);
+        final tier = rc.tier;
+        final fixes = rc.advice.where((a) => !a.isPraise).length;
+        out.add(Insight(
+          id: id,
+          kind: InsightKind.recap,
+          title:
+              'Rekap ${DateFormat('MMMM', 'id_ID').format(last)} siap ${tier?.emoji ?? '📋'}',
+          body:
+              '${tier == null ? '' : '${tier.label}. '}$fixes hal yang bisa diperbaiki bulan ini.',
+          icon: Icons.fact_check_rounded,
+          color: C.accentDark,
+          action: 'Lihat',
+          payload: last,
+        ));
+      }
+    }
     for (final a in accounts) {
       if (a.type == AccountType.credit || a.id == kTalanganId) continue;
       final items = upcomingForAccount(a.id, now);
@@ -729,6 +753,12 @@ class InsightStrip extends StatelessWidget {
     switch (i.kind) {
       case InsightKind.capture:
         onOpenCaptures();
+      case InsightKind.recap:
+        final m = i.payload;
+        if (m is DateTime) {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => MonthRecapPage(store: store, month: m)));
+        }
       case InsightKind.projection:
         final a = i.payload;
         if (a is Account) openAccountHistory(context, store, a);

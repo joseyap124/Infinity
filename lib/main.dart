@@ -89,6 +89,7 @@ part 'src/38_catatan_error.dart';
 part 'src/39_kesehatan_data.dart';
 part 'src/40_panduan_bantuan.dart';
 part 'src/41_rekap_tahunan.dart';
+part 'src/42_rekap_saran_bulanan.dart';
 // WIDGET-IMPORTS-END
 
 void main() {
