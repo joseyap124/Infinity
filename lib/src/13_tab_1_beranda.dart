@@ -657,7 +657,6 @@ class DashboardTab extends StatelessWidget {
                 _upcomingCard(context, upcoming.take(3).toList()),
                 const SizedBox(height: 12),
               ],
-              const SizedBox(height: 8),
               SectionTitle('Transaksi Terakhir',
                   trailing: TextButton(
                       onPressed: onSeeAll, child: const Text('Lihat semua'))),
@@ -1246,41 +1245,96 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
+  /// Catat Cepat: grid tombol 2 kolom dengan lebar sama (bukan chip yang
+  /// lebarnya ikut panjang teks), maksimal 6; sisanya lewat "Kelola".
   Widget _templatesCard(BuildContext context) {
+    final list = store.templates.take(6).toList();
     return AppCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionTitle('Catat Cepat',
               trailing: TextButton(
                   onPressed: () =>
                       _push(context, TemplatesPage(store: store)),
-                  child: const Text('Kelola'))),
-          const SizedBox(height: 4),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+                  child: Text(store.templates.length > list.length
+                      ? 'Semua (${store.templates.length})'
+                      : 'Kelola'))),
+          const SizedBox(height: 6),
+          LayoutBuilder(builder: (context, box) {
+            const gap = 10.0;
+            final w = (box.maxWidth - gap) / 2;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final t in list)
+                  SizedBox(width: w, child: _templateButton(context, t)),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _templateButton(BuildContext context, TxTemplate t) {
+    final color = t.type == TxType.transfer
+        ? C.blue
+        : (store.categoryById(t.categoryId)?.colorValue ?? t.type.color);
+    final icon = t.type == TxType.transfer
+        ? Icons.swap_horiz_rounded
+        : (store.categoryById(t.categoryId)?.iconData ?? Icons.bolt_rounded);
+    return Material(
+      color: C.bg,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => openTxForm(context, store, template: t),
+        child: Container(
+          height: 60,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: C.line),
+          ),
+          child: Row(
             children: [
-              for (final t in store.templates)
-                ActionChip(
-                  avatar: Icon(
-                      t.type == TxType.transfer
-                          ? Icons.swap_horiz_rounded
-                          : (store.categoryById(t.categoryId)?.iconData ??
-                              Icons.bolt_rounded),
-                      size: 18,
-                      color: t.type.color),
-                  label: Text(
-                      '${t.title} · ${money(t.amount, store.currencyOf(t.accountId))}'),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  side: BorderSide(color: C.line),
-                  backgroundColor: C.bg,
-                  onPressed: () => openTxForm(context, store, template: t),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.14),
+                    shape: BoxShape.circle),
+                child: Icon(icon, size: 19, color: color),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                            color: C.carbon)),
+                    const SizedBox(height: 2),
+                    Text(money(t.amount, store.currencyOf(t.accountId)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: t.type.color)),
+                  ],
                 ),
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

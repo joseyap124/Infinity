@@ -3,6 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya
+
+### Diubah
+- **Catat Cepat di Beranda lebih rapi**: template tampil sebagai tombol 2 kolom dengan lebar sama (ikon, nama, nominal), bukan lagi chip yang lebarnya mengikuti panjang teks sehingga sisi kanannya bolong. Maksimal 6 tombol; sisanya lewat *Semua*.
+- Jarak antar bagian di bawah Beranda diseragamkan.
+
 ## v2.3 (8 Okt 2026)
 
 ### Ditambah
