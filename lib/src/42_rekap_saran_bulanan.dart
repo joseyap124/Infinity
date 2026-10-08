@@ -110,7 +110,6 @@ extension MonthRecapStore on AppStore {
     final frac = elapsed / dim;
     final income = sumIDR(TxType.income, r);
     final expense = sumIDR(TxType.expense, r);
-    final proj = isCurrent && frac > 0 ? expense / frac : expense;
 
     // Rata-rata 3 bulan sebelumnya yang punya data.
     var n = 0;
@@ -131,6 +130,10 @@ extension MonthRecapStore on AppStore {
     }
     final avgInc = n > 0 ? sumInc / n : 0.0;
     final avgExp = n > 0 ? sumExp / n : 0.0;
+    // Bulan berjalan: pengeluaran sejauh ini + bagian sisa bulan menurut
+    // rata-rata. Tidak dikali laju harian, karena satu pengeluaran besar di
+    // awal bulan (sewa, cicilan) akan membuat perkiraan meledak.
+    final proj = isCurrent && n > 0 ? expense + avgExp * (1 - frac) : expense;
     final cats = byTopCategory(TxType.expense, r);
     final top = cats.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
@@ -138,7 +141,7 @@ extension MonthRecapStore on AppStore {
     if (_hasData(r)) {
       _savingAdvice(advice, income, proj, isCurrent);
       _trendAdvice(advice, proj, avgExp, n, isCurrent);
-      _categoryAdvice(advice, cats, prevCat, n, isCurrent ? frac : 1);
+      _categoryAdvice(advice, cats, prevCat, n, 1);
       _smallSpendAdvice(advice, r, expense);
       _budgetAdvice(advice, r, expense, proj, avgExp, n, isCurrent);
       if (isCurrent || !now.isAfter(DateTime(m.year, m.month + 2))) {

@@ -826,6 +826,19 @@ void main() {
       expect(r.advice.first.level, AdviceLevel.bad); // yang paling penting di atas
     });
 
+    test('bulan berjalan: pengeluaran besar di awal bulan tidak meledakkan perkiraan', () {
+      final s = scenario(income: 5500000, makan: 300000);
+      // Hapus transport Oktober (tanggal 12) supaya hanya ada sewa besar tgl 2.
+      s.transactions.removeWhere((t) => t.date.month == 10 && t.title == 'Bensin');
+      s.transactions.add(tx('sewa', TxType.expense, 3000000, 'bca', cat: 'transport', title: 'Sewa', date: DateTime(2026, 10, 2)));
+      final now = DateTime(2026, 10, 8, 12);
+      final r = s.monthRecap(DateTime(2026, 10), now);
+      expect(r.isCurrent, isTrue);
+      // Perkiraan = 3,3 jt sejauh ini + 4,5 jt x (23/31), bukan 3,3 jt / (8/31).
+      expect(r.projectedExpense, closeTo(3300000 + 4500000 * (23 / 31), 1));
+      expect(r.projectedExpense, lessThan(7000000));
+    });
+
     test('hemat: dipuji', () {
       final s = scenario(income: 9000000, makan: 900000);
       final r = s.monthRecap(DateTime(2026, 10), DateTime(2026, 11, 3));
