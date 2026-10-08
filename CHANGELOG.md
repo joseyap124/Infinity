@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.1)
+## v3.1 (8 Okt 2026)
 
 Perbaikan kecil setelah v3.0. Data lama aman, cukup pasang di atas versi sebelumnya.
 
