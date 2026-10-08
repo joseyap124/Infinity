@@ -3,7 +3,23 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v1.7.1)
+## Berikutnya (v2.0)
+
+### Ditambah
+- **Aman dibelanjakan hari ini**: angka utama di Beranda. Kalau anggaran diatur, sisa anggaran dibagi sisa hari periode. Kalau belum, dihitung dari saldo e-wallet, tunai, dan bank, ditambah pemasukan berulang, dikurangi tagihan kartu kredit, utang yang jatuh tempo, setoran target tabungan, serta tagihan dan langganan berulang sampai akhir bulan. Ketuk kartunya untuk melihat rinciannya.
+- **Perlu perhatian**: deretan kartu di Beranda untuk hal yang butuh tindakan, yaitu utang/piutang dan tagihan berulang yang jatuh tempo ≤3 hari, tagihan kartu kredit, target tabungan yang tenggatnya dekat, dan pengeluaran yang sedang tidak biasa. Kartu bisa ditutup (muncul lagi besok kalau masih relevan).
+- **Deteksi langganan**: pengeluaran dengan catatan sama yang muncul 3 bulan berturut dengan nominal mirip (mis. Netflix) ditawarkan untuk dijadikan transaksi berulang. Bisa ditolak dan tidak akan ditawarkan lagi.
+- **Pengeluaran tidak biasa**: kategori yang 7 hari terakhir lebih dari 2× rata-rata mingguan 2 bulan sebelumnya (dan selisihnya minimal Rp50.000) ditandai.
+- **Cocokkan saldo dari notifikasi**: notifikasi yang menyebut saldo (mis. GoPay "Saldomu sekarang: Rp612.500", "Sisa saldo Rp…") disimpan. Kalau saldo di Infinity pada jam itu berbeda, muncul kartu dengan tombol *Samakan*. Penyesuaiannya dicatat pada jam notifikasi, jadi transaksi sesudahnya tetap benar.
+
+### Diubah
+- **Beranda disusun ulang**: yang pertama terlihat adalah *Aman dibelanjakan hari ini*, lalu total saldo dan akun, lalu *Perlu perhatian*.
+- **Isi saldo e-wallet** (mis. "berhasil isi saldo GO-PAY sebesar Rp250.000") tidak lagi dicatat otomatis sebagai pengeluaran. Notifikasinya masuk ke *Dari Notifikasi* sebagai transfer dari rekening bank ke e-wallet untuk dicek dulu.
+
+### Diperbaiki
+- **Nominal salah dari notifikasi yang menyebut saldo**: angka saldo akhir (mis. "Saldomu sekarang: Rp612.500") tidak lagi terbaca sebagai nominal transaksi. Angka setelah "sebesar" sekarang didahulukan.
+
+## v1.7.1 (8 Okt 2026)
 
 ### Diperbaiki
 - **Izin internet dibuang lagi**: library baca struk (Google ML Kit) diam-diam menambah izin INTERNET untuk mengirim log pemakaian ke Google. Izin itu sekarang dibuang, jadi Infinity kembali 100% offline. Baca struk tetap jalan karena modelnya ada di dalam app. Setiap build sekarang dicek otomatis dan gagal kalau izin INTERNET muncul lagi.

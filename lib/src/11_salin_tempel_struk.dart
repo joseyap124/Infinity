@@ -22,14 +22,31 @@ String txShareText(AppStore store, Transaction t) {
 }
 
 class ParsedReceipt {
-  const ParsedReceipt(
-      {this.amount, this.type, this.accountId, this.title, this.categoryId});
+  const ParsedReceipt({
+    this.amount,
+    this.type,
+    this.accountId,
+    this.title,
+    this.categoryId,
+    this.balanceAfter,
+    this.isTopUp = false,
+  });
   final double? amount;
   final TxType? type;
   final String? accountId;
   final String? title;
   final String? categoryId;
+
+  /// Saldo yang disebut notifikasi ("Saldomu sekarang: Rp612.500").
+  final double? balanceAfter;
+
+  /// Isi saldo / top up e-wallet: uangnya pindah dari rekening lain.
+  final bool isTopUp;
 }
+
+final RegExp _saldoRe = RegExp(
+    r'(?:sisa\s+saldo|saldo(?:mu|\s+anda|\s+akhir|\s+tersedia|\s+tersisa)?(?:\s+(?:sekarang|saat ini|kini))?)\s*(?:adalah|jadi|menjadi)?\s*[:\-]?\s*(?:rp\.?|idr)\s*([0-9][0-9.,]*)',
+    caseSensitive: false);
 
 /// Angka gaya Indonesia: "1.250.000", "1.250.000,00", "25000", "25,000".
 double? _parseIdNumber(String raw) {
@@ -106,27 +123,48 @@ ParsedReceipt parseReceipt(String text, AppStore store) {
 
   // Nominal: utamakan angka setelah kata "total", kalau tidak ada ambil
   // nominal Rp terbesar.
+  // Angka saldo akhir dicatat terpisah dan tidak boleh dianggap nominal.
+  double? balanceAfter;
+  final saldoSpans = <(int, int)>[];
+  for (final m in _saldoRe.allMatches(text)) {
+    balanceAfter = _parseIdNumber(m.group(1)!);
+    saldoSpans.add((m.start, m.end));
+  }
+  bool inSaldo(int pos) => saldoSpans.any((sp) => pos >= sp.$1 && pos < sp.$2);
+
   double? amount;
-  final tm = RegExp(r'\btotal[^0-9\n]{0,25}?(?:rp\.?|idr)?\s*([0-9][0-9.,]*)',
+  // 1) "sebesar Rp..." paling jelas menunjukkan nominal transaksi.
+  final sb = RegExp(r'sebesar\s*(?:rp\.?|idr)?\s*([0-9][0-9.,]*)',
           caseSensitive: false)
       .firstMatch(text);
-  if (tm != null) amount = _parseIdNumber(tm.group(1)!);
+  if (sb != null && !inSaldo(sb.start)) amount = _parseIdNumber(sb.group(1)!);
+  // 2) "total ...".
+  if (amount == null || amount <= 0) {
+    final tm = RegExp(r'\btotal[^0-9\n]{0,25}?(?:rp\.?|idr)?\s*([0-9][0-9.,]*)',
+            caseSensitive: false)
+        .firstMatch(text);
+    if (tm != null && !inSaldo(tm.start)) amount = _parseIdNumber(tm.group(1)!);
+  }
+  // 3) Nominal Rp terbesar selain angka saldo.
   if (amount == null || amount <= 0) {
     amount = null;
     for (final m in RegExp(r'(?:rp\.?|idr)\s*([0-9][0-9.,]*)',
             caseSensitive: false)
         .allMatches(text)) {
+      if (inSaldo(m.start)) continue;
       final v = _parseIdNumber(m.group(1)!);
       if (v != null && v > 0 && (amount == null || v > amount)) amount = v;
     }
   }
+  final isTopUp = RegExp(r'isi saldo|top ?-?up', caseSensitive: false).hasMatch(text);
 
   const incomeWords = [
     'diterima', 'dana masuk', 'transfer masuk', 'uang masuk', 'refund',
     'cashback', 'pengembalian', 'gaji',
   ];
-  final type =
-      incomeWords.any(lower.contains) ? TxType.income : TxType.expense;
+  final type = isTopUp
+      ? TxType.transfer
+      : (incomeWords.any(lower.contains) ? TxType.income : TxType.expense);
 
   String? accountId;
   for (final a in store.accounts) {
@@ -170,5 +208,7 @@ ParsedReceipt parseReceipt(String text, AppStore store) {
       type: type,
       accountId: accountId,
       title: title,
-      categoryId: categoryId);
+      categoryId: categoryId,
+      balanceAfter: balanceAfter,
+      isTopUp: isTopUp);
 }

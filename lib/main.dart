@@ -78,6 +78,7 @@ part 'src/29_halaman_backup_pulihkan.dart';
 part 'src/30_import_dari_money_manager.dart';
 part 'src/31_utang_piutang_target_tabungan.dart';
 part 'src/32_ekspor_excel_ringkasan_bulanan.dart';
+part 'src/33_aman_dibelanjakan_insight.dart';
 // WIDGET-IMPORTS-END
 
 Future<void> main() async {

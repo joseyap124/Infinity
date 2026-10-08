@@ -321,4 +321,131 @@ void main() {
       await expectLater(SecureBackup.decrypt(enc, 'salah123'), throwsFormatException);
     });
   });
+
+  group('Notifikasi GoPay & cocokkan saldo', () {
+    const topUp = 'Kamu berhasil isi saldo GO-PAY sebesar Rp250.000. Saldomu sekarang: Rp612.500.';
+    AppStore setup({double gopay = 362500}) {
+      final s = storeWith([
+        acc('bca', initial: 2000000),
+        acc('gopay', initial: gopay, type: AccountType.ewallet),
+      ]);
+      s.categories = [
+        TxCategory(id: 'lain', name: 'Lain lain', type: TxType.expense, icon: 'other', color: 0),
+      ];
+      s.settings.captureMode = 'auto';
+      return s;
+    }
+
+    Map<String, dynamic> n(String text, DateTime at) => {
+          'pkg': 'com.gojek.app',
+          'title': 'GoPay',
+          'text': text,
+          'time': at.millisecondsSinceEpoch,
+        };
+
+    test('nominal bukan angka saldo, isi saldo = transfer', () {
+      final p = parseReceipt(topUp, setup());
+      expect(p.amount, 250000);
+      expect(p.balanceAfter, 612500);
+      expect(p.isTopUp, isTrue);
+      expect(p.type, TxType.transfer);
+    });
+
+    test('pembayaran dengan sisa saldo', () {
+      final p = parseReceipt(
+          'Pembayaran ke Kopi Kenangan Rp25.000 berhasil. Sisa saldo Rp150.000', setup());
+      expect(p.amount, 25000);
+      expect(p.balanceAfter, 150000);
+      expect(p.isTopUp, isFalse);
+    });
+
+    test('promo diabaikan', () {
+      final s = setup();
+      s.ingestCaptured([n('Diskon Rp 5.000 di Kedai Boboko. Nikmati potongan harga senilai Rp 5.000', DateTime.now())]);
+      expect(s.pendingCaptures, isEmpty);
+      expect(s.transactions, isEmpty);
+    });
+
+    test('isi saldo masuk antrean sebagai transfer bank → GoPay', () {
+      final s = setup();
+      final at = DateTime.now().subtract(const Duration(minutes: 2));
+      expect(s.ingestCaptured([n(topUp, at)]), 0);
+      expect(s.pendingCaptures, hasLength(1));
+      final d = s.draftFromCapture(s.pendingCaptures.single);
+      expect(d.type, TxType.transfer);
+      expect(d.amount, 250000);
+      expect(d.accountId, 'bca');
+      expect(d.toAccountId, 'gopay');
+      // Selama masih menunggu dicek, belum dianggap selisih.
+      expect(s.balanceMismatches(), isEmpty);
+    });
+
+    test('saldo cocok setelah isi saldo dicatat', () {
+      final s = setup();
+      final at = DateTime.now().subtract(const Duration(minutes: 2));
+      s.ingestCaptured([n(topUp, at)]);
+      final c = s.pendingCaptures.single;
+      s.transactions.add(tx('t', TxType.transfer, 250000, 'bca', to: 'gopay', date: at));
+      s.dismissCapture(c.id);
+      expect(s.balanceMismatches(), isEmpty);
+    });
+
+    test('saldo beda lalu disamakan pada waktu notifikasi', () {
+      final s = setup(gopay: 350000);
+      final at = DateTime.now().subtract(const Duration(hours: 1));
+      s.ingestCaptured([n(topUp, at)]);
+      final c = s.pendingCaptures.single;
+      s.transactions.add(tx('t', TxType.transfer, 250000, 'bca', to: 'gopay', date: at));
+      s.dismissCapture(c.id);
+      // Belanja sesudah notifikasi tidak boleh ikut dibandingkan.
+      s.transactions.add(tx('k', TxType.expense, 20000, 'gopay', date: DateTime.now()));
+      final m = s.balanceMismatches().single;
+      expect(m.diff, 12500);
+      s.reconcileBalance(m);
+      expect(s.balanceMismatches(), isEmpty);
+      expect(s.balanceOf('gopay'), 612500 - 20000);
+    });
+  });
+
+  group('Aman dibelanjakan & insight', () {
+    test('dari saldo: dibagi sisa hari, belanja hari ini terpisah', () {
+      final now = DateTime(2026, 10, 22, 10);
+      final s = storeWith([acc('a', initial: 3100000)], [
+        tx('1', TxType.expense, 100000, 'a', date: DateTime(2026, 10, 22, 8)),
+      ]);
+      final r = s.safeToSpend(now);
+      expect(r.fromBudget, isFalse);
+      expect(r.daysLeft, 10);
+      expect(r.perDay, closeTo(310000, 0.01));
+      expect(r.leftToday, closeTo(210000, 0.01));
+    });
+
+    test('langganan terdeteksi dari 3 bulan berturut', () {
+      final s = storeWith([acc('a', initial: 1000000)], [
+        tx('1', TxType.expense, 54000, 'a', title: 'Netflix', date: DateTime(2026, 7, 5)),
+        tx('2', TxType.expense, 54000, 'a', title: 'Netflix', date: DateTime(2026, 8, 5)),
+        tx('3', TxType.expense, 54000, 'a', title: 'netflix ', date: DateTime(2026, 9, 5)),
+        tx('4', TxType.expense, 30000, 'a', title: 'Bakso', date: DateTime(2026, 9, 6)),
+      ]);
+      final subs = s.detectSubscriptions(DateTime(2026, 10, 10));
+      expect(subs, hasLength(1));
+      expect(subs.single.amount, 54000);
+      expect(subs.single.day, 5);
+      s.dismissSubscription('Netflix');
+      expect(s.detectSubscriptions(DateTime(2026, 10, 10)), isEmpty);
+    });
+
+    test('pengeluaran tidak biasa: 7 hari > 2x rata-rata', () {
+      final now = DateTime(2026, 10, 22, 12);
+      final s = storeWith([acc('a', initial: 5000000)], [
+        for (var w = 1; w <= 8; w++)
+          tx('h$w', TxType.expense, 50000, 'a', cat: 'makan', date: now.subtract(Duration(days: 7 * w + 1))),
+        tx('n', TxType.expense, 200000, 'a', cat: 'makan', date: now.subtract(const Duration(days: 1))),
+      ]);
+      s.categories = [TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0)];
+      final u = s.unusualSpending(now);
+      expect(u.single.$1, 'makan');
+      expect(u.single.$2, 200000);
+    });
+  });
 }

@@ -625,6 +625,8 @@ class DashboardTab extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+              InsightStrip(store: store, onOpenCaptures: () {}),
+              const SizedBox(height: 12),
               if (store.pendingCaptures.isNotEmpty) ...[
                 _capturesCard(context),
                 const SizedBox(height: 12),
@@ -753,41 +755,42 @@ class DashboardTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: C.blue.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text('Total Saldo Bersih',
-                          style: TextStyle(
-                              color: C.blueDark,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800)),
+                SafeSpendCard(store: store),
+                const SizedBox(height: 6),
+                Divider(height: 1, color: C.line),
+                InkWell(
+                  onTap: () => _push(context, AccountsPage(store: store)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Text('Total saldo',
+                            style: TextStyle(fontSize: 12.5, color: C.muted)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              hide ? 'Rp ••••••••' : money(total),
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: total < 0 ? C.redDark : C.carbon),
+                            ),
+                          ),
+                        ),
+                        Text('Kelola akun',
+                            style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: C.accentDark)),
+                        Icon(Icons.chevron_right_rounded,
+                            size: 18, color: C.accentDark),
+                      ],
                     ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () =>
-                          _push(context, AccountsPage(store: store)),
-                      child: const Text('Kelola akun'),
-                    ),
-                  ],
-                ),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    hide ? 'Rp ••••••••' : money(total),
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: total < 0 ? C.redDark : C.carbon),
                   ),
                 ),
-                const SizedBox(height: 8),
                 SizedBox(
                   height: 54,
                   child: ListView.separated(

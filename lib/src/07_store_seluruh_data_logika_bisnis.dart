@@ -1046,16 +1046,57 @@ class AppStore extends ChangeNotifier {
   TxDraft draftFromCapture(CapturedNotif c) {
     final p = parseReceipt(c.fullText, this);
     final type = p.type ?? TxType.expense;
+    final target =
+        p.accountId ?? accountForPackage(c.pkg) ?? accounts.first.id;
+    if (p.isTopUp) {
+      // Isi saldo e-wallet: uang pindah dari rekening ke e-wallet.
+      return TxDraft(
+        type: TxType.transfer,
+        title: p.title ?? 'Isi saldo ${appLabelForPackage(c.pkg)}',
+        amount: p.amount ?? 0,
+        accountId: topUpSource(target),
+        toAccountId: target,
+        date: c.time,
+        note: 'Dari notifikasi ${appLabelForPackage(c.pkg)}',
+      );
+    }
     return TxDraft(
       type: type,
       title: p.title ?? '',
       amount: p.amount ?? 0,
       categoryId: p.categoryId ?? fallbackCategory(type),
-      accountId:
-          p.accountId ?? accountForPackage(c.pkg) ?? accounts.first.id,
+      accountId: target,
       date: c.time,
       note: 'Dari notifikasi ${appLabelForPackage(c.pkg)}',
     );
+  }
+
+  /// Rekening sumber isi saldo: akun default kalau rekening bank, kalau
+  /// tidak, rekening bank pertama, kalau tidak ada, akun lain mana saja.
+  String topUpSource(String target) {
+    final def = accountById(defaultAccountId ?? '');
+    if (def != null && def.id != target && def.type == AccountType.bank) {
+      return def.id;
+    }
+    for (final a in accounts) {
+      if (a.id != target && a.type == AccountType.bank) return a.id;
+    }
+    for (final a in accounts) {
+      if (a.id != target) return a.id;
+    }
+    return target;
+  }
+
+  /// Simpan saldo yang disebut notifikasi kalau lebih baru dari yang ada.
+  void _rememberReportedBalance(String accountId, double amount, DateTime at) {
+    final prev = settings.reportedBalance[accountId];
+    final prevAt =
+        prev == null ? null : DateTime.tryParse(prev.split('|').last);
+    if (prevAt != null && !at.isAfter(prevAt)) return;
+    settings.reportedBalance = {
+      ...settings.reportedBalance,
+      accountId: '${amount.toStringAsFixed(2)}|${at.toIso8601String()}',
+    };
   }
 
   /// Memproses notifikasi uang dari native. Mode "auto" langsung mencatat
@@ -1084,10 +1125,13 @@ class AppStore extends ChangeNotifier {
       final c = CapturedNotif(
           id: newId(), pkg: pkg, title: title, text: text, time: time);
       final p = parseReceipt(c.fullText, this);
+      final accountId = p.accountId ?? accountForPackage(pkg);
+      if (accountId != null && p.balanceAfter != null) {
+        _rememberReportedBalance(accountId, p.balanceAfter!, time);
+      }
       final amount = p.amount;
       if (amount == null) continue;
       final type = p.type ?? TxType.expense;
-      final accountId = p.accountId ?? accountForPackage(pkg);
       final categoryId = p.categoryId ?? fallbackCategory(type);
       final looksDuplicate = accountId != null &&
           transactions.any((t) =>
@@ -1103,7 +1147,8 @@ class AppStore extends ChangeNotifier {
           accountId != null &&
           categoryId != null &&
           !looksDuplicate &&
-          !beforeManualBalance) {
+          !beforeManualBalance &&
+          !p.isTopUp) {
         transactions.add(Transaction(
           id: 'ntf_${time.millisecondsSinceEpoch}_${newId()}',
           title: p.title ?? 'Transaksi ${appLabelForPackage(pkg)}',

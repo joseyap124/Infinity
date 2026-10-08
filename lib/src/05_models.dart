@@ -395,6 +395,16 @@ class AppSettings {
   /// karena saldo yang diketik user sudah termasuk transaksi itu.
   Map<String, String> balanceSetAt = {};
 
+  /// Langganan terdeteksi yang ditolak user (kunci judul).
+  List<String> dismissedSubs = [];
+
+  /// Insight yang ditutup hari ini (id -> yyyy-MM-dd).
+  Map<String, String> dismissedInsights = {};
+
+  /// Saldo terakhir yang disebut notifikasi bank/e-wallet
+  /// (id akun -> "nominal|waktu ISO"), untuk mencocokkan saldo.
+  Map<String, String> reportedBalance = {};
+
   /// Backup JSON otomatis ke Download/Infinity tiap 7 hari.
   bool autoBackup = true;
   DateTime? lastAutoBackup;
@@ -439,6 +449,9 @@ class AppSettings {
         'accentIndex': accentIndex,
         'defaultAccountId': defaultAccountId,
         'balanceSetAt': balanceSetAt,
+        'dismissedSubs': dismissedSubs,
+        'dismissedInsights': dismissedInsights,
+        'reportedBalance': reportedBalance,
         'autoBackup': autoBackup,
         'lastAutoBackup': lastAutoBackup?.toIso8601String(),
         'displayName': displayName,
@@ -486,6 +499,22 @@ class AppSettings {
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
     s.autoBackup = j['autoBackup'] != false;
     s.defaultAccountId = _s(j['defaultAccountId']);
+    final ds = j['dismissedSubs'];
+    if (ds is List) s.dismissedSubs = ds.whereType<String>().toList();
+    final di = j['dismissedInsights'];
+    if (di is Map) {
+      s.dismissedInsights = {
+        for (final e in di.entries)
+          if (e.value is String) e.key.toString(): e.value as String
+      };
+    }
+    final rb = j['reportedBalance'];
+    if (rb is Map) {
+      s.reportedBalance = {
+        for (final e in rb.entries)
+          if (e.value is String) e.key.toString(): e.value as String
+      };
+    }
     final bsa = j['balanceSetAt'];
     if (bsa is Map) {
       s.balanceSetAt = {
