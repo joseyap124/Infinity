@@ -139,7 +139,7 @@ extension MonthRecapStore on AppStore {
 
     final advice = <MonthAdvice>[];
     if (_hasData(r)) {
-      _savingAdvice(advice, income, proj, isCurrent);
+      _savingAdvice(advice, income, proj, isCurrent, isCurrent && n > 0);
       _trendAdvice(advice, proj, avgExp, n, isCurrent);
       _categoryAdvice(advice, cats, prevCat, n, 1);
       _smallSpendAdvice(advice, r, expense);
@@ -172,8 +172,8 @@ extension MonthRecapStore on AppStore {
 
   String _catName(String id) => categoryById(id)?.name ?? 'Tanpa kategori';
 
-  void _savingAdvice(
-      List<MonthAdvice> out, double income, double proj, bool isCurrent) {
+  void _savingAdvice(List<MonthAdvice> out, double income, double proj,
+      bool isCurrent, bool projected) {
     if (income <= 0) {
       if (proj > 0 && !isCurrent) {
         out.add(MonthAdvice(AdviceLevel.info, Icons.help_outline_rounded,
@@ -186,7 +186,9 @@ extension MonthRecapStore on AppStore {
     final rate = net / income;
     final t = savingTier(rate);
     final pct = (rate * 100).round();
-    final when = isCurrent ? 'Dengan laju sekarang, akhir bulan' : 'Bulan ini';
+    final when = projected
+        ? 'Perkiraan akhir bulan'
+        : (isCurrent ? 'Sejauh ini' : 'Bulan ini');
     final ideal = niceRound(income * 0.8);
     final cut = niceRound(proj - income * 0.8);
     String body;
@@ -219,7 +221,7 @@ extension MonthRecapStore on AppStore {
         icon,
         rate < 0
             ? '${t.label}: tekor ${money(-net)}'
-            : '${t.label} · ${isCurrent ? 'perkiraan ' : ''}$pct% pemasukan ditabung',
+            : '${t.label} · ${projected ? 'perkiraan ' : (isCurrent ? 'sejauh ini ' : '')}$pct% pemasukan ditabung',
         body));
   }
 
@@ -616,7 +618,9 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                  'Bulan berjalan (hari ke-${r.daysElapsed} dari ${r.daysInMonth}): angka pengeluaran dan saran memakai perkiraan dari laju sejauh ini.',
+                  r.prevMonths > 0
+                      ? 'Bulan berjalan (hari ke-${r.daysElapsed} dari ${r.daysInMonth}): pengeluaran sejauh ini ditambah perkiraan sisa bulan dari rata-rata ${r.prevMonths} bulan sebelumnya.'
+                      : 'Bulan berjalan (hari ke-${r.daysElapsed} dari ${r.daysInMonth}): saran memakai angka sejauh ini. Perbandingan muncul setelah ada data bulan sebelumnya.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ),
@@ -699,7 +703,7 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
                     C.blueDark),
               ],
             ),
-            if (r.isCurrent && r.expense > 0) ...[
+            if (r.isCurrent && r.expense > 0 && r.prevMonths > 0) ...[
               const SizedBox(height: 6),
               Text('Perkiraan pengeluaran akhir bulan: ${m(r.projectedExpense)}',
                   style: TextStyle(fontSize: 12.5, color: C.muted)),
