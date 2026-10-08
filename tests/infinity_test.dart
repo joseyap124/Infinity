@@ -125,6 +125,49 @@ void main() {
     });
   });
 
+  group('Utang & target', () {
+    test('cicilan utang dan lunas', () {
+      final s = storeWith([acc('a')]);
+      final d = Debt(id: 'd', person: 'Budi', theyOwe: true, amount: 500000, date: DateTime(2026, 10, 1));
+      s.upsertDebt(d);
+      s.payDebt(d, 200000);
+      expect(d.remaining, 300000);
+      expect(s.debtTotal(theyOwe: true), 300000);
+      s.payDebt(d, 999999); // tidak boleh lebih dari sisa
+      expect(d.settled, isTrue);
+      expect(d.paid, 500000);
+      expect(s.debtTotal(theyOwe: true), 0);
+    });
+
+    test('lewat tenggat', () {
+      final d = Debt(id: 'd', person: 'X', theyOwe: false, amount: 1, date: DateTime(2026, 1, 1), due: DateTime(2026, 2, 1));
+      expect(d.overdue(DateTime(2026, 2, 2)), isTrue);
+      expect(d.overdue(DateTime(2026, 2, 1, 23)), isFalse);
+    });
+
+    test('target ikut saldo akun atau manual', () {
+      final s = storeWith([acc('tab', initial: 2500000)]);
+      final linked = Goal(id: 'g1', name: 'Darurat', target: 10000000, accountId: 'tab', color: 0);
+      final manual = Goal(id: 'g2', name: 'Liburan', target: 3000000, color: 0, deadline: DateTime(2027, 1, 15));
+      expect(s.goalProgress(linked), 2500000);
+      s.addToGoal(manual, 1000000);
+      s.addToGoal(manual, -5000000); // tidak boleh minus
+      expect(s.goalProgress(manual), 0);
+      s.addToGoal(manual, 1200000);
+      expect(s.goalPerMonth(manual, DateTime(2026, 10, 8)), closeTo(600000, 0.01));
+    });
+
+    test('tersimpan dan terbaca ulang lewat JSON', () {
+      final s = storeWith([acc('a')]);
+      s.debts = [Debt(id: 'd', person: 'Ani', theyOwe: false, amount: 50000, date: DateTime(2026, 10, 1), payments: [DebtPayment(date: DateTime(2026, 10, 2), amount: 10000)])];
+      s.goals = [Goal(id: 'g', name: 'HP baru', target: 4000000, color: 1, saved: 500000)];
+      final s2 = AppStore();
+      s2.importJson(s.exportJson());
+      expect(s2.debts.single.remaining, 40000);
+      expect(s2.goals.single.saved, 500000);
+    });
+  });
+
   group('Teks cepat', () {
     const cases = {
       '25rb kopi': 25000.0,

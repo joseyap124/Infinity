@@ -5,6 +5,10 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ## Berikutnya
 
+### Ditambah
+- **Utang & Piutang** (Lainnya): catat siapa meminjam berapa, tanggal dan tenggat, cicilan pembayaran, lalu tandai lunas. Total piutang dan utang tampil di atas, yang lewat tenggat ditandai merah. Pengingat sehari sebelum dan saat tenggat (bisa dimatikan di Notifikasi). Catatan ini tidak mengubah saldo akun.
+- **Target Tabungan** (Lainnya): mis. "Dana darurat Rp10 juta". Progres bisa ikut saldo akun (mis. akun Tabungan) atau diisi manual dengan *Setor* / *Ambil*. Kalau ada tenggat, ditampilkan berapa yang perlu disisihkan per bulan. Target pertama juga tampil di Beranda.
+
 ## v1.4 (8 Okt 2026)
 
 ### Ditambah
