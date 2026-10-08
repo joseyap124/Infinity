@@ -360,9 +360,16 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     return ListenableBuilder(
       listenable: store,
       builder: (context, _) {
-        if (!store.loaded || !_splashDone) {
-          return AnimatedSplash(
-              onDone: () => setState(() => _splashDone = true));
+        // Data belum terbaca: layar polos senada splash bawaan Android.
+        if (!store.loaded) {
+          return const ColoredBox(color: Color(0xFF16181D));
+        }
+        // Animasi koin hanya saat app pertama kali dibuka.
+        if (!store.settings.splashSeen && !_splashDone) {
+          return AnimatedSplash(onDone: () {
+            setState(() => _splashDone = true);
+            store.updateSettings((s) => s.splashSeen = true);
+          });
         }
         final pin = store.settings.pin;
         if (_locked && pin != null) {

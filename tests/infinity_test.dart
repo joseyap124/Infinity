@@ -448,4 +448,13 @@ void main() {
       expect(u.single.$2, 200000);
     });
   });
+
+  group('Splash', () {
+    test('hanya saat pertama kali dibuka', () {
+      expect(AppSettings().splashSeen, isFalse); // install baru
+      expect(AppSettings.fromJson({}).splashSeen, isTrue); // data versi lama
+      final s = AppSettings()..splashSeen = true;
+      expect(AppSettings.fromJson(s.toJson()).splashSeen, isTrue);
+    });
+  });
 }
