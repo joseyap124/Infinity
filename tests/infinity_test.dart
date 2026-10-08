@@ -767,6 +767,9 @@ void main() {
       expect(r.netWorthEnd, 1500000 + 3000000 - 1400000);
       expect(r.days, 365);
       expect(s.recapYears(DateTime(2026, 10, 8)), [2027, 2026, 2025]);
+      // Mulai pakai di tengah tahun: hari dihitung sejak transaksi pertama.
+      final baru = storeWith([acc('b')], [tx('x', TxType.expense, 30000, 'b', date: DateTime(2026, 10, 1, 9))]);
+      expect(baru.yearRecap(2026, DateTime(2026, 10, 10, 12)).days, 10);
     });
   });
 }

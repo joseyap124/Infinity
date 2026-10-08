@@ -51,6 +51,7 @@ class HomeWidgetBridge {
   }
 
   static Future<Uri?> initialLaunch() async {
+    if (kIsWeb) return null; // widget hanya ada di Android
     try {
       return await HomeWidget.initiallyLaunchedFromHomeWidget();
     } catch (_) {
@@ -59,6 +60,7 @@ class HomeWidgetBridge {
   }
 
   static Stream<Uri?> clicks() {
+    if (kIsWeb) return const Stream<Uri?>.empty();
     try {
       return HomeWidget.widgetClicked;
     } catch (_) {

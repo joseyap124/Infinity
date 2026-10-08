@@ -94,10 +94,19 @@ extension YearRecapStore on AppStore {
       ..sort((a, b) => b.value.compareTo(a.value));
     final tt = titles.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     final endCut = now.isBefore(end) ? now.add(const Duration(seconds: 1)) : end;
+    // Hari dihitung sejak transaksi pertama kalau mulai pakai di tengah tahun,
+    // supaya rata-rata per hari tidak terlalu kecil.
+    var firstDay = start;
+    if (transactions.isNotEmpty) {
+      final first = dayOnly(transactions
+          .map((t) => t.date)
+          .reduce((a, b) => a.isBefore(b) ? a : b));
+      if (first.isAfter(start) && first.isBefore(end)) firstDay = first;
+    }
     final days = math.max(
         1,
         (now.isBefore(end) ? dayOnly(now).add(const Duration(days: 1)) : end)
-            .difference(start)
+            .difference(firstDay)
             .inDays);
     return YearRecap(
       year: year,
@@ -257,7 +266,7 @@ class _YearRecapPageState extends State<YearRecapPage> {
                   const SectionTitle('Ringkasan'),
                   const SizedBox(height: 4),
                   line('Jumlah transaksi', '${r.txCount}'),
-                  line('Rata-rata keluar per hari', m(r.expense / r.days)),
+                  line(r.days < 365 ? 'Rata-rata keluar per hari (${r.days} hari)' : 'Rata-rata keluar per hari', m(r.expense / r.days)),
                   if (maxMonth != null)
                     line('Bulan paling boros',
                         '${monthNames[maxMonth]} · ${m(r.monthlyExpense[maxMonth])}',
@@ -287,7 +296,7 @@ class _YearRecapPageState extends State<YearRecapPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SectionTitle('Pengeluaran per bulan'),
+                  const SectionTitle('Pemasukan & pengeluaran per bulan'),
                   const SizedBox(height: 12),
                   TrendChart(buckets: [
                     for (var i = 0; i < 12; i++)
