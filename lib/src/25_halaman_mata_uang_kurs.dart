@@ -20,10 +20,8 @@ class _CurrencyPageState extends State<CurrencyPage> {
     super.initState();
     for (final c in kCurrencies) {
       if (c == 'IDR') continue;
-      final r = widget.store.rate(c);
-      var s = r.toStringAsFixed(2);
-      if (s.endsWith('.00')) s = s.substring(0, s.length - 3);
-      _ctrls[c] = TextEditingController(text: s);
+      _ctrls[c] = TextEditingController(text: rateToInput(widget.store.rate(c)))
+        ..addListener(() => setState(() {}));
     }
   }
 
@@ -38,7 +36,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
   void _save() {
     final rates = <String, double>{};
     for (final e in _ctrls.entries) {
-      final v = parseAmount(e.value.text, decimals: true);
+      final v = parseRate(e.value.text);
       rates[e.key] = v > 0 ? v : (kDefaultRates[e.key] ?? 1);
     }
     widget.store.setRates(rates);
@@ -49,10 +47,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
   void _fillDefaults() {
     setState(() {
       for (final e in _ctrls.entries) {
-        final r = kDefaultRates[e.key] ?? 1;
-        var s = r.toStringAsFixed(2);
-        if (s.endsWith('.00')) s = s.substring(0, s.length - 3);
-        e.value.text = s;
+        e.value.text = rateToInput(kDefaultRates[e.key] ?? 1);
       }
     });
     snack(context, 'Diisi kurs BI ${DateFormat('d MMM yyyy', 'id_ID').format(kDefaultRatesDate)}. Tekan Simpan Kurs.');
@@ -109,16 +104,30 @@ class _CurrencyPageState extends State<CurrencyPage> {
           for (final e in _ctrls.entries)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: TextField(
-                controller: e.value,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [AmountFormatter(decimals: true)],
-                decoration: fieldDeco(
-                  '1 ${e.key} = ... Rupiah${used.contains(e.key) ? ' (dipakai)' : ''}',
-                  icon: Icons.currency_exchange_rounded,
-                  prefix: 'Rp ',
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: e.value,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [RateFormatter()],
+                    decoration: fieldDeco(
+                      '1 ${e.key} = ... Rupiah${used.contains(e.key) ? ' (dipakai)' : ''}',
+                      icon: Icons.currency_exchange_rounded,
+                      prefix: 'Rp ',
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 14, top: 4),
+                    child: Text(
+                      parseRate(e.value.text) > 0
+                          ? 'Terbaca: 1 ${e.key} = Rp ${rateToInput(parseRate(e.value.text))}'
+                          : 'Kosong: pakai kurs bawaan',
+                      style: TextStyle(fontSize: 11.5, color: C.muted),
+                    ),
+                  ),
+                ],
               ),
             ),
           const SizedBox(height: 8),

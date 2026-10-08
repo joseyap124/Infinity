@@ -850,4 +850,51 @@ void main() {
       expect(r.advice.where((a) => a.isPraise).length, greaterThanOrEqualTo(2));
     });
   });
+
+  group('v3.1', () {
+    test('parseRate gaya Indonesia', () {
+      expect(parseRate('17.910'), 17910);
+      expect(parseRate('17910'), 17910);
+      expect(parseRate('113,28'), 113.28);
+      expect(parseRate('113.28'), 113.28);
+      expect(parseRate('17.910,5'), 17910.5);
+      expect(parseRate('1.234.567'), 1234567);
+      expect(parseRate(''), 0);
+      expect(rateToInput(17910), '17.910');
+      expect(rateToInput(113.28), '113,28');
+      for (final v in kDefaultRates.values) {
+        expect(parseRate(rateToInput(v)), closeTo(v, 0.001));
+      }
+    });
+
+    test('hapus piutang patungan merapikan Talangan', () {
+      final s = storeWith([acc('gopay', initial: 500000, type: AccountType.ewallet), acc('bca', initial: 0)]);
+      s.categories = [TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0)];
+      s.recordSplit(
+        title: 'Makan',
+        payerAccountId: 'gopay',
+        categoryId: 'makan',
+        myShare: 50000,
+        others: const [SplitShare('Andi', 50000), SplitShare('Budi', 50000)],
+        date: DateTime(2026, 10, 8, 19),
+      );
+      expect(s.balanceOf('gopay'), 350000);
+      final andi = s.debts.firstWhere((d) => d.person == 'Andi');
+      final budi = s.debts.firstWhere((d) => d.person == 'Budi');
+      expect(s.splitPayerOf(andi), 'gopay');
+
+      // Andi bayar sebagian, lalu sisanya diputihkan.
+      s.receiveDebt(andi, 20000, toAccountId: 'bca');
+      s.deleteSplitDebt(andi);
+      expect(s.balanceOf(kTalanganId), 50000); // tinggal punya Budi
+      expect(s.debts.length, 1);
+
+      // Budi salah catat: kembali ke GoPay.
+      s.deleteSplitDebt(budi, returnTo: s.splitPayerOf(budi));
+      expect(s.balanceOf(kTalanganId), 0);
+      expect(s.balanceOf('gopay'), 400000);
+      expect(s.debts, isEmpty);
+      expect(s.healthCheck(DateTime(2026, 10, 8)).where((i) => i.title.startsWith('Talangan')), isEmpty);
+    });
+  });
 }

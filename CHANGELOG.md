@@ -3,6 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.1)
+
+Perbaikan kecil setelah v3.0. Data lama aman, cukup pasang di atas versi sebelumnya.
+
+### Diperbaiki
+- **Input kurs**: "17.910" sekarang terbaca 17.910 Rupiah (sebelumnya terbaca 17,91). Kolom kurs memakai format Indonesia: titik untuk ribuan, koma untuk desimal (JPY 113,28). Di bawah tiap kolom ada keterangan "Terbaca: 1 USD = Rp 17.910" supaya bisa dicek sebelum disimpan.
+- **Hapus piutang patungan**: kalau piutangnya belum lunas, Infinity bertanya dulu sisanya diapakan: *tidak dibayar* (sisa jadi pengeluaranmu) atau *salah catat* (sisa dikembalikan ke akun yang dulu membayar). Saldo Talangan Patungan tetap cocok, tidak ada uang "nyangkut".
+- **Halaman Kategori**: item paling bawah tidak lagi tertutup bar navigasi gestur di HP Android 15/16.
+
 ## v3.0 (8 Okt 2026)
 
 Versi matang untuk dipakai lama tanpa update: fokusnya data aman, tahan HP Android baru, dan bisa dirawat tanpa bertanya.

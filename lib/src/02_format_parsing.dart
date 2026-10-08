@@ -117,3 +117,57 @@ class AmountFormatter extends TextInputFormatter {
         selection: TextSelection.collapsed(offset: formatted.length));
   }
 }
+
+/// Teks kurs -> angka, mengikuti kebiasaan Indonesia:
+/// "17.910" = 17910, "113,28" = 113.28, "17.910,5" = 17910.5.
+/// Titik dengan tepat 3 angka di belakangnya dianggap pemisah ribuan;
+/// selain itu titik dianggap desimal ("113.28" = 113.28).
+double parseRate(String text) {
+  var t = text.trim().replaceAll(RegExp(r'[^0-9.,]'), '');
+  if (t.isEmpty) return 0;
+  if (t.contains(',')) {
+    t = t.replaceAll('.', '').replaceAll(',', '.');
+    // Koma ganda: ambil yang terakhir sebagai desimal.
+    final last = t.lastIndexOf('.');
+    t = t.substring(0, last).replaceAll('.', '') + t.substring(last);
+    return double.tryParse(t) ?? 0;
+  }
+  final parts = t.split('.');
+  if (parts.length > 1 &&
+      parts.skip(1).every((p) => p.length == 3) &&
+      parts.first.isNotEmpty) {
+    return double.tryParse(parts.join()) ?? 0;
+  }
+  if (parts.length > 2) {
+    // "1.234.56" dan sejenisnya: titik terakhir desimal.
+    t = parts.sublist(0, parts.length - 1).join() + '.' + parts.last;
+  }
+  return double.tryParse(t) ?? 0;
+}
+
+/// Angka kurs -> teks gaya Indonesia: 17910 -> "17.910", 113.28 -> "113,28".
+String rateToInput(double v) {
+  final f = NumberFormat('#,##0.##', 'id_ID');
+  return f.format(v);
+}
+
+/// Formatter kolom kurs: hanya angka, titik, dan koma; maksimal 2 angka
+/// setelah koma. Pemisah ribuan tidak dipaksa supaya kursor tidak lompat.
+class RateFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final t = newValue.text.replaceAll(RegExp(r'[^0-9.,]'), '');
+    final comma = t.indexOf(',');
+    if (comma >= 0) {
+      final dec = t.substring(comma + 1);
+      if (dec.contains(',') || dec.contains('.') || dec.length > 2) {
+        return oldValue;
+      }
+    }
+    if (t.replaceAll(RegExp(r'[.,]'), '').length > 12) return oldValue;
+    if (t == newValue.text) return newValue;
+    return TextEditingValue(
+        text: t, selection: TextSelection.collapsed(offset: t.length));
+  }
+}

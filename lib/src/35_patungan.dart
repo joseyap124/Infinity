@@ -96,6 +96,58 @@ extension PatunganStore on AppStore {
     return friends.length;
   }
 
+  /// Akun yang dulu membayar talangan untuk piutang patungan [d] (dicari dari
+  /// transfer "Talangan: ..." di waktu yang sama). Null kalau tidak ketemu.
+  String? splitPayerOf(Debt d) {
+    final hold = d.holdAccountId;
+    if (hold == null) return null;
+    for (final t in transactions) {
+      if (t.type == TxType.transfer &&
+          t.toAccountId == hold &&
+          t.date == d.date &&
+          accountById(t.accountId) != null) {
+        return t.accountId;
+      }
+    }
+    return null;
+  }
+
+  /// Hapus piutang patungan yang belum lunas sambil merapikan sisa uang di
+  /// akun Talangan supaya saldonya tetap cocok:
+  /// - [returnTo] null: teman tidak bayar, sisanya jadi pengeluaranmu.
+  /// - [returnTo] diisi: salah catat, sisanya dikembalikan ke akun itu.
+  void deleteSplitDebt(Debt d, {String? returnTo}) {
+    final hold = d.holdAccountId;
+    final left = d.remaining;
+    if (hold != null && accountById(hold) != null && left > 0) {
+      if (returnTo != null && accountById(returnTo) != null && returnTo != hold) {
+        transactions.add(Transaction(
+          id: newId(),
+          title: 'Batal patungan: ${d.person}',
+          amount: left,
+          type: TxType.transfer,
+          accountId: hold,
+          toAccountId: returnTo,
+          date: d.date,
+          note: d.note,
+        ));
+      } else {
+        transactions.add(Transaction(
+          id: newId(),
+          title: 'Patungan tidak dibayar: ${d.person}',
+          amount: left,
+          type: TxType.expense,
+          categoryId: fallbackCategory(TxType.expense),
+          accountId: hold,
+          date: DateTime.now(),
+          note: d.note,
+        ));
+      }
+    }
+    debts.removeWhere((x) => x.id == d.id);
+    _commit();
+  }
+
   /// Terima pembayaran piutang. Kalau piutang dari patungan, uangnya pindah
   /// dari akun Talangan ke [toAccountId].
   void receiveDebt(Debt d, double amount, {String? toAccountId, DateTime? at}) {

@@ -57,7 +57,8 @@ class CategoriesPage extends StatelessWidget {
   Widget _list(BuildContext context, TxType type) {
     final tops = store.topCategories(type);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+      padding: EdgeInsets.fromLTRB(
+          16, 12, 16, 100 + MediaQuery.viewPaddingOf(context).bottom),
       children: [
         for (final c in tops) ...[
           _row(context, c, false),

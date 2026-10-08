@@ -398,6 +398,56 @@ class DebtDetailSheet extends StatelessWidget {
   final AppStore store;
   final Debt debt;
 
+  /// Hapus piutang patungan yang belum lunas: tanya dulu sisanya diapakan,
+  /// supaya saldo akun Talangan tetap cocok.
+  Future<bool> _deleteSplit(BuildContext context) async {
+    final payer = store.splitPayerOf(debt);
+    final payerName = payer == null ? null : store.accountById(payer)?.name;
+    final left = money(debt.remaining);
+    final r = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Hapus piutang patungan?',
+            style: TextStyle(fontWeight: FontWeight.w900)),
+        content: Text(
+            'Sisa $left dari ${debt.person} masih di akun Talangan Patungan. Mau diapakan?'),
+        actionsOverflowDirection: VerticalDirection.down,
+        actionsOverflowButtonSpacing: 4,
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: C.redDark,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20))),
+            onPressed: () => Navigator.pop(ctx, 'expense'),
+            child: const Text('Tidak dibayar, jadi pengeluaranku'),
+          ),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20))),
+            onPressed: () => Navigator.pop(ctx, 'return'),
+            child: Text(payerName == null
+                ? 'Salah catat, kembalikan uangnya'
+                : 'Salah catat, kembalikan ke $payerName'),
+          ),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
+        ],
+      ),
+    );
+    if (r == null || !context.mounted) return false;
+    if (r == 'expense') {
+      store.deleteSplitDebt(debt);
+      return true;
+    }
+    final to = payer ?? await pickReceiveAccount(context, store);
+    if (to == null) return false;
+    store.deleteSplitDebt(debt, returnTo: to);
+    return true;
+  }
+
   /// Piutang patungan: tanya uangnya masuk ke akun mana, lalu pindahkan dari
   /// akun Talangan. Piutang biasa: cukup catat pembayarannya.
   Future<bool> _receive(BuildContext context, double amount) async {
@@ -542,6 +592,11 @@ class DebtDetailSheet extends StatelessWidget {
             ],
             TextButton.icon(
               onPressed: () async {
+                if (debt.holdAccountId != null && !debt.settled) {
+                  final done = await _deleteSplit(context);
+                  if (done && context.mounted) Navigator.pop(context);
+                  return;
+                }
                 final ok = await confirmDialog(context,
                     title: 'Hapus catatan ini?',
                     message:
