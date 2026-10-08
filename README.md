@@ -2,7 +2,7 @@
 
 # Infinity 🐷
 
-Aplikasi catatan keuangan Android yang cara catatnya meniru **Money Manager** (baris Tanggal, Jumlah, Kategori, Akun, panel kategori 3 kolom), dengan tampilan bersih ala **Gojek**, plus fitur yang biasanya tidak ada: **catat otomatis dari notifikasi bank/e-wallet**, **import dari Money Manager**, widget, dan pintasan di panel notifikasi.
+Aplikasi catatan keuangan Android yang cara catatnya meniru **Money Manager** (baris Tanggal, Jumlah, Kategori, Akun, panel kategori 3 kolom), dengan tampilan bersih ala **Gojek**, plus fitur yang biasanya tidak ada: **berapa yang aman dibelanjakan hari ini**, **catat otomatis dari notifikasi bank/e-wallet** (termasuk mencocokkan saldo), **baca foto struk offline**, **import dari Money Manager**, widget, dan pintasan di panel notifikasi.
 
 - **APK Android tanpa izin internet.** Data tidak bisa keluar dari HP, disimpan terenkripsi.
 - Tampilan **Bahasa Indonesia**, **mode gelap**, dan **14 warna utama** (termasuk 6 pastel).
@@ -14,12 +14,12 @@ Aplikasi catatan keuangan Android yang cara catatnya meniru **Money Manager** (b
 
 ## Pasang di Android (APK)
 
-1. Buka halaman **[Releases](../../releases)** repo ini dari HP (login GitHub dulu, karena repo-nya private).
-2. Unduh **`Infinity.apk`** dari rilis paling atas. `Infinity-hp-lama-32bit.apk` hanya untuk HP lama yang gagal memasang versi biasa.
+1. Buka halaman **[Releases](../../releases)** repo ini dari HP.
+2. Unduh **`Infinity-v<versi>.apk`** dari rilis paling atas. `Infinity-v<versi>-hp-lama-32bit.apk` hanya untuk HP lama yang gagal memasang versi biasa.
 3. Buka file itu. Kalau Android bertanya, izinkan **"Instal aplikasi tidak dikenal"** untuk browser/Files. Kalau Play Protect memperingatkan, pilih **Tetap instal** (wajar untuk APK di luar Play Store).
 4. Pertama kali dibuka, izinkan notifikasi supaya pengingat dan pintasan muncul.
 
-Setiap kali `main` diperbarui, GitHub Actions otomatis membangun APK baru dan menerbitkannya di Releases. Nomor versinya naik satu per rilis (v1.1, v1.2, ...), dan tiap rilis mencantumkan apa yang ditambah, diubah, dihapus, dan diperbaiki (sumbernya [CHANGELOG.md](CHANGELOG.md)).
+Setiap kali `main` diperbarui, GitHub Actions otomatis membangun APK baru dan menerbitkannya di Releases. Nomor versinya naik satu per rilis (v1.6, v1.7, ..., v2.0, v2.1, ...), dan tiap rilis mencantumkan apa yang ditambah, diubah, dihapus, dan diperbaiki (sumbernya [CHANGELOG.md](CHANGELOG.md)).
 
 ### Update tanpa kehilangan data
 
@@ -27,16 +27,28 @@ Semua APK ditandatangani dengan **kunci yang sama** (secret `DEBUG_KEYSTORE_BASE
 
 ## Fitur
 
+### Beranda: yang penting langsung terlihat
+- **Aman dibelanjakan hari ini**: angka pertama yang muncul saat app dibuka. Kalau anggaran diatur, sisa anggaran dibagi sisa hari. Kalau belum, dihitung dari saldo e-wallet, tunai, dan bank, dikurangi tagihan kartu kredit, utang jatuh tempo, setoran target tabungan, serta tagihan berulang sampai akhir bulan. Ketuk untuk melihat rinciannya.
+- **Perlu perhatian**: kartu untuk tagihan dan utang yang jatuh tempo ≤3 hari, target tabungan yang tenggatnya dekat, pengeluaran yang sedang tidak biasa (7 hari terakhir > 2× rata-rata mingguan), **langganan yang terdeteksi** (nominal mirip 3 bulan berturut, bisa dijadikan transaksi berulang), dan **saldo yang tidak cocok** dengan notifikasi bank/e-wallet.
+- **Ringkasan bulanan**: pengeluaran bulan ini dibanding bulan lalu pada tanggal yang sama, plus kategori yang naik paling banyak.
+
 ### Catat transaksi (ala Money Manager)
 - Tab **Pemasukan · Pengeluaran · Transfer**, lalu baris **Tanggal, Jumlah, Kategori, Akun, Catatan, Deskripsi**.
 - Selesai mengisi nominal, panel **kategori** langsung terbuka di bawah (dekat jempol, tanpa animasi). Grid 3 kolom; kategori yang punya sub membelah layar: induk di kiri, sub di kanan. Cukup 2 ketukan.
 - **Kalkulator** di kolom Jumlah, **template catat cepat** (mis. "Kopi pagi"), dan **Tempel struk**: salin teks struk/notifikasi, nominal, akun, dan kategorinya ditebak otomatis.
+- **Foto struk**: dari kamera atau galeri. Kalau nominal masih kosong, struknya **dibaca otomatis di HP** (Google ML Kit, tanpa internet) untuk mengisi total, nama toko, dan kategori.
+- **Saran dari ketikan sebelumnya** di Catatan dan Deskripsi (ketik "pot", muncul "Potong rambut").
 - Setelah tersimpan: **edit, duplikat, salin teks transaksi**, atau hapus (geser) dengan tombol Urungkan.
 
 ### Akun & transfer
 - Akun **E-Wallet, Tunai, Rekening Bank, Kartu Kredit** (limit + tanggal jatuh tempo), **Investasi**.
 - **Transfer** antar akun, termasuk beda mata uang (IDR, USD, SGD, MYR, CNY, TWD, EUR, JPY) dengan kurs yang bisa diubah.
-- Saldo dihitung ulang dari saldo awal + semua transaksi, jadi edit/hapus selalu konsisten.
+- Saldo dihitung ulang dari saldo awal + semua transaksi, jadi edit/hapus selalu konsisten. Mengubah saldo manual dicatat sebagai transaksi *Penyesuaian saldo* (seperti "Modified Bal." di Money Manager).
+- Urutan akun bisa diatur, dan ada **akun default** untuk transaksi baru.
+
+### Utang, piutang & target tabungan
+- **Utang & Piutang**: siapa meminjam berapa, tenggat, cicilan, tandai lunas, dengan pengingat.
+- **Target Tabungan**: progres dari saldo akun atau setoran manual, dan berapa yang perlu disisihkan per bulan.
 
 ### Kategori
 Bawaannya kategori Money Manager yang biasa dipakai, misalnya Kebutuhan Pokok 📅 (Makan dan Minum, Transportasi, Bills, Kos, Keperluan Rumah), Kesehatan dan Kebersihan 🏥, Education 🏫, Social Dan Relasi 💑, Hiburan dan Gaya Hidup 🛍️, Investasi 💰, Cicilan & Utang 💳, Darurat / Lain lain 🆘, Admin Bank 🏧, dan sisi pemasukan (Main Income, Gift / Support, Passive Income, Cashback / Refund). Semua bisa ditambah, diubah, dan dihapus, lengkap dengan sub-kategori.
@@ -63,6 +75,8 @@ Nominal di notifikasi disembunyikan secara bawaan.
 Infinity membaca notifikasi yang berisi nominal "Rp" dari GoPay, OVO, DANA, ShopeePay, LinkAja, myBCA/BCA, Jago, BRImo, Livin Mandiri, BNI, SeaBank, blu, dan Flip, lalu:
 - **Langsung catat** kalau akunnya bisa ditebak (beri nama akun yang memuat nama aplikasinya, mis. "GoPay", "BCA").
 - Masuk ke kartu **Dari Notifikasi** di Beranda kalau akunnya tidak jelas atau sepertinya sudah kamu catat manual (nominal dan akun sama dalam 10 menit).
+- **Isi saldo / top up** e-wallet tidak dicatat sebagai pengeluaran, tapi masuk ke *Dari Notifikasi* sebagai transfer dari rekening bank ke e-wallet.
+- **Cocokkan saldo**: kalau notifikasi menyebut saldo ("Saldomu sekarang: Rp…", "Sisa saldo Rp…"), Infinity membandingkannya dengan saldo di app pada jam itu. Kalau beda, muncul kartu dengan tombol *Samakan*.
 - Notifikasi promo diabaikan. Mode: Mati / Tanya dulu / Langsung catat.
 
 Android 13+ memblokir akses notifikasi untuk APK di luar Play Store. Caranya: coba aktifkan sekali, lalu buka **Info aplikasi Infinity → ⋮ → Izinkan setelan terbatas**, dan aktifkan lagi. Panduannya ada di halaman Catat Otomatis.
@@ -86,15 +100,19 @@ Lainnya → **Import dari Money Manager** → pilih file `.xlsx` hasil *Money Ma
 ## Keamanan
 
 - **Tanpa izin INTERNET** di APK: secara teknis app tidak bisa mengirim data ke mana pun.
-- Data disimpan terenkripsi (`flutter_secure_storage`, kunci di Android Keystore). `allowBackup` dimatikan.
+- Data disimpan di file terenkripsi **AES-256-GCM** di folder pribadi app; kuncinya di Android Keystore. `allowBackup` dimatikan.
+- Library baca struk (ML Kit) membawa izin INTERNET untuk log pemakaian Google; izin itu dibuang di manifest, dan CI menolak build yang masih punya izin INTERNET.
 - **PIN** + **sidik jari/wajah**. Diminta saat app dibuka dan saat kembali setelah 30 detik di latar belakang. Salah 5 kali = jeda 30 detik.
 - **Mode layar aman** (opsional): sembunyikan isi app di daftar aplikasi terbaru dan blokir screenshot.
-- Yang tetap perlu dijaga: file backup di folder Download **tidak terenkripsi**, dan file kunci `DEBUG_KEYSTORE_BASE64` jangan dibagikan.
+- Yang tetap perlu dijaga: backup `.json` di folder Download **tidak terenkripsi** (atur kata sandi backup supaya jadi `.infb`), dan file kunci `DEBUG_KEYSTORE_BASE64` jangan dibagikan.
 
 ## Backup & pulihkan
 
 Lainnya → **Backup & Pulihkan**:
-- **Backup otomatis mingguan** ke `Download/Infinity/infinity-backup-<tanggal>.json`. File ini tetap ada walau app di-uninstall. Bisa dimatikan, atau tekan **Backup sekarang**.
+- **Backup otomatis mingguan** ke `Download/Infinity/`. File ini tetap ada walau app di-uninstall. Bisa dimatikan, atau tekan **Backup sekarang**.
+- **Kata sandi backup**: kalau diatur, backup jadi file `.infb` terenkripsi (AES-256) yang ikut menyimpan foto struk. Tanpa kata sandi, backup berupa `.json` biasa.
+- **Pulihkan dari file**: pilih `.infb` atau `.json` langsung dari HP.
+- **Ekspor ke Excel** (bulan ini, tahun ini, atau semua) dengan kolom seperti ekspor Money Manager.
 - **Salin backup**: data sebagai teks JSON ke clipboard (dihapus otomatis dari clipboard setelah 60 detik).
 - **Pulihkan**: tempel isi JSON. PIN dan setelan keamanan tidak ikut ditimpa.
 - **Reset semua data**: harus mengetik `HAPUS` dulu supaya tidak terpencet.
@@ -105,8 +123,9 @@ APK dibangun oleh `.github/workflows/build-apk.yml`:
 
 1. `flutter create` proyek Android baru, pasang paket (`flutter pub add ...`).
 2. `tool/setup_android.py` menyalin `android_overlay/` (Kotlin, manifest, widget, ikon, tema) dan menyetel Gradle (desugaring, minSdk 24, tanda tangan dari `INFINITY_KEYSTORE`).
-3. `flutter analyze`, lalu `flutter build apk --release --split-per-abi`.
-4. APK diterbitkan di Releases. Kalau gagal, log `analyze.txt`/`build.txt` disimpan di branch **`ci-logs`**.
+3. `flutter test` (tes saldo, import, backup, pembacaan notifikasi, dll.), `flutter analyze`, lalu `flutter build apk --release --split-per-abi`.
+4. APK dicek: harus tanpa izin INTERNET.
+5. APK diterbitkan di Releases. Kalau gagal, log `test.txt`/`analyze.txt`/`build.txt` disimpan di branch **`ci-logs`**.
 
 Secret yang dipakai: **`DEBUG_KEYSTORE_BASE64`** (keystore dalam base64, alias `androiddebugkey`, password `android`). Tanpa secret ini APK tetap jadi, tapi tiap build punya tanda tangan berbeda.
 
@@ -114,7 +133,7 @@ Di PC: butuh Flutter 3.38.1+ dan Android SDK. Jalankan langkah yang sama seperti
 
 ## Keputusan desain
 
-- **Satu file `lib/main.dart`.** Spesifikasi awalnya meminta satu file; dipertahankan supaya mudah dibaca dan disalin.
+- **Satu library Dart, dipecah per bagian.** `lib/main.dart` memuat `lib/src/*.dart` sebagai `part`, jadi tetap satu library (bisa saling akses) tapi tiap bagian punya file sendiri.
 - **Tanpa server dan tanpa login bank.** Sinkron bank langsung tidak realistis untuk pemakaian pribadi di Indonesia, jadi yang dipakai adalah pembacaan notifikasi.
 - **Angka di bawah 1.000 tanpa satuan dianggap ribuan** saat membaca teks cepat ("25 nasgor" = Rp25.000), karena nominal Rupiah sekecil itu hampir tidak pernah dipakai.
 - **Transfer-In dari Money Manager dilewati**, karena pasangannya (Transfer-Out) sudah dicatat sebagai satu transfer.
@@ -129,7 +148,9 @@ Di PC: butuh Flutter 3.38.1+ dan Android SDK. Jalankan langkah yang sama seperti
 ## Struktur folder
 
 ```
-lib/main.dart                     seluruh kode Dart (model, penyimpanan, UI, import Money Manager)
+lib/main.dart                     titik masuk; memuat lib/src/*.dart sebagai part
+lib/src/                          kode per bagian (model, penyimpanan, Beranda, form, import, insight, ...)
+tests/                            tes otomatis (dijalankan CI sebelum build)
 android_overlay/app/src/main/
   AndroidManifest.xml             izin, listener notifikasi, widget
   kotlin/.../MainActivity.kt      channel native: layar aman, akses notifikasi, simpan ke Download, pilih file
