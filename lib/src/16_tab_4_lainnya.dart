@@ -252,6 +252,22 @@ class MoreTab extends StatelessWidget {
           const SizedBox(height: 12),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Column(
+              children: [
+                _tile(context,
+                    icon: Icons.bug_report_rounded,
+                    color: Colors.blueGrey,
+                    title: 'Laporan error',
+                    subtitle: ErrorLog.count() == 0
+                        ? 'Tidak ada error tercatat'
+                        : '${ErrorLog.count()} error tercatat',
+                    onTap: () => _push(context, const ErrorLogPage())),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          AppCard(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: _tile(context,
                 icon: Icons.restart_alt_rounded,
                 color: C.redDark,

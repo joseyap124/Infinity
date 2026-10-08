@@ -625,4 +625,16 @@ void main() {
       expect(s.projectedMonthEnd('gopay', now), 400000);
     });
   });
+
+  group('Catatan error', () {
+    test('error dicatat dan bisa dihapus', () {
+      ErrorLog.clear();
+      expect(ErrorLog.count(), 0);
+      ErrorLog.record(StateError('uji'), StackTrace.current, source: 'tes');
+      expect(ErrorLog.count(), 1);
+      expect(ErrorLog.read(), contains('Bad state: uji'));
+      ErrorLog.clear();
+      expect(ErrorLog.count(), 0);
+    });
+  });
 }

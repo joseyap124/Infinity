@@ -84,10 +84,25 @@ part 'src/34_riwayat_akun.dart';
 part 'src/35_patungan.dart';
 part 'src/36_kekayaan_bersih.dart';
 part 'src/37_acara.dart';
+part 'src/38_catatan_error.dart';
 // WIDGET-IMPORTS-END
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('id_ID', null);
-  runApp(const InfinityApp());
+void main() {
+  // Semua error dicatat ke file lokal (Lainnya → Laporan error), supaya bug di
+  // HP keluarga bisa dilacak walau app lama tidak diupdate.
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      ErrorLog.record(details.exception, details.stack, source: 'flutter');
+    };
+    ui.PlatformDispatcher.instance.onError = (error, stack) {
+      ErrorLog.record(error, stack, source: 'platform');
+      return true;
+    };
+    ErrorWidget.builder = friendlyErrorWidget;
+    await ErrorLog.init();
+    await initializeDateFormatting('id_ID', null);
+    runApp(const InfinityApp());
+  }, (error, stack) => ErrorLog.record(error, stack, source: 'zone'));
 }
