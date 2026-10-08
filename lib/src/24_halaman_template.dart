@@ -22,7 +22,7 @@ class TemplatesPage extends StatelessWidget {
       body: ListenableBuilder(
         listenable: store,
         builder: (context, _) => ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+          padding: pagePad(context, 100),
           children: [
             Text(
                 'Untuk pengeluaran yang sering diulang. Ketuk template untuk mencatat (nominal, tanggal, dan jam masih bisa diubah sebelum simpan). Ketuk ⋮ untuk mengubah atau menghapus template.',

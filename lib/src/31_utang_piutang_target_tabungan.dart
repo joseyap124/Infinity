@@ -244,7 +244,7 @@ class _DebtsPageState extends State<DebtsPage> {
             label: const Text('Catat'),
           ),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+            padding: pagePad(context, 100),
             children: [
               Row(
                 children: [
@@ -765,7 +765,7 @@ class GoalsPage extends StatelessWidget {
           label: const Text('Target baru'),
         ),
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+          padding: pagePad(context, 100),
           children: [
             if (store.goals.isEmpty)
               const AppCard(

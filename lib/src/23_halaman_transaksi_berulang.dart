@@ -25,7 +25,7 @@ class RecurringPage extends StatelessWidget {
           final rules = [...store.recurring]
             ..sort((a, b) => a.nextDate.compareTo(b.nextDate));
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+            padding: pagePad(context, 100),
             children: [
               Text(
                   'Gaji, langganan, cicilan, atau kiriman rutin dicatat otomatis setiap kali aplikasi dibuka dan sudah jatuh tempo.',

@@ -66,7 +66,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
     return Scaffold(
       appBar: pageBar('Mata Uang & Kurs'),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+        padding: pagePad(context, 32),
         children: [
           Container(
             padding: const EdgeInsets.all(12),

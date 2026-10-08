@@ -123,6 +123,11 @@ Future<void> confirmResetAll(BuildContext context, AppStore store) async {
   snack(context, 'Semua data dihapus. Mulai dari nol 🌱');
 }
 
+/// Padding isi halaman. Android 15+ menggambar app sampai ke balik tombol
+/// navigasi sistem (edge-to-edge), jadi bawahnya ditambah tinggi bar itu.
+EdgeInsets pagePad(BuildContext context, double bottom) => EdgeInsets.fromLTRB(
+    16, 4, 16, bottom + MediaQuery.viewPaddingOf(context).bottom);
+
 PreferredSizeWidget pageBar(String title, {List<Widget>? actions}) => AppBar(
       title: Text(title,
           style: TextStyle(

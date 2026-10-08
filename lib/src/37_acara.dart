@@ -217,7 +217,7 @@ class EventsPage extends StatelessWidget {
             label: const Text('Acara baru'),
           ),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+            padding: pagePad(context, 100),
             children: [
               Text(
                   'Untuk menjumlah pengeluaran satu acara lintas kategori dan akun, mis. liburan, Lebaran, atau nikahan. Selama acara berlangsung, transaksi baru otomatis ditandai (bisa diubah di form catat).',
@@ -356,7 +356,7 @@ class EventDetailPage extends StatelessWidget {
             label: const Text('Catat'),
           ),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+            padding: pagePad(context, 100),
             children: [
               _EventCard(store: store, event: e, tappable: false),
               if (byCat.isNotEmpty)

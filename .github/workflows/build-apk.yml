@@ -108,9 +108,11 @@ jobs:
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "Infinity-v$V.apk"
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "Infinity-v$V-hp-lama-32bit.apk"
 
-      - name: Pastikan APK tanpa izin internet
+      - name: Pastikan APK tanpa izin internet + library rata 16 KB
         shell: bash
         run: |
+          set -o pipefail
+          python3 tool/check_apk.py Infinity*.apk | tee -a "$RUNNER_TEMP/build.txt"
           AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
           for f in Infinity*.apk; do
             "$AAPT" dump permissions "$f" | tee -a "$RUNNER_TEMP/build.txt"

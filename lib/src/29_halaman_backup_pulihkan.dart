@@ -228,7 +228,7 @@ class _BackupPageState extends State<BackupPage> {
     return Scaffold(
       appBar: pageBar('Backup & Pulihkan'),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+        padding: pagePad(context, 32),
         children: [
           AppCard(
             child: Column(

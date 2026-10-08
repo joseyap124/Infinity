@@ -50,7 +50,7 @@ class NotificationsPage extends StatelessWidget {
           final time = TimeOfDay(hour: s.reminderHour, minute: s.reminderMinute)
               .format(context);
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+            padding: pagePad(context, 32),
             children: [
               if (!Notifier.instance.supported)
                 const Padding(

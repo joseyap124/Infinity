@@ -114,7 +114,7 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
     return Scaffold(
       appBar: pageBar('Laporan error'),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+        padding: pagePad(context, 32),
         children: [
           AppCard(
             child: Column(

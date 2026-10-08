@@ -225,7 +225,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
             label: const Text('Catat'),
           ),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+            padding: pagePad(context, 100),
             children: [
               AppCard(
                 child: Column(

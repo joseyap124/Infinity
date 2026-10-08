@@ -89,7 +89,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
           final mode = store.settings.captureMode;
           final enabled = _enabled;
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+            padding: pagePad(context, 32),
             children: [
               AppCard(
                 child: Row(

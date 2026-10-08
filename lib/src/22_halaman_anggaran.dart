@@ -62,7 +62,7 @@ class _BudgetPageState extends State<BudgetPage> {
     return Scaffold(
       appBar: pageBar('Anggaran'),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+        padding: pagePad(context, 32),
         children: [
           Text(
               'Semua batas dalam Rupiah. Transaksi mata uang lain dikonversi pakai kurs di menu Mata Uang & Kurs. Kosongkan kolom untuk menonaktifkan.',

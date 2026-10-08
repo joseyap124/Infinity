@@ -333,7 +333,7 @@ class SecurityPage extends StatelessWidget {
         builder: (context, _) {
           final active = store.settings.pin != null;
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+            padding: pagePad(context, 32),
             children: [
               AppCard(
                 child: Row(

@@ -120,7 +120,7 @@ class AccountsPage extends StatelessWidget {
       body: ListenableBuilder(
         listenable: store,
         builder: (context, _) => ReorderableListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+          padding: pagePad(context, 100),
           buildDefaultDragHandles: false,
           header: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

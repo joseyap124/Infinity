@@ -447,7 +447,7 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
     return Scaffold(
       appBar: pageBar('Import Money Manager'),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+        padding: pagePad(context, 32),
         children: [
           AppCard(
             child: Column(

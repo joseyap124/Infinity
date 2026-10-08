@@ -182,7 +182,7 @@ class DataHealthPage extends StatelessWidget {
         return Scaffold(
           appBar: pageBar('Cek kesehatan data'),
           body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+            padding: pagePad(context, 32),
             children: [
               AppCard(
                 child: Row(
