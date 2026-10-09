@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.5)
+## v3.5 (9 Okt 2026)
 
 Tampilan baru: Beranda lebih lega, rencana keuangan punya tab sendiri, dan semua setelan jadi satu.
 
