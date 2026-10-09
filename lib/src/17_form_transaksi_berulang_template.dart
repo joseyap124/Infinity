@@ -981,7 +981,15 @@ class _TxFormSheetState extends State<TxFormSheet> {
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    prefixText: '${currencySymbol(_toCur)} ',
+                    // prefixIcon supaya simbol tetap tampil walau kosong.
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Text(currencySymbol(_toCur),
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w800)),
+                    ),
+                    prefixIconConstraints:
+                        const BoxConstraints(minWidth: 0, minHeight: 0),
                     helperText: 'Otomatis dari kurs, ubah kalau beda.',
                   ),
                 ),

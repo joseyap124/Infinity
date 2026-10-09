@@ -3,6 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.5.1)
+
+### Diperbaiki
+- **Transfer beda mata uang**: simbol mata uang di kolom "diterima" tetap tampil walau kolomnya kosong.
+- **Urutan akun**: geser urutan di halaman Akun memakai cara baru Flutter (cara lama akan dihapus Flutter). Tidak ada perubahan yang terlihat.
+
 ## v3.5 (9 Okt 2026)
 
 Tampilan baru: Beranda lebih lega, rencana keuangan punya tab sendiri, dan semua setelan jadi satu.

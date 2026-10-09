@@ -154,7 +154,10 @@ class AccountsPage extends StatelessWidget {
             ],
           ),
           itemCount: store.accounts.length,
-          onReorder: store.moveAccount,
+          // onReorderItem memberi indeks tujuan setelah item dicabut;
+          // moveAccount memakai konvensi lama, jadi disesuaikan.
+          onReorderItem: (from, to) =>
+              store.moveAccount(from, to > from ? to + 1 : to),
           proxyDecorator: (child, _, __) => Material(
             color: Colors.transparent,
             elevation: 6,
