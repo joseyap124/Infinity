@@ -187,6 +187,12 @@ class _StatsTabState extends State<StatsTab> {
           if (_mode == BudgetPeriod.monthly) ...[
             const SizedBox(height: 12),
             MonthAdviceCard(store: store, month: periodLabelOf(_anchor)),
+            // Perbandingan dengan bulan lalu (dulu di Beranda), hanya untuk
+            // bulan berjalan.
+            if (periodLabelOf(_anchor) == periodLabelOf(DateTime.now())) ...[
+              const SizedBox(height: 12),
+              MonthCompareCard(store: store),
+            ],
           ],
           const SizedBox(height: 12),
           AppCard(

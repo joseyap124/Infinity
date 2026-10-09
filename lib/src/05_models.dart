@@ -466,6 +466,9 @@ class AppSettings {
 
   /// Ukuran huruf di dalam app (dikali ukuran huruf HP): 1.0 / 1.15 / 1.3.
   double textScale = 1.0;
+
+  /// Kartu yang tampil di Beranda, berurutan (lihat [kHomeCards]).
+  List<String> homeCards = [...kDefaultHomeCards];
   int accentIndex = 0;
 
   /// Akun yang otomatis terpilih saat mencatat transaksi baru.
@@ -548,6 +551,7 @@ class AppSettings {
         'hideBalance': hideBalance,
         'themeMode': themeMode,
         if (textScale != 1.0) 'textScale': textScale,
+        'homeCards': homeCards,
         'accentIndex': accentIndex,
         'defaultAccountId': defaultAccountId,
         'balanceSetAt': balanceSetAt,
@@ -604,6 +608,13 @@ class AppSettings {
     s.pin = _s(j['pin']);
     s.hideBalance = j['hideBalance'] == true;
     s.textScale = _d(j['textScale'] ?? 1.0).clamp(0.85, 1.3);
+    if (j['homeCards'] is List) {
+      s.homeCards = (j['homeCards'] as List)
+          .whereType<String>()
+          .where(kHomeCards.containsKey)
+          .toSet()
+          .toList();
+    }
     final tm = _s(j['themeMode']);
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);

@@ -260,6 +260,7 @@ class AppStore extends ChangeNotifier {
     settings.secureScreen = old.secureScreen;
     settings.themeMode = old.themeMode;
     settings.textScale = old.textScale;
+    settings.homeCards = old.homeCards;
     settings.accentIndex = old.accentIndex;
     settings.autoBackup = old.autoBackup;
     settings.lastAutoBackup = old.lastAutoBackup;

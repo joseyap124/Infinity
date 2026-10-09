@@ -1113,4 +1113,27 @@ void main() {
       expect(AppSettings.fromJson(AppSettings().toJson()).textScale, 1.0);
     });
   });
+
+  group('v3.5', () {
+    test('kartu Beranda: bawaan ringkas, urutan tersimpan, id asing dibuang', () {
+      expect(AppSettings().homeCards, kDefaultHomeCards);
+      final j = AppSettings().toJson()..['homeCards'] = ['recent', 'budget', 'xx', 'recent'];
+      expect(AppSettings.fromJson(j).homeCards, ['recent', 'budget']);
+      final old = AppSettings().toJson()..remove('homeCards');
+      expect(AppSettings.fromJson(old).homeCards, kDefaultHomeCards);
+      for (final k in kDefaultHomeCards) {
+        expect(kHomeCards.containsKey(k), isTrue);
+      }
+    });
+
+    test('insight dibagi: Beranda vs Rencana', () {
+      expect(kHomeInsights.contains(InsightKind.subscription), isFalse);
+      expect(kPlanInsights.contains(InsightKind.subscription), isTrue);
+      expect(kHomeInsights.contains(InsightKind.backup), isTrue);
+      // Semua jenis tampil di salah satu tempat.
+      for (final k in InsightKind.values) {
+        expect(kHomeInsights.contains(k) || kPlanInsights.contains(k), isTrue, reason: k.name);
+      }
+    });
+  });
 }

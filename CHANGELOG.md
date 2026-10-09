@@ -3,6 +3,20 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.5)
+
+Tampilan baru: Beranda lebih lega, rencana keuangan punya tab sendiri, dan semua setelan jadi satu.
+
+### Ditambah
+- **Tab Rencana** (menu bawah): anggaran, tagihan & langganan 30 hari ke depan, kartu kredit, target tabungan, utang & piutang, plus saran langganan dan proyeksi saldo. Ada pintasan Patungan dan Acara.
+- **Atur Beranda**: pilih kartu yang tampil di Beranda (catat cepat, tagihan, anggaran, kartu kredit, target, dibanding bulan lalu, transaksi terakhir) dan urutannya. Tombolnya di bawah Beranda dan di Pengaturan.
+- **Pengaturan** (Lainnya → Pengaturan): Tampilan (tema, ukuran huruf, warna, nama & foto), Atur Beranda, awal bulan keuangan, mata uang & kurs, catat otomatis, notifikasi, keamanan dalam satu halaman.
+
+### Diubah
+- **Beranda** bawaan sekarang hanya: Aman dibelanjakan & saldo, hal yang perlu dicek, catat cepat, dan transaksi terakhir. Tombol "Budget" di atas jadi "Rencana".
+- **Dibanding bulan lalu** pindah ke Statistik (bulan berjalan). Tetap bisa ditampilkan di Beranda lewat Atur Beranda.
+- **Lainnya** dirapikan: profil, Pengaturan, Backup, lalu Kelola data dan Bantuan.
+
 ## v3.4 (9 Okt 2026)
 
 ### Ditambah

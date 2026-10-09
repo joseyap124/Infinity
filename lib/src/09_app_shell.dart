@@ -7,7 +7,7 @@ part of '../main.dart';
 /// Pilihan tampilan dari setelan, format "mode:aksen", mis. "system:0".
 final ValueNotifier<String> themePref = ValueNotifier<String>('system:0');
 
-/// Ukuran huruf pilihan di app (Lainnya → Tampilan).
+/// Ukuran huruf pilihan di app (Lainnya → Pengaturan → Tampilan).
 final ValueNotifier<double> appTextScale = ValueNotifier<double>(1.0);
 
 /// Batas ukuran huruf efektif (HP x app). Di atas ini tata letak mulai
@@ -438,8 +438,12 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
           );
         }
         final pages = <Widget>[
-          DashboardTab(store: store, onSeeAll: () => setState(() => _tab = 1)),
+          DashboardTab(
+              store: store,
+              onSeeAll: () => setState(() => _tab = 1),
+              onOpenPlan: () => setState(() => _tab = 2)),
           HistoryTab(store: store),
+          PlanTab(store: store),
           StatsTab(store: store),
           MoreTab(store: store),
         ];
@@ -457,7 +461,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
                 child: IndexedStack(index: _tab, children: pages),
               ),
             ),
-            floatingActionButton: _tab <= 1
+            floatingActionButton: _tab <= 2
                 ? FloatingActionButton.extended(
                     onPressed: () => openTxForm(context, store),
                     backgroundColor: C.accentDark,
@@ -483,6 +487,10 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
                     icon: Icon(Icons.receipt_long_outlined),
                     selectedIcon: Icon(Icons.receipt_long_rounded),
                     label: 'Riwayat'),
+                NavigationDestination(
+                    icon: Icon(Icons.track_changes_outlined),
+                    selectedIcon: Icon(Icons.track_changes_rounded),
+                    label: 'Rencana'),
                 NavigationDestination(
                     icon: Icon(Icons.pie_chart_outline),
                     selectedIcon: Icon(Icons.pie_chart_rounded),

@@ -59,79 +59,54 @@ class MoreTab extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
           const SizedBox(height: 12),
           AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            onTap: () => showSheet<void>(context, ProfileSheet(store: store)),
+            child: Row(
               children: [
-                const SmallLabel('Tampilan'),
-                const SizedBox(height: 8),
-                Segmented<String>(
-                  values: const ['system', 'light', 'dark'],
-                  selected: s.themeMode,
-                  labelOf: (v) => switch (v) {
-                    'light' => 'Terang',
-                    'dark' => 'Gelap',
-                    _ => 'Ikut HP',
-                  },
-                  dense: true,
-                  onChanged: (v) =>
-                      store.updateSettings((x) => x.themeMode = v),
-                ),
-                const SizedBox(height: 12),
-                const SmallLabel('Ukuran huruf'),
-                const SizedBox(height: 8),
-                Segmented<double>(
-                  values: const [1.0, 1.15, 1.3],
-                  selected: s.textScale,
-                  labelOf: (v) => switch (v) {
-                    1.15 => 'Besar',
-                    1.3 => 'Sangat besar',
-                    _ => 'Normal',
-                  },
-                  dense: true,
-                  onChanged: (v) =>
-                      store.updateSettings((x) => x.textScale = v),
-                ),
-                const SizedBox(height: 14),
-                const SizedBox(height: 4),
-                InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => showSheet<void>(
-                      context, AccentPickerSheet(store: store)),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                              color: C.accentDark, shape: BoxShape.circle),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Warna utama',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      color: C.carbon)),
-                              Text(C.accents[s.accentIndex].$1,
-                                  style: TextStyle(
-                                      fontSize: 12, color: C.muted)),
-                            ],
-                          ),
-                        ),
-                        Icon(Icons.chevron_right_rounded, color: C.muted),
-                      ],
-                    ),
+                Avatar(path: s.avatarPath, size: 44),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(s.displayName,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w900, fontSize: 16)),
+                      Text(
+                          s.lastAutoBackup == null
+                              ? 'Belum pernah backup'
+                              : 'Backup terakhir ${DateFormat('d MMM, HH.mm', 'id_ID').format(s.lastAutoBackup!)}',
+                          style: TextStyle(fontSize: 12, color: C.muted)),
+                    ],
                   ),
                 ),
+                Icon(Icons.edit_rounded, size: 18, color: C.muted),
               ],
             ),
           ),
           const SizedBox(height: 12),
+          AppCard(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Column(
+              children: [
+                _tile(context,
+                    icon: Icons.settings_rounded,
+                    color: C.carbon,
+                    title: 'Pengaturan',
+                    subtitle:
+                        'Tampilan, Beranda, gajian, kurs, catat otomatis, keamanan',
+                    onTap: () => _push(context, SettingsPage(store: store))),
+                _tile(context,
+                    icon: Icons.backup_rounded,
+                    color: Colors.indigo,
+                    title: 'Backup & pindah HP',
+                    subtitle: 'Download, Google Drive, Excel',
+                    onTap: () => _push(context, BackupPage(store: store))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          const SmallLabel('Kelola data'),
+          const SizedBox(height: 6),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Column(
@@ -149,21 +124,11 @@ class MoreTab extends StatelessWidget {
                     subtitle: '${store.categories.length} kategori & sub-kategori',
                     onTap: () => _push(context, CategoriesPage(store: store))),
                 _tile(context,
-                    icon: Icons.track_changes_rounded,
-                    color: C.amber,
-                    title: 'Anggaran',
-                    subtitle: s.globalBudget > 0
-                        ? '${s.budgetPeriod.label} · ${money(s.globalBudget)}'
-                        : 'Belum diatur',
-                    onTap: () => _push(context, BudgetPage(store: store))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          AppCard(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Column(
-              children: [
+                    icon: Icons.bolt_rounded,
+                    color: Colors.deepPurple,
+                    title: 'Template Catat Cepat',
+                    subtitle: '${store.templates.length} template',
+                    onTap: () => _push(context, TemplatesPage(store: store))),
                 _tile(context,
                     icon: Icons.repeat_rounded,
                     color: C.accent,
@@ -172,21 +137,6 @@ class MoreTab extends StatelessWidget {
                         '${store.recurring.where((r) => r.active).length} aktif',
                     onTap: () => _push(context, RecurringPage(store: store))),
                 _tile(context,
-                    icon: Icons.handshake_rounded,
-                    color: Colors.orange,
-                    title: 'Utang & Piutang',
-                    subtitle: store.debts.any((d) => !d.settled)
-                        ? 'Piutang ${money(store.debtTotal(theyOwe: true))} · Utang ${money(store.debtTotal(theyOwe: false))}'
-                        : 'Catat pinjam-meminjam',
-                    onTap: () => _push(context, DebtsPage(store: store))),
-                _tile(context,
-                    icon: Icons.groups_rounded,
-                    color: Colors.deepOrange,
-                    title: 'Patungan',
-                    subtitle: 'Bayar dulu, bagi ke teman jadi piutang',
-                    onTap: () => showSheet<void>(
-                        context, PatunganSheet(store: store))),
-                _tile(context,
                     icon: Icons.local_activity_rounded,
                     color: Colors.purple,
                     title: 'Acara',
@@ -194,66 +144,6 @@ class MoreTab extends StatelessWidget {
                         ? 'Mis. trip, Lebaran: total & anggaran per acara'
                         : '${store.events.length} acara',
                     onTap: () => _push(context, EventsPage(store: store))),
-                _tile(context,
-                    icon: Icons.savings_rounded,
-                    color: Colors.teal,
-                    title: 'Target Tabungan',
-                    subtitle: store.goals.isEmpty
-                        ? 'Mis. dana darurat, liburan'
-                        : '${store.goals.length} target',
-                    onTap: () => _push(context, GoalsPage(store: store))),
-                _tile(context,
-                    icon: Icons.bolt_rounded,
-                    color: Colors.deepPurple,
-                    title: 'Template Catat Cepat',
-                    subtitle: '${store.templates.length} template',
-                    onTap: () => _push(context, TemplatesPage(store: store))),
-                _tile(context,
-                    icon: Icons.currency_exchange_rounded,
-                    color: Colors.teal,
-                    title: 'Mata Uang & Kurs',
-                    subtitle: 'Konversi ke Rupiah',
-                    onTap: () => _push(context, CurrencyPage(store: store))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          AppCard(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Column(
-              children: [
-                _tile(context,
-                    icon: Icons.auto_awesome_rounded,
-                    color: Colors.deepOrange,
-                    title: 'Catat Otomatis',
-                    subtitle: switch (s.captureMode) {
-                      'off' => 'Mati',
-                      'ask' => 'Tanya dulu',
-                      _ => 'Langsung catat dari notifikasi bank/e-wallet',
-                    },
-                    onTap: () =>
-                        _push(context, AutoCapturePage(store: store))),
-                _tile(context,
-                    icon: Icons.notifications_rounded,
-                    color: C.amber,
-                    title: 'Notifikasi',
-                    subtitle: s.notifEnabled ? 'Aktif' : 'Nonaktif',
-                    onTap: () =>
-                        _push(context, NotificationsPage(store: store))),
-                _tile(context,
-                    icon: Icons.lock_rounded,
-                    color: C.carbon,
-                    title: 'Keamanan',
-                    subtitle: s.pin == null
-                        ? 'PIN nonaktif'
-                        : (s.biometric ? 'PIN + sidik jari aktif' : 'PIN aktif'),
-                    onTap: () => _push(context, SecurityPage(store: store))),
-                _tile(context,
-                    icon: Icons.backup_rounded,
-                    color: Colors.indigo,
-                    title: 'Backup & Pulihkan',
-                    subtitle: 'Ekspor/impor data JSON',
-                    onTap: () => _push(context, BackupPage(store: store))),
                 _tile(context,
                     icon: Icons.upload_file_rounded,
                     color: Colors.redAccent,
@@ -265,6 +155,14 @@ class MoreTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 10),
+            child: Text(
+                'Anggaran, target tabungan, tagihan, utang & piutang ada di tab Rencana.',
+                style: TextStyle(fontSize: 12, color: C.muted)),
+          ),
+          const SmallLabel('Bantuan'),
+          const SizedBox(height: 6),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Column(

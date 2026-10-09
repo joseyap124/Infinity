@@ -598,9 +598,13 @@ class AccentPickerSheet extends StatelessWidget {
 }
 
 class DashboardTab extends StatelessWidget {
-  const DashboardTab({super.key, required this.store, required this.onSeeAll});
+  const DashboardTab(
+      {super.key, required this.store, required this.onSeeAll, this.onOpenPlan});
   final AppStore store;
   final VoidCallback onSeeAll;
+
+  /// Pindah ke tab Rencana.
+  final VoidCallback? onOpenPlan;
 
   String _greeting() => greetingFor(store.settings);
 
@@ -625,57 +629,82 @@ class DashboardTab extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              InsightStrip(store: store, onOpenCaptures: () {}),
+              InsightStrip(
+                  store: store,
+                  onOpenCaptures: () {},
+                  kinds: kHomeInsights),
               const SizedBox(height: 12),
               if (store.pendingCaptures.isNotEmpty) ...[
                 _capturesCard(context),
                 const SizedBox(height: 12),
               ],
-              if (credits.isNotEmpty) ...[
-                _creditCard(context, credits),
-                const SizedBox(height: 12),
-              ],
-              _budgetCard(context),
-              const SizedBox(height: 12),
-              MonthCompareCard(store: store),
-              const SizedBox(height: 12),
-              if (store.goals.isNotEmpty) ...[
-                SectionTitle('Target Tabungan',
-                    trailing: TextButton(
-                        onPressed: () =>
-                            _push(context, GoalsPage(store: store)),
-                        child: const Text('Lihat semua'))),
-                const SizedBox(height: 4),
-                GoalCard(store: store, goal: store.goals.first, compact: true),
-                const SizedBox(height: 12),
-              ],
-              if (store.templates.isNotEmpty) ...[
-                _templatesCard(context),
-                const SizedBox(height: 12),
-              ],
-              if (upcoming.isNotEmpty) ...[
-                _upcomingCard(context, upcoming.take(3).toList()),
-                const SizedBox(height: 12),
-              ],
-              SectionTitle('Transaksi Terakhir',
-                  trailing: TextButton(
-                      onPressed: onSeeAll, child: const Text('Lihat semua'))),
-              const SizedBox(height: 4),
-              if (recent.isEmpty)
-                const AppCard(
-                  child: EmptyState(
-                      icon: Icons.receipt_long_rounded,
-                      title: 'Belum ada transaksi',
-                      subtitle: 'Ketuk tombol "Catat" buat mulai.'),
-                )
-              else
-                for (final t in recent.take(5))
-                  txTile(context, store, t, showDate: true),
+              // Kartu pilihan user (Lainnya → Pengaturan → Atur Beranda).
+              for (final id in store.settings.homeCards)
+                ..._homeCard(context, id, credits, upcoming, recent),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => showSheet<void>(
+                      context, HomeCardsSheet(store: store)),
+                  icon: const Icon(Icons.tune_rounded, size: 18),
+                  label: const Text('Atur Beranda'),
+                ),
+              ),
             ]),
           ),
         ),
       ],
     );
+  }
+
+  /// Satu kartu Beranda berdasarkan id-nya (kosong kalau tidak relevan).
+  List<Widget> _homeCard(BuildContext context, String id, List<Account> credits,
+      List<RecurringRule> upcoming, List<Transaction> recent) {
+    const gap = SizedBox(height: 12);
+    switch (id) {
+      case 'quick':
+        if (store.templates.isEmpty) return const [];
+        return [_templatesCard(context), gap];
+      case 'upcoming':
+        if (upcoming.isEmpty) return const [];
+        return [_upcomingCard(context, upcoming.take(3).toList()), gap];
+      case 'budget':
+        return [_budgetCard(context), gap];
+      case 'credit':
+        if (credits.isEmpty) return const [];
+        return [_creditCard(context, credits), gap];
+      case 'goals':
+        if (store.goals.isEmpty) return const [];
+        return [
+          SectionTitle('Target Tabungan',
+              trailing: TextButton(
+                  onPressed: () => _push(context, GoalsPage(store: store)),
+                  child: const Text('Lihat semua'))),
+          const SizedBox(height: 4),
+          GoalCard(store: store, goal: store.goals.first, compact: true),
+          gap,
+        ];
+      case 'compare':
+        return [MonthCompareCard(store: store), gap];
+      case 'recent':
+        return [
+          SectionTitle('Transaksi Terakhir',
+              trailing: TextButton(
+                  onPressed: onSeeAll, child: const Text('Lihat semua'))),
+          const SizedBox(height: 4),
+          if (recent.isEmpty)
+            const AppCard(
+              child: EmptyState(
+                  icon: Icons.receipt_long_rounded,
+                  title: 'Belum ada transaksi',
+                  subtitle: 'Ketuk tombol "Catat" buat mulai.'),
+            )
+          else
+            for (final t in recent.take(5))
+              txTile(context, store, t, showDate: true),
+          gap,
+        ];
+    }
+    return const [];
   }
 
   Widget _header(BuildContext context) {
@@ -814,9 +843,10 @@ class DashboardTab extends StatelessWidget {
                         C.blueDark,
                         () => openTxForm(context, store,
                             type: TxType.transfer)),
-                    _quickAction(Icons.track_changes_rounded, 'Budget',
+                    _quickAction(Icons.track_changes_rounded, 'Rencana',
                         C.amberDark,
-                        () => _push(context, BudgetPage(store: store))),
+                        onOpenPlan ??
+                            () => _push(context, BudgetPage(store: store))),
                   ],
                 ),
               ],

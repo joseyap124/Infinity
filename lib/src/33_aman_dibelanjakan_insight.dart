@@ -795,10 +795,41 @@ class SafeSpendSheet extends StatelessWidget {
 }
 
 /// Deretan kartu "Perlu perhatian" di Beranda (geser ke samping).
+/// Insight yang mendesak/harian (tampil di Beranda).
+const Set<InsightKind> kHomeInsights = {
+  InsightKind.backup,
+  InsightKind.capture,
+  InsightKind.balance,
+  InsightKind.bill,
+  InsightKind.recap,
+  InsightKind.rates,
+  InsightKind.unusual,
+};
+
+/// Insight soal rencana (tampil di tab Rencana).
+const Set<InsightKind> kPlanInsights = {
+  InsightKind.subscription,
+  InsightKind.projection,
+  InsightKind.goal,
+  InsightKind.debt,
+  InsightKind.event,
+  InsightKind.bill,
+};
+
 class InsightStrip extends StatelessWidget {
-  const InsightStrip({super.key, required this.store, required this.onOpenCaptures});
+  const InsightStrip({
+    super.key,
+    required this.store,
+    required this.onOpenCaptures,
+    this.kinds,
+    this.title = 'Perlu perhatian',
+  });
   final AppStore store;
   final VoidCallback onOpenCaptures;
+
+  /// Jenis insight yang ditampilkan (null = semua).
+  final Set<InsightKind>? kinds;
+  final String title;
 
   void _act(BuildContext context, Insight i) {
     switch (i.kind) {
@@ -891,14 +922,18 @@ class InsightStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final list = store.insights(DateTime.now());
+    final k = kinds;
+    final list = store
+        .insights(DateTime.now())
+        .where((i) => k == null || k.contains(i.kind))
+        .toList();
     if (list.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 6),
-          child: Text('Perlu perhatian (${list.length})',
+          child: Text('$title (${list.length})',
               style: TextStyle(fontWeight: FontWeight.w800, color: C.carbon)),
         ),
         SizedBox(
