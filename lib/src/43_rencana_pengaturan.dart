@@ -79,9 +79,8 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
-            onReorder: (a, b) {
+            onReorderItem: (a, b) {
               setState(() {
-                if (b > a) b -= 1;
                 final k = _order.removeAt(a);
                 _order.insert(b, k);
               });
