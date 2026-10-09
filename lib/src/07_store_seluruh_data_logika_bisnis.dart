@@ -1094,7 +1094,7 @@ class AppStore extends ChangeNotifier {
   /// Sidik isi data (tanpa catatan waktu backup) untuk mendeteksi apakah ada
   /// perubahan sejak backup terakhir. FNV-1a 32-bit, cukup untuk keperluan ini.
   String backupSignature() {
-    final j = toJson(includeSecrets: false);
+    final j = toJson(includeSecrets: false)..remove('exportedAt');
     final st = j['settings'];
     if (st is Map) {
       final m = Map<String, dynamic>.from(st)
