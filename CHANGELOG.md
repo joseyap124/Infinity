@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.3)
+## v3.3 (9 Okt 2026)
 
 Mencatat lebih cepat dan bulan keuangan bisa ikut tanggal gajian.
 
