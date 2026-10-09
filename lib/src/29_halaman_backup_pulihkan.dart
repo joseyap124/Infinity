@@ -188,6 +188,7 @@ class _BackupPageState extends State<BackupPage> {
       final name = await NativeBridge.saveAs(
           'infinity-backup-$stamp.infb', bytes, 'application/octet-stream');
       if (name == null || !mounted) return;
+      store.markDriveSaved();
       snack(context, 'Tersimpan: $name ✅');
     } catch (e) {
       if (mounted) snack(context, 'Gagal menyimpan: $e');
@@ -259,7 +260,7 @@ class _BackupPageState extends State<BackupPage> {
                   value: store.settings.autoBackup,
                   onChanged: (v) =>
                       store.updateSettings((x) => x.autoBackup = v),
-                  title: const Text('Otomatis tiap minggu',
+                  title: const Text('Otomatis tiap hari',
                       style: TextStyle(fontWeight: FontWeight.w800)),
                   subtitle: Text(
                       store.settings.lastAutoBackup == null
@@ -288,7 +289,7 @@ class _BackupPageState extends State<BackupPage> {
                   ),
                 ),
                 Text(
-                    'Disimpan di Download/Infinity dan tetap ada walau app di-uninstall. Disimpan $kKeepBackups backup terakhir; yang lebih lama dihapus otomatis. Setiap backup dicek dulu bisa dibuka sebelum disimpan. Pulihkan lewat tombol "Pulihkan dari file" di bawah.',
+                    'Disimpan di Download/Infinity dan tetap ada walau app di-uninstall. Otomatis setiap hari kalau ada perubahan. Disimpan $kKeepBackups backup terakhir; yang lebih lama dihapus otomatis. Setiap backup dicek dulu bisa dibuka sebelum disimpan. Pulihkan lewat tombol "Pulihkan dari file" di bawah.',
                     style: TextStyle(fontSize: 12.5, color: C.muted)),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(

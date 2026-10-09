@@ -36,33 +36,76 @@ class NotificationCaptureService : NotificationListenerService() {
     }
 }
 
-/** Antrean sederhana (maks. 200 item) di SharedPreferences privat. */
+/**
+ * Antrean sederhana (maks. 300 item) di SharedPreferences privat.
+ * Item baru dihapus dari antrean hanya setelah Infinity memastikan isinya
+ * sudah tersimpan (peek lalu ack), supaya tidak hilang kalau app ditutup
+ * paksa di tengah proses (mis. saat update).
+ */
 object CaptureStore {
     private const val PREFS = "infinity_capture"
     private const val KEY = "items"
-    private const val MAX = 200
+    private const val MAX = 300
+    private var counter = 0L
 
-    @Synchronized
-    fun add(ctx: Context, item: JSONObject) {
+    private fun read(ctx: Context): JSONArray {
         val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val arr = try {
+        return try {
             JSONArray(prefs.getString(KEY, "[]"))
         } catch (e: Exception) {
             JSONArray()
         }
+    }
+
+    private fun write(ctx: Context, arr: JSONArray) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY, arr.toString()).commit()
+    }
+
+    private fun newQid(): String {
+        counter++
+        return "${System.currentTimeMillis()}_${System.nanoTime()}_$counter"
+    }
+
+    @Synchronized
+    fun add(ctx: Context, item: JSONObject) {
+        val arr = read(ctx)
+        item.put("qid", newQid())
         arr.put(item)
         val trimmed = JSONArray()
         val start = maxOf(0, arr.length() - MAX)
         for (i in start until arr.length()) trimmed.put(arr.get(i))
-        prefs.edit().putString(KEY, trimmed.toString()).apply()
+        write(ctx, trimmed)
     }
 
-    /** Ambil semua lalu kosongkan antrean. */
+    /** Lihat semua item tanpa menghapus. Item lama tanpa qid diberi qid. */
     @Synchronized
-    fun drain(ctx: Context): String {
-        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val s = prefs.getString(KEY, "[]") ?: "[]"
-        prefs.edit().putString(KEY, "[]").apply()
-        return s
+    fun peek(ctx: Context): String {
+        val arr = read(ctx)
+        var changed = false
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i) ?: continue
+            if (!o.has("qid")) {
+                o.put("qid", newQid())
+                changed = true
+            }
+        }
+        if (changed) write(ctx, arr)
+        return arr.toString()
+    }
+
+    /** Hapus item yang sudah tersimpan di Infinity. */
+    @Synchronized
+    fun ack(ctx: Context, ids: List<String>) {
+        if (ids.isEmpty()) return
+        val set = ids.toHashSet()
+        val arr = read(ctx)
+        val kept = JSONArray()
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i)
+            if (o != null && set.contains(o.optString("qid"))) continue
+            kept.put(arr.get(i))
+        }
+        write(ctx, kept)
     }
 }

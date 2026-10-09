@@ -95,33 +95,54 @@ class AppStore extends ChangeNotifier {
 
   bool _useFile = false;
   Timer? _saveTimer;
-  Future<void> _saving = Future.value();
+  Future<bool> _saving = Future.value(true);
+  bool _dirty = false;
 
-  /// Simpan dengan jeda singkat supaya banyak perubahan beruntun cukup sekali
-  /// tulis. [flush] memaksa simpan sekarang (dipanggil saat app ke latar).
+  /// Hasil simpan terakhir; false kalau gagal menulis ke penyimpanan.
+  bool lastSaveOk = true;
+
+  /// Simpan segera setelah perubahan (di akhir event yang sedang berjalan,
+  /// jadi banyak perubahan beruntun tetap cukup sekali tulis). Sebelum v3.2
+  /// ada jeda 0,4 detik; kalau app ditutup paksa di jeda itu (mis. saat
+  /// update), perubahan terakhir bisa hilang.
   void _persist() {
     if (!_storageOk) return;
-    _saveTimer?.cancel();
-    _saveTimer = Timer(const Duration(milliseconds: 400), () => unawaited(flush()));
+    _dirty = true;
+    _saveTimer ??= Timer(Duration.zero, () => unawaited(flush()));
   }
 
-  Future<void> flush() {
+  /// Tulis semua perubahan yang belum tersimpan. Selesai = sudah di disk.
+  /// Mengembalikan true kalau tulisan terakhir berhasil.
+  Future<bool> flush() {
     _saveTimer?.cancel();
     _saveTimer = null;
     if (!_storageOk || !loaded) return _saving;
-    final json = jsonEncode(toJson());
-    _saving = _saving.then((_) => _write(json));
+    _dirty = true;
+    _saving = _saving.then((_) async {
+      var ok = lastSaveOk;
+      // Tulis ulang selama masih ada perubahan baru selama menulis.
+      while (_dirty) {
+        _dirty = false;
+        ok = await _write(jsonEncode(toJson()));
+      }
+      lastSaveOk = ok;
+      return ok;
+    });
     return _saving;
   }
 
-  Future<void> _write(String json) async {
+  Future<bool> _write(String json) async {
     try {
       if (_useFile) {
         await DataFile.write(json);
       } else {
         await SecureStore.write(_key, json);
       }
-    } catch (_) {}
+      return true;
+    } catch (e, st) {
+      ErrorLog.record(e, st, source: 'simpan data');
+      return false;
+    }
   }
 
   /// Naik setiap data berubah; dipakai untuk cache saldo.
@@ -239,6 +260,9 @@ class AppStore extends ChangeNotifier {
     settings.accentIndex = old.accentIndex;
     settings.autoBackup = old.autoBackup;
     settings.lastAutoBackup = old.lastAutoBackup;
+    settings.lastBackupSig = old.lastBackupSig;
+    settings.lastDriveSave = old.lastDriveSave;
+    settings.droppedCaptures = old.droppedCaptures;
     settings.displayName = old.displayName;
     settings.avatarPath = old.avatarPath;
     settings.greetingMode = old.greetingMode;
@@ -1067,16 +1091,45 @@ class AppStore extends ChangeNotifier {
     return out;
   }
 
+  /// Sidik isi data (tanpa catatan waktu backup) untuk mendeteksi apakah ada
+  /// perubahan sejak backup terakhir. FNV-1a 32-bit, cukup untuk keperluan ini.
+  String backupSignature() {
+    final j = toJson(includeSecrets: false);
+    final st = j['settings'];
+    if (st is Map) {
+      final m = Map<String, dynamic>.from(st)
+        ..remove('lastAutoBackup')
+        ..remove('lastBackupSig')
+        ..remove('lastDriveSave')
+        ..remove('dismissedInsights');
+      j['settings'] = m;
+    }
+    final text = jsonEncode(j);
+    var h = 0x811c9dc5;
+    for (final c in text.codeUnits) {
+      h ^= c;
+      h = (h * 0x01000193) & 0xffffffff;
+    }
+    return '${text.length}:${h.toRadixString(16)}';
+  }
+
+  /// Catat bahwa salinan backup sudah disimpan ke luar HP.
+  void markDriveSaved([DateTime? at]) =>
+      updateSettings((x) => x.lastDriveSave = at ?? DateTime.now());
+
   /// Backup ke folder Download. Kalau kata sandi backup sudah diatur, file
   /// .infb terenkripsi (ikut foto); kalau belum, JSON biasa.
   /// [force] = abaikan jadwal mingguan.
   Future<bool> backupToDownloads({bool force = false}) async {
+    final sig = backupSignature();
     if (!force) {
       if (!settings.autoBackup || transactions.isEmpty) return false;
       final last = settings.lastAutoBackup;
-      if (last != null && DateTime.now().difference(last).inDays < 7) {
+      if (last != null && DateTime.now().difference(last).inHours < 20) {
         return false;
       }
+      // Tidak ada perubahan sejak backup terakhir: tidak perlu file baru.
+      if (last != null && sig == settings.lastBackupSig) return false;
     }
     final stamp = DateFormat('yyyy-MM-dd_HHmm').format(DateTime.now());
     final pw = await backupPassword();
@@ -1093,7 +1146,10 @@ class AppStore extends ChangeNotifier {
       ok = await NativeBridge.saveDownload('infinity-backup-$stamp.json', json);
     }
     if (ok) {
-      updateSettings((x) => x.lastAutoBackup = DateTime.now());
+      updateSettings((x) {
+        x.lastAutoBackup = DateTime.now();
+        x.lastBackupSig = sig;
+      });
       await NativeBridge.pruneBackups(kKeepBackups);
     }
     return ok;
@@ -1269,8 +1325,10 @@ class AppStore extends ChangeNotifier {
       _seenCaptureKeys =
           _seenCaptureKeys.sublist(_seenCaptureKeys.length - 600);
     }
-    if (pendingCaptures.length > 50) {
-      pendingCaptures = pendingCaptures.sublist(pendingCaptures.length - 50);
+    if (pendingCaptures.length > kMaxPendingCaptures) {
+      final drop = pendingCaptures.length - kMaxPendingCaptures;
+      settings.droppedCaptures += drop;
+      pendingCaptures = pendingCaptures.sublist(drop);
     }
     if (changed) _commit();
     return auto;

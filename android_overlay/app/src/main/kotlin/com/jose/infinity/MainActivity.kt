@@ -115,7 +115,12 @@ class MainActivity : FlutterFragmentActivity() {
                         )
                         result.success(null)
                     }
-                    "fetchCaptured" -> result.success(CaptureStore.drain(this))
+                    "fetchCaptured" -> result.success(CaptureStore.peek(this))
+                    "ackCaptured" -> {
+                        val ids = call.argument<List<String>>("ids") ?: emptyList()
+                        CaptureStore.ack(this, ids)
+                        result.success(null)
+                    }
                     "saveDownload" -> {
                         val name = call.argument<String>("name") ?: "infinity-backup.json"
                         val text = call.argument<String>("text") ?: ""

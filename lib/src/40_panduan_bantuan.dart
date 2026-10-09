@@ -140,7 +140,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     color: C.income,
                     title: 'Amankan & backup',
                     body:
-                        'Pasang PIN (bisa pakai sidik jari). Atur kata sandi backup supaya backup mingguan di folder Download terkunci, lalu sesekali simpan salinannya ke Google Drive.\n\n'
+                        'Pasang PIN (bisa pakai sidik jari). Atur kata sandi backup supaya backup harian di folder Download terkunci, lalu simpan salinannya ke Google Drive seminggu sekali.\n\n'
                         'Kalau app di-uninstall atau HP rusak, data hanya bisa kembali dari backup.',
                     actions: [
                       _action('Pasang PIN', Icons.pin_rounded,
@@ -210,7 +210,7 @@ const List<_Faq> _faqs = [
   _Faq('Nominal dari notifikasi salah',
       'Pembacaan notifikasi memakai pola umum dan bisa meleset untuk format bank tertentu. Koreksi transaksinya, lalu kirim contoh teks notifikasinya (tanpa nomor rekening) ke yang merawat Infinity supaya polanya diperbaiki.'),
   _Faq('Bagaimana backup bekerja?',
-      'Setiap minggu Infinity menyimpan backup ke Download/Infinity ($kKeepBackups terakhir disimpan). Dengan kata sandi backup, file berformat .infb terkunci AES-256 dan ikut menyimpan foto struk. Simpan juga salinan ke Google Drive lewat tombol "Simpan backup ke Drive…". Tanpa kata sandi itu, backup .infb tidak bisa dibuka siapa pun.'),
+      'Setiap hari (kalau ada perubahan) Infinity menyimpan backup ke Download/Infinity ($kKeepBackups terakhir disimpan). Dengan kata sandi backup, file berformat .infb terkunci AES-256 dan ikut menyimpan foto struk. Simpan juga salinan ke Google Drive lewat tombol "Simpan backup ke Drive…" seminggu sekali; Infinity mengingatkan kalau sudah lewat 7 hari. Tanpa kata sandi itu, backup .infb tidak bisa dibuka siapa pun.'),
   _Faq('Update app tanpa kehilangan data',
       'Pasang APK versi baru langsung di atas versi lama. Jangan uninstall dulu: uninstall menghapus semua data di HP.'),
   _Faq('Lupa PIN',

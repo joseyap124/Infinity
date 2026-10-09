@@ -133,6 +133,44 @@ extension DataHealth on AppStore {
         'Buka Backup & Pulihkan lalu tekan Backup sekarang. Simpan juga salinannya ke Google Drive.',
       ));
     }
+    // 7. Salinan di luar HP (Google Drive dll).
+    final drive = settings.lastDriveSave;
+    if (transactions.isNotEmpty &&
+        (drive == null || now.difference(drive).inDays > 7)) {
+      out.add(HealthIssue(
+        HealthLevel.info,
+        drive == null
+            ? 'Belum pernah simpan backup ke Google Drive'
+            : 'Simpan ke Google Drive terakhir ${now.difference(drive).inDays} hari lalu',
+        'Backup di Download/Infinity ikut hilang kalau HP hilang atau rusak. Buka Backup & Pulihkan lalu Simpan backup ke Drive.',
+      ));
+    }
+
+    // 8. Notifikasi "Perlu dicek".
+    if (settings.droppedCaptures > 0) {
+      out.add(HealthIssue(
+        HealthLevel.warn,
+        '${settings.droppedCaptures} notifikasi lama terbuang',
+        'Antrean "Perlu dicek" sempat penuh ($kMaxPendingCaptures). Cocokkan saldo dengan app bank kalau ada yang terlewat.',
+        fixLabel: 'Sudah dicek',
+        fix: () => updateSettings((x) => x.droppedCaptures = 0),
+      ));
+    } else if (pendingCaptures.length >= kMaxPendingCaptures - 60) {
+      out.add(HealthIssue(
+        HealthLevel.warn,
+        '${pendingCaptures.length} notifikasi menunggu dicek',
+        'Batasnya $kMaxPendingCaptures; kalau lewat, yang paling lama terbuang.',
+      ));
+    }
+
+    // 9. Penyimpanan.
+    if (!lastSaveOk) {
+      out.add(const HealthIssue(
+        HealthLevel.warn,
+        'Perubahan terakhir gagal disimpan',
+        'Buat backup sekarang dan kirim isi Laporan error. Jangan hapus app.',
+      ));
+    }
     return out;
   }
 

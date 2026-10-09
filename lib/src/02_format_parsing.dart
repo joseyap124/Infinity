@@ -24,7 +24,10 @@ const Map<String, double> kDefaultRates = {
 };
 
 /// Jumlah backup otomatis yang disimpan di Download/Infinity.
-const int kKeepBackups = 8;
+const int kKeepBackups = 14;
+
+/// Maksimal notifikasi "Perlu dicek" yang disimpan.
+const int kMaxPendingCaptures = 300;
 
 /// Tanggal kurs bawaan di atas.
 final DateTime kDefaultRatesDate = DateTime(2026, 10, 7);

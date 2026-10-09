@@ -263,6 +263,13 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     final before = store.pendingCaptures.length;
     final auto = store.ingestCaptured(raw);
     final waiting = store.pendingCaptures.length - before;
+    // Antrean native baru dikosongkan setelah hasilnya benar-benar tertulis.
+    if (await store.flush()) {
+      await NativeBridge.ackCaptured([
+        for (final r in raw)
+          if (r['qid'] is String) r['qid'] as String
+      ]);
+    }
     if (!mounted || quiet && auto == 0 && waiting <= 0) return;
     if (auto > 0) {
       snack(context, '$auto transaksi tercatat otomatis dari notifikasi 🤖');

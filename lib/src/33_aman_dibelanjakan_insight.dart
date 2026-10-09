@@ -40,7 +40,7 @@ class SafeSpend {
       perDay <= 0 ? (spentToday > 0 ? 1 : 0) : (spentToday / perDay).clamp(0.0, 1.0);
 }
 
-enum InsightKind { capture, recap, balance, projection, rates, event, debt, bill, subscription, unusual, goal }
+enum InsightKind { capture, recap, balance, projection, rates, event, debt, bill, subscription, unusual, goal, backup }
 
 /// Saldo di notifikasi bank/e-wallet berbeda dengan hitungan Infinity.
 class BalanceMismatch {
@@ -384,6 +384,53 @@ extension InsightStore on AppStore {
     final df = DateFormat('d MMM', 'id_ID');
     final tf = DateFormat('d MMM HH:mm', 'id_ID');
 
+    // Penyimpanan gagal: paling penting, tampil paling atas.
+    if (!lastSaveOk) {
+      out.add(Insight(
+        id: 'save_fail',
+        kind: InsightKind.backup,
+        title: 'Perubahan terakhir gagal disimpan',
+        body: 'Jangan tutup app dulu. Buat backup sekarang, lalu cek Laporan error.',
+        icon: Icons.error_rounded,
+        color: C.redDark,
+        action: 'Backup',
+      ));
+    }
+    // Antrean "Perlu dicek" hampir penuh.
+    if (pendingCaptures.length >= kMaxPendingCaptures - 60 && !hidden('pend_full')) {
+      out.add(Insight(
+        id: 'pend_full',
+        kind: InsightKind.capture,
+        title: '${pendingCaptures.length} notifikasi menunggu dicek',
+        body: 'Batasnya $kMaxPendingCaptures. Kalau lewat, yang paling lama terbuang. Cek atau abaikan sebagian.',
+        icon: Icons.inbox_rounded,
+        color: C.amberDark,
+        action: 'Cek',
+      ));
+    }
+    // Salinan backup ke luar HP (Google Drive) sudah lama.
+    if (transactions.length >= 10 && !hidden('drive')) {
+      final lastDrive = settings.lastDriveSave;
+      final firstTx = transactions
+          .map((t) => t.date)
+          .reduce((a, b) => a.isBefore(b) ? a : b);
+      final days = lastDrive == null
+          ? now.difference(firstTx).inDays
+          : now.difference(lastDrive).inDays;
+      if (days > 7) {
+        out.add(Insight(
+          id: 'drive',
+          kind: InsightKind.backup,
+          title: lastDrive == null
+              ? 'Belum ada salinan backup di luar HP'
+              : 'Salinan backup di Drive sudah $days hari',
+          body: 'Kalau HP hilang atau rusak, data hanya bisa kembali dari salinan di luar HP. Simpan ke Google Drive, cukup seminggu sekali.',
+          icon: Icons.add_to_drive_rounded,
+          color: C.blueDark,
+          action: 'Simpan',
+        ));
+      }
+    }
     for (final m in balanceMismatches()) {
       final acc = accountById(m.accountId)!;
       out.add(Insight(
@@ -788,6 +835,9 @@ class InsightStrip extends StatelessWidget {
       case InsightKind.goal:
         Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => GoalsPage(store: store)));
+      case InsightKind.backup:
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => BackupPage(store: store)));
       case InsightKind.bill:
       case InsightKind.unusual:
         break;

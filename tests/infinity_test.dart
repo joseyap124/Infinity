@@ -897,4 +897,52 @@ void main() {
       expect(s.healthCheck(DateTime(2026, 10, 8)).where((i) => i.title.startsWith('Talangan')), isEmpty);
     });
   });
+
+  group('v3.2', () {
+    test('sidik backup: abaikan waktu backup, berubah kalau data berubah', () {
+      final s = storeWith([acc('bca', initial: 100000)]);
+      final a = s.backupSignature();
+      s.settings.lastAutoBackup = DateTime(2026, 10, 9, 8);
+      s.settings.lastDriveSave = DateTime(2026, 10, 9, 9);
+      s.settings.lastBackupSig = a;
+      expect(s.backupSignature(), a);
+      s.transactions.add(tx('x', TxType.expense, 5000, 'bca', date: DateTime(2026, 10, 9)));
+      expect(s.backupSignature(), isNot(a));
+    });
+
+    test('antrean Perlu dicek: maksimal 300, yang terbuang dihitung', () {
+      final s = storeWith([acc('bca', initial: 1000000)]);
+      s.settings.captureMode = 'ask';
+      final base = DateTime(2026, 10, 9, 8);
+      s.ingestCaptured([
+        for (var i = 0; i < 310; i++)
+          {
+            'pkg': 'com.bca.mybca.omni.android',
+            'title': 'myBCA',
+            'text': 'Transfer berhasil sebesar Rp ${1000 + i}',
+            'time': base.add(Duration(minutes: i * 5)).millisecondsSinceEpoch,
+          }
+      ]);
+      expect(s.pendingCaptures, hasLength(kMaxPendingCaptures));
+      expect(s.settings.droppedCaptures, 10);
+      // Yang tersisa adalah yang terbaru.
+      expect(s.pendingCaptures.last.text, contains('Rp 1309'));
+      final back = AppSettings.fromJson(s.settings.toJson());
+      expect(back.droppedCaptures, 10);
+      expect(s.healthCheck(DateTime(2026, 10, 9)).any((i) => i.title.contains('terbuang')), isTrue);
+    });
+
+    test('pengingat simpan ke Drive', () {
+      final now = DateTime(2026, 10, 9, 12);
+      final s = storeWith([acc('bca', initial: 100000)], [
+        for (var i = 0; i < 12; i++)
+          tx('t$i', TxType.expense, 1000, 'bca', date: now.subtract(Duration(days: 20 - i))),
+      ]);
+      expect(s.insights(now).any((i) => i.id == 'drive'), isTrue);
+      s.markDriveSaved(now.subtract(const Duration(days: 2)));
+      expect(s.insights(now).any((i) => i.id == 'drive'), isFalse);
+      s.markDriveSaved(now.subtract(const Duration(days: 9)));
+      expect(s.insights(now).firstWhere((i) => i.id == 'drive').title, contains('9 hari'));
+    });
+  });
 }

@@ -426,9 +426,19 @@ class AppSettings {
   /// Kapan kurs terakhir disimpan user (null = belum pernah).
   DateTime? ratesUpdatedAt;
 
-  /// Backup JSON otomatis ke Download/Infinity tiap 7 hari.
+  /// Backup otomatis ke Download/Infinity tiap hari (kalau ada perubahan).
   bool autoBackup = true;
   DateTime? lastAutoBackup;
+
+  /// Sidik isi data saat backup otomatis terakhir (untuk melewati backup
+  /// kalau tidak ada perubahan).
+  String? lastBackupSig;
+
+  /// Kapan terakhir menyimpan salinan backup ke luar HP (Google Drive dll).
+  DateTime? lastDriveSave;
+
+  /// Jumlah notifikasi "Perlu dicek" lama yang terbuang karena antrean penuh.
+  int droppedCaptures = 0;
 
   // Header Beranda
   String displayName = 'Infinity';
@@ -481,6 +491,9 @@ class AppSettings {
         'reportedBalance': reportedBalance,
         'autoBackup': autoBackup,
         'lastAutoBackup': lastAutoBackup?.toIso8601String(),
+        if (lastBackupSig != null) 'lastBackupSig': lastBackupSig,
+        'lastDriveSave': lastDriveSave?.toIso8601String(),
+        if (droppedCaptures > 0) 'droppedCaptures': droppedCaptures,
         'ratesUpdatedAt': ratesUpdatedAt?.toIso8601String(),
         'displayName': displayName,
         'avatarPath': avatarPath,
@@ -553,6 +566,9 @@ class AppSettings {
       };
     }
     s.lastAutoBackup = DateTime.tryParse(_s(j['lastAutoBackup']) ?? '');
+    s.lastBackupSig = _s(j['lastBackupSig']);
+    s.lastDriveSave = DateTime.tryParse(_s(j['lastDriveSave']) ?? '');
+    s.droppedCaptures = _i(j['droppedCaptures'], 0);
     s.ratesUpdatedAt = DateTime.tryParse(_s(j['ratesUpdatedAt']) ?? '');
     final dn = _s(j['displayName'])?.trim();
     s.displayName = (dn == null || dn.isEmpty) ? 'Infinity' : dn;

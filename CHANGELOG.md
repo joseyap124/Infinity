@@ -3,6 +3,24 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.2)
+
+Fokus keandalan: data tidak mudah hilang. Data lama aman, cukup pasang di atas versi sebelumnya.
+
+### Diubah
+- **Simpan langsung**: perubahan ditulis ke penyimpanan begitu selesai (sebelumnya ada jeda 0,4 detik). Kalau app ditutup paksa, misalnya saat update, transaksi terakhir tidak ikut hilang.
+- **Backup otomatis harian**: setiap hari kalau ada perubahan (sebelumnya seminggu sekali). Disimpan 14 file terakhir (sebelumnya 8).
+- **Antrean "Perlu dicek"** sekarang menampung 300 notifikasi (sebelumnya 50). Kalau tinggal 60 lagi penuh, muncul peringatan di Beranda.
+
+### Ditambah
+- **Pengingat simpan ke Google Drive** di Beranda kalau salinan terakhir sudah lebih dari 7 hari.
+- **Cek kesehatan data** memberi tahu kalau ada notifikasi lama yang terbuang karena antrean penuh, salinan Drive sudah lama, atau penyimpanan gagal.
+- **Peringatan kalau penyimpanan gagal** paling atas di Beranda (sebelumnya gagal diam-diam).
+
+### Diperbaiki
+- **Notifikasi bank tidak bisa hilang saat app ditutup paksa**: antrean notifikasi baru dikosongkan setelah isinya benar-benar tersimpan.
+- **Keamanan build**: action GitHub dikunci ke kode commit tertentu, jadi tidak bisa diganti diam-diam oleh pihak lain.
+
 ## v3.1 (8 Okt 2026)
 
 Perbaikan kecil setelah v3.0. Data lama aman, cukup pasang di atas versi sebelumnya.

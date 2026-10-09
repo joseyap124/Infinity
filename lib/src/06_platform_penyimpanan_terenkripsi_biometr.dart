@@ -167,7 +167,8 @@ class NativeBridge {
     } catch (_) {}
   }
 
-  /// Ambil (lalu kosongkan) antrean notifikasi uang yang ditangkap native.
+  /// Lihat antrean notifikasi uang yang ditangkap native. Antrean baru
+  /// dikosongkan lewat [ackCaptured] setelah isinya tersimpan.
   static Future<List<Map<String, dynamic>>> fetchCaptured() async {
     try {
       final s = await _ch.invokeMethod<String>('fetchCaptured');
@@ -181,6 +182,14 @@ class NativeBridge {
     } catch (_) {
       return [];
     }
+  }
+
+  /// Hapus item antrean (berdasarkan qid) yang sudah tersimpan di Infinity.
+  static Future<void> ackCaptured(List<String> ids) async {
+    if (ids.isEmpty) return;
+    try {
+      await _ch.invokeMethod('ackCaptured', {'ids': ids});
+    } catch (_) {}
   }
 }
 
