@@ -404,11 +404,18 @@ class SettingsPage extends StatelessWidget {
               const SizedBox(height: 14),
               const SmallLabel('Keuangan'),
               const SizedBox(height: 6),
-              PeriodStartTile(store: store),
-              const SizedBox(height: 8),
               AppCard(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Column(children: [
+                  _row(
+                      context,
+                      Icons.event_repeat_rounded,
+                      C.amberDark,
+                      'Awal bulan keuangan',
+                      s.periodStartDay == 1
+                          ? 'Tanggal 1 (bulan kalender)'
+                          : 'Tanggal ${s.periodStartDay} (gajian) · ${periodSpanText(periodLabelOf(DateTime.now()))}',
+                      () => PeriodStartTile(store: store)._pick(context)),
                   _row(
                       context,
                       Icons.currency_exchange_rounded,
