@@ -752,7 +752,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                       ?.name;
                   return [
                     money(last.amount, store.currencyOf(last.accountId)),
-                    if (cat != null) cat,
+                    ?cat,
                     store.accountName(last.accountId),
                   ].join(' · ');
                 },
