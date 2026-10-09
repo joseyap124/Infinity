@@ -130,7 +130,7 @@ extension InsightStore on AppStore {
       parts.add(('Sudah terpakai sebelum hari ini', -spentBefore));
       base = s.globalBudget - spentBefore;
     } else {
-      end = DateTime(now.year, now.month + 1, 1);
+      end = currentPeriod(now).end;
       var liquid = 0.0;
       for (final a in accounts) {
         if (a.type == AccountType.credit || a.type == AccountType.investment) {
@@ -446,12 +446,14 @@ extension InsightStore on AppStore {
       ));
     }
     // Awal bulan: rekap bulan lalu sudah siap.
-    if (now.day <= 7) {
-      final last = DateTime(now.year, now.month - 1);
+    final curStart = currentPeriod(now).start;
+    if (dayOnly(now).difference(curStart).inDays < 7) {
+      final cur = periodLabelOf(now);
+      final last = DateTime(cur.year, cur.month - 1);
       final id = 'recap_${last.year}_${last.month}';
       if (!hidden(id) &&
           transactions.any((t) =>
-              t.type != TxType.transfer && inRange(t.date, monthRange(last)))) {
+              t.type != TxType.transfer && inRange(t.date, periodRange(last)))) {
         final rc = monthRecap(last, now);
         final tier = rc.tier;
         final fixes = rc.advice.where((a) => !a.isPraise).length;

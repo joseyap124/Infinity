@@ -3,6 +3,18 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.3)
+
+Mencatat lebih cepat dan bulan keuangan bisa ikut tanggal gajian.
+
+### Ditambah
+- **Awal bulan keuangan** (Lainnya → Anggaran): misalnya gajian tanggal 25, "Oktober" dihitung 25 Sep sampai 24 Okt. Berlaku untuk anggaran, Aman dibelanjakan, Statistik bulanan, rekap & saran, perbandingan dengan bulan lalu, widget, dan filter "Bulan ini". Kalender di Riwayat dan kekayaan bersih tetap pakai bulan kalender.
+- **Kategori pintar**: judul yang sudah minimal 2 kali kamu taruh di kategori yang sama (mis. "Kopi Kenangan" → Kafe) otomatis masuk kategori itu, baik saat mengetik maupun dari notifikasi. Kategori yang kamu pilih sendiri tidak pernah ditimpa.
+- **Pencarian lebih lengkap**: semua kata harus cocok ("kopi gopay"), saring nominal (">50rb", "<20000", ">=1jt"), pilihan jenis (keluar/masuk/transfer) dan waktu (bulan ini, bulan lalu, tahun ini), serta total hasil.
+
+### Diubah
+- **Saran judul** sekarang menampilkan nominal, kategori, dan akun terakhir. Memilih saran ikut mengisi nominal kalau masih kosong.
+
 ## v3.2 (9 Okt 2026)
 
 Fokus keandalan: data tidak mudah hilang. Data lama aman, cukup pasang di atas versi sebelumnya.

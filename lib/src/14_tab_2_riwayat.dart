@@ -20,7 +20,7 @@ enum HistoryFilter {
       case HistoryFilter.week:
         return weekRange(now);
       case HistoryFilter.month:
-        return monthRange(now);
+        return currentPeriod(now);
       case HistoryFilter.all:
         return null;
     }
@@ -50,6 +50,55 @@ class _HistoryTabState extends State<HistoryTab> {
   DateTime _selectedDay = dayOnly(DateTime.now());
   final _searchFocus = FocusNode();
 
+  /// Filter pencarian: null = semua jenis.
+  TxType? _searchType;
+
+  /// 'all' | 'month' | 'last' | 'year'
+  String _searchRange = 'all';
+
+  DateTimeRange? _searchRangeOf(DateTime now) {
+    final cur = periodLabelOf(now);
+    return switch (_searchRange) {
+      'month' => periodRange(cur),
+      'last' => periodRange(DateTime(cur.year, cur.month - 1)),
+      'year' => yearRange(now),
+      _ => null,
+    };
+  }
+
+  Widget _searchFilters() {
+    Widget chip(String label, bool on, VoidCallback tap) => Padding(
+          padding: const EdgeInsets.only(right: 6),
+          child: ChoiceChip(
+            label: Text(label),
+            selected: on,
+            visualDensity: VisualDensity.compact,
+            onSelected: (_) => setState(tap),
+          ),
+        );
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          chip('Semua jenis', _searchType == null, () => _searchType = null),
+          chip('Keluar', _searchType == TxType.expense,
+              () => _searchType = TxType.expense),
+          chip('Masuk', _searchType == TxType.income,
+              () => _searchType = TxType.income),
+          chip('Transfer', _searchType == TxType.transfer,
+              () => _searchType = TxType.transfer),
+          const SizedBox(width: 8),
+          chip('Semua waktu', _searchRange == 'all', () => _searchRange = 'all'),
+          chip('Bulan ini', _searchRange == 'month',
+              () => _searchRange = 'month'),
+          chip('Bulan lalu', _searchRange == 'last',
+              () => _searchRange = 'last'),
+          chip('Tahun ini', _searchRange == 'year', () => _searchRange = 'year'),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -77,18 +126,31 @@ class _HistoryTabState extends State<HistoryTab> {
     final searching = _query.trim().isNotEmpty;
     final List<Widget> body;
     if (searching) {
-      final results = store.search(_query);
+      final results = store.search(_query,
+          type: _searchType, range: _searchRangeOf(DateTime.now()));
+      var outSum = 0.0, inSum = 0.0;
+      for (final t in results) {
+        if (t.type == TxType.expense) outSum += store.amountIDR(t);
+        if (t.type == TxType.income) inSum += store.amountIDR(t);
+      }
+      final hide = store.settings.hideBalance;
       body = [
+        _searchFilters(),
         Padding(
-          padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-          child: Text('${results.length} hasil untuk "${_query.trim()}"',
-              style: TextStyle(color: C.muted, fontSize: 13)),
+          padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+          child: Text(
+              '${results.length} hasil'
+              '${outSum > 0 ? ' · keluar ${hide ? '••••' : money(outSum)}' : ''}'
+              '${inSum > 0 ? ' · masuk ${hide ? '••••' : money(inSum)}' : ''}',
+              style: TextStyle(
+                  color: C.carbon, fontSize: 13, fontWeight: FontWeight.w700)),
         ),
         if (results.isEmpty)
           const EmptyState(
               icon: Icons.search_off_rounded,
               title: 'Tidak ketemu',
-              subtitle: 'Coba kata kunci lain: judul, catatan, kategori, akun, atau nominal.')
+              subtitle:
+                  'Coba kata lain: judul, catatan, kategori, akun, atau nominal. Bisa juga ">50rb" atau "<20000" untuk menyaring nominal.')
         else
           ...groupedTxWidgets(context, store, results),
       ];
@@ -117,7 +179,7 @@ class _HistoryTabState extends State<HistoryTab> {
                     focusNode: _searchFocus,
                     onChanged: (v) => setState(() => _query = v),
                     textInputAction: TextInputAction.search,
-                    decoration: fieldDeco('Cari transaksi',
+                    decoration: fieldDeco('Cari, mis. kopi >20rb',
                             icon: Icons.search_rounded)
                         .copyWith(
                       suffixIcon: _query.isEmpty

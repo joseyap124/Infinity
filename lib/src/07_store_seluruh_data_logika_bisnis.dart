@@ -152,6 +152,7 @@ class AppStore extends ChangeNotifier {
 
   void _commit() {
     _rev++;
+    gPeriodStartDay = settings.periodStartDay;
     notifyListeners();
     _persist();
   }
@@ -247,6 +248,7 @@ class AppStore extends ChangeNotifier {
     goals = gls;
     events = evs;
     settings = st;
+    gPeriodStartDay = st.periodStartDay;
     pendingCaptures = pend;
     _seenCaptureKeys = seen;
   }
@@ -543,24 +545,82 @@ class AppStore extends ChangeNotifier {
     return m;
   }
 
-  List<Transaction> search(String query) {
+  /// Nominal dari teks pencarian: "50rb" = 50000, "1,5jt" = 1500000,
+  /// "25.000" = 25000. Null kalau bukan angka.
+  static double? parseSearchAmount(String text) {
+    final m = RegExp(r'^(\d[\d.,]*)(rb|ribu|k|jt|juta)?$').firstMatch(text);
+    if (m == null) return null;
+    final num = m.group(1)!;
+    final suf = m.group(2);
+    double? v;
+    if (suf == null) {
+      v = double.tryParse(num.replaceAll('.', '').replaceAll(',', ''));
+    } else {
+      v = double.tryParse(num.replaceAll('.', '').replaceAll(',', '.'));
+      if (v != null) v *= (suf == 'jt' || suf == 'juta') ? 1000000 : 1000;
+    }
+    return v;
+  }
+
+  /// Cari transaksi. Semua kata harus cocok (judul, catatan, kategori, akun,
+  /// atau nominal). Bisa pakai filter nominal: ">50rb", "<20000", ">=1jt".
+  /// [type] dan [range] menyaring jenis dan tanggal.
+  List<Transaction> search(String query,
+      {TxType? type, DateTimeRange? range}) {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return [];
-    final digits = q.replaceAll(RegExp(r'[^0-9]'), '');
-    return transactions.where((t) {
-      if (t.title.toLowerCase().contains(q)) return true;
-      if (t.note.toLowerCase().contains(q)) return true;
-      if (categoryLabel(t).toLowerCase().contains(q)) return true;
-      if (accountName(t.accountId).toLowerCase().contains(q)) return true;
+    double? minA, maxA;
+    var minStrict = false, maxStrict = false;
+    final words = <String>[];
+    for (final tok in q.split(RegExp(r'\s+'))) {
+      if (tok.isEmpty) continue;
+      final m = RegExp(r'^(>=|<=|>|<)(.+)$').firstMatch(tok);
+      final v = m == null ? null : parseSearchAmount(m.group(2)!);
+      if (m != null && v != null) {
+        final op = m.group(1)!;
+        if (op.startsWith('>')) {
+          minA = v;
+          minStrict = op == '>';
+        } else {
+          maxA = v;
+          maxStrict = op == '<';
+        }
+        continue;
+      }
+      words.add(tok);
+    }
+    bool wordMatches(Transaction t, String w) {
+      if (t.title.toLowerCase().contains(w)) return true;
+      if (t.note.toLowerCase().contains(w)) return true;
+      if (categoryLabel(t).toLowerCase().contains(w)) return true;
+      if (accountName(t.accountId).toLowerCase().contains(w)) return true;
       if (t.toAccountId != null &&
-          accountName(t.toAccountId).toLowerCase().contains(q)) {
+          accountName(t.toAccountId).toLowerCase().contains(w)) {
         return true;
       }
+      final hasSuffix = RegExp(r'(rb|ribu|k|jt|juta)$').hasMatch(w);
+      final v = parseSearchAmount(w);
+      if (v != null && hasSuffix) return (t.amount - v).abs() < 0.5;
+      final digits = w.replaceAll(RegExp(r'[^0-9]'), '');
       if (digits.length >= 3 &&
+          digits.length == w.replaceAll(RegExp(r'[.,]'), '').length &&
           t.amount.toStringAsFixed(0).contains(digits)) {
         return true;
       }
       return false;
+    }
+
+    return transactions.where((t) {
+      if (type != null && t.type != type) return false;
+      if (range != null && !inRange(t.date, range)) return false;
+      final a = amountIDR(t);
+      final lo = minA, hi = maxA;
+      if (lo != null && (minStrict ? a <= lo : a < lo)) return false;
+      if (hi != null && (maxStrict ? a >= hi : a > hi)) return false;
+      for (final w in words) {
+        if (!wordMatches(t, w)) return false;
+      }
+      return true;
     }).toList();
   }
 
@@ -1042,6 +1102,52 @@ class AppStore extends ChangeNotifier {
   List<String> suggestNotes(String q) =>
       _suggest(transactions.map((t) => (t.note, t.date)), q);
 
+  /// Kunci judul untuk mencocokkan kebiasaan: huruf kecil, tanpa angka dan
+  /// tanda baca ("Kopi Kenangan #12" = "kopi kenangan").
+  static String titleKey(String t) => t
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z\s]'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  Object? _learnSig;
+  Map<String, List<(DateTime, String)>> _learnIdx = {};
+
+  /// Kategori yang biasa dipakai untuk judul ini: dipakai minimal 2 kali dan
+  /// minimal 60% dari 10 transaksi terakhir berjudul sama. Null kalau belum
+  /// ada kebiasaan yang jelas.
+  String? learnedCategory(String title, TxType type) {
+    if (type == TxType.transfer) return null;
+    final k = titleKey(title);
+    if (k.length < 3) return null;
+    final sig = (_rev, identityHashCode(transactions), transactions.length);
+    if (sig != _learnSig) {
+      final idx = <String, List<(DateTime, String)>>{};
+      for (final t in transactions) {
+        final c = t.categoryId;
+        if (t.type == TxType.transfer || c == null) continue;
+        final tk = titleKey(t.title);
+        if (tk.length < 3) continue;
+        (idx['${t.type.name}|$tk'] ??= []).add((t.date, c));
+      }
+      _learnIdx = idx;
+      _learnSig = sig;
+    }
+    final list = _learnIdx['${type.name}|$k'];
+    if (list == null || list.length < 2) return null;
+    final recent = [...list]..sort((a, b) => b.$1.compareTo(a.$1));
+    final top = recent.take(10).where((e) => categoryById(e.$2) != null);
+    final counts = <String, int>{};
+    for (final e in top) {
+      counts[e.$2] = (counts[e.$2] ?? 0) + 1;
+    }
+    if (counts.isEmpty) return null;
+    final best = counts.entries.reduce((a, b) => a.value >= b.value ? a : b);
+    final n = top.length;
+    if (best.value < 2 || best.value / n < 0.6) return null;
+    return best.key;
+  }
+
   Transaction? lastWithTitle(String title, TxType type) {
     Transaction? best;
     for (final t in transactions) {
@@ -1221,7 +1327,9 @@ class AppStore extends ChangeNotifier {
       type: type,
       title: p.title ?? '',
       amount: p.amount ?? 0,
-      categoryId: p.categoryId ?? fallbackCategory(type),
+      categoryId: learnedCategory(p.title ?? '', type) ??
+          p.categoryId ??
+          fallbackCategory(type),
       accountId: target,
       date: c.time,
       note: 'Dari notifikasi ${appLabelForPackage(c.pkg)}',
@@ -1289,7 +1397,9 @@ class AppStore extends ChangeNotifier {
       final amount = p.amount;
       if (amount == null) continue;
       final type = p.type ?? TxType.expense;
-      final categoryId = p.categoryId ?? fallbackCategory(type);
+      final categoryId = learnedCategory(p.title ?? '', type) ??
+          p.categoryId ??
+          fallbackCategory(type);
       final looksDuplicate = accountId != null &&
           transactions.any((t) =>
               t.accountId == accountId &&
@@ -1339,7 +1449,7 @@ class AppStore extends ChangeNotifier {
     final now = DateTime.now();
     final s = settings;
     final hide = s.hideBalance;
-    final month = monthRange(now);
+    final month = currentPeriod(now);
     final income = sumIDR(TxType.income, month);
     final expense = sumIDR(TxType.expense, month);
     String budget = 'Anggaran belum diatur';

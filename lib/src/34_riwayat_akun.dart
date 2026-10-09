@@ -45,7 +45,7 @@ extension AccountLedger on AppStore {
   /// dilihat dari sisi akun: (tanggal, judul, perubahan saldo).
   List<(DateTime, String, double)> upcomingForAccount(
       String accountId, DateTime now) {
-    final end = DateTime(now.year, now.month + 1);
+    final end = currentPeriod(now).end;
     final out = <(DateTime, String, double)>[];
     for (final r in recurring) {
       if (!r.active) continue;

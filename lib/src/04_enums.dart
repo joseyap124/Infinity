@@ -57,7 +57,7 @@ enum BudgetPeriod {
       case BudgetPeriod.weekly:
         return weekRange(d);
       case BudgetPeriod.monthly:
-        return monthRange(d);
+        return currentPeriod(d);
       case BudgetPeriod.yearly:
         return yearRange(d);
     }

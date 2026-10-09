@@ -42,3 +42,51 @@ DateTime nextDueDate(int dueDay, DateTime now) {
   if (d.isBefore(today)) d = DateTime(now.year, now.month + 1, dueDay);
   return d;
 }
+
+// ---------------------------------------------------------------------------
+// PERIODE KEUANGAN (v3.3): "bulan" bisa mulai tanggal gajian, mis. 25.
+// Diisi dari Pengaturan (AppSettings.periodStartDay) oleh AppStore.
+// ---------------------------------------------------------------------------
+
+/// Tanggal mulai periode bulanan (1 = bulan kalender biasa, maks. 28).
+int gPeriodStartDay = 1;
+
+/// Nama bulan sebuah periode. Mulai tanggal 2-15: dinamai bulan saat
+/// periode mulai (5 Okt - 4 Nov = Oktober). Mulai 16-28: dinamai bulan saat
+/// periode berakhir (25 Sep - 24 Okt = Oktober, gaji akhir bulan untuk bulan
+/// berikutnya).
+DateTime periodLabelOf(DateTime d, [int? startDay]) {
+  final s = startDay ?? gPeriodStartDay;
+  if (s <= 1) return DateTime(d.year, d.month);
+  if (s <= 15) {
+    return d.day >= s
+        ? DateTime(d.year, d.month)
+        : DateTime(d.year, d.month - 1);
+  }
+  return d.day >= s ? DateTime(d.year, d.month + 1) : DateTime(d.year, d.month);
+}
+
+/// Rentang periode untuk bulan bernama [label].
+DateTimeRange periodRange(DateTime label, [int? startDay]) {
+  final s = startDay ?? gPeriodStartDay;
+  if (s <= 1) return monthRange(label);
+  if (s <= 15) {
+    return DateTimeRange(
+        start: DateTime(label.year, label.month, s),
+        end: DateTime(label.year, label.month + 1, s));
+  }
+  return DateTimeRange(
+      start: DateTime(label.year, label.month - 1, s),
+      end: DateTime(label.year, label.month, s));
+}
+
+/// Periode yang sedang berjalan pada tanggal [d].
+DateTimeRange currentPeriod(DateTime d) => periodRange(periodLabelOf(d));
+
+/// "25 Sep - 24 Okt" (kosong kalau periode = bulan kalender).
+String periodSpanText(DateTime label) {
+  if (gPeriodStartDay <= 1) return '';
+  final r = periodRange(label);
+  final last = r.end.subtract(const Duration(days: 1));
+  return '${DateFormat('d MMM', 'id_ID').format(r.start)} - ${DateFormat('d MMM', 'id_ID').format(last)}';
+}

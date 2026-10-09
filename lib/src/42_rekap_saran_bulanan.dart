@@ -103,10 +103,11 @@ extension MonthRecapStore on AppStore {
 
   MonthRecap monthRecap(DateTime month, DateTime now) {
     final m = DateTime(month.year, month.month);
-    final r = monthRange(m);
+    final r = periodRange(m);
     final isCurrent = inRange(now, r);
-    final dim = DateTime(m.year, m.month + 1, 0).day;
-    final elapsed = isCurrent ? now.day : dim;
+    final dim = r.end.difference(r.start).inDays;
+    final elapsed =
+        isCurrent ? dayOnly(now).difference(r.start).inDays + 1 : dim;
     final frac = elapsed / dim;
     final income = sumIDR(TxType.income, r);
     final expense = sumIDR(TxType.expense, r);
@@ -117,7 +118,7 @@ extension MonthRecapStore on AppStore {
     final prevCat = <String, double>{};
     double? lastMonth;
     for (var i = 1; i <= 3; i++) {
-      final pr = monthRange(DateTime(m.year, m.month - i));
+      final pr = periodRange(DateTime(m.year, m.month - i));
       if (!_hasData(pr)) continue;
       n++;
       final e = sumIDR(TxType.expense, pr);
@@ -422,7 +423,7 @@ extension MonthRecapStore on AppStore {
           'Piutang belum kembali ${money(total)} ($names)',
           'Ada yang sudah lebih dari 2 minggu. Waktunya ditagih.'));
     }
-    final end = DateTime(now.year, now.month + 1);
+    final end = currentPeriod(now).end;
     final due = debts.where((d) {
       final dd = d.due;
       return !d.theyOwe && !d.settled && dd != null && dd.isBefore(end);
@@ -532,7 +533,8 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
     final fixes = r.advice.where((a) => !a.isPraise).toList();
     final praise = r.advice.where((a) => a.isPraise).toList();
     final tier = r.tier;
-    final isNow = _month.year == now.year && _month.month == now.month;
+    final cur = periodLabelOf(now);
+    final isNow = _month.year == cur.year && _month.month == cur.month;
 
     Widget adviceTile(MonthAdvice a) => Padding(
           padding: const EdgeInsets.only(bottom: 10),
@@ -599,10 +601,17 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
                 icon: const Icon(Icons.chevron_left_rounded),
               ),
               Expanded(
-                child: Text(DateFormat('MMMM yyyy', 'id_ID').format(_month),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w900, fontSize: 16)),
+                child: Column(
+                  children: [
+                    Text(DateFormat('MMMM yyyy', 'id_ID').format(_month),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 16)),
+                    if (periodSpanText(_month).isNotEmpty)
+                      Text(periodSpanText(_month),
+                          style: TextStyle(fontSize: 12, color: C.muted)),
+                  ],
+                ),
               ),
               IconButton(
                 tooltip: 'Bulan berikutnya',

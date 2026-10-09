@@ -48,6 +48,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
   final _titleCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
   final _titleFocus = FocusNode();
+
+  /// true kalau user sudah memilih kategori sendiri (jangan ditimpa tebakan).
+  late bool _catTouched;
   late List<String> _photos;
   final _noteFocus = FocusNode();
 
@@ -83,6 +86,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
     }
     _titleCtrl.text = d.title;
     _noteCtrl.text = d.note;
+    _catTouched = widget.isEditing;
+    _titleFocus.addListener(_onTitleFocus);
     _eventId = store.eventById(d.eventId)?.id ??
         ((widget.mode == FormMode.transaction && !widget.isEditing)
             ? store.autoEventFor(d.date)?.id
@@ -266,16 +271,42 @@ class _TxFormSheetState extends State<TxFormSheet> {
 
   /// Pilih saran Catatan: kategori (dan akun) ikut diisi dari transaksi
   /// terakhir dengan catatan yang sama, seperti Money Manager.
+  /// Selesai mengetik judul: isi kategori dari kebiasaan (kalau kategori
+  /// belum dipilih sendiri).
+  void _onTitleFocus() {
+    if (_titleFocus.hasFocus || _catTouched || !mounted) return;
+    if (_type == TxType.transfer) return;
+    final cat = store.learnedCategory(_titleCtrl.text, _type);
+    if (cat == null || cat == _categoryId) return;
+    setState(() {
+      _categoryId = cat;
+      _info =
+          'Kategori ${store.categoryById(cat)?.name ?? ''} dipilih dari kebiasaanmu. Ketuk kategori untuk mengganti.';
+    });
+  }
+
   void _pickedTitle(String title) {
     final last = store.lastWithTitle(title, _type);
     if (last == null) return;
     setState(() {
-      final cat = last.categoryId;
-      if (cat != null && store.categoryById(cat) != null) _categoryId = cat;
+      final cat = store.learnedCategory(title, _type) ?? last.categoryId;
+      if (!_catTouched && cat != null && store.categoryById(cat) != null) {
+        _categoryId = cat;
+      }
       _error = null;
     });
     if (!widget.isEditing && store.accountById(last.accountId) != null) {
       _selectFrom(last.accountId);
+    }
+    // Nominal ikut diisi kalau masih kosong (bisa diubah).
+    if (!widget.isEditing &&
+        parseAmount(_amountCtrl.text, decimals: hasDecimals(_fromCur)) <= 0 &&
+        last.amount > 0 &&
+        store.currencyOf(last.accountId) == _fromCur) {
+      setState(() {
+        _amountCtrl.text = amountToInput(last.amount, _fromCur);
+        _syncToAmount();
+      });
     }
   }
 
@@ -456,6 +487,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     if (id == null || !mounted) return;
     setState(() {
       _categoryId = id;
+      _catTouched = true;
       _error = null;
     });
   }
@@ -712,6 +744,18 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 controller: _titleCtrl,
                 focusNode: _titleFocus,
                 suggest: (q) => store.suggestTitles(q, _type),
+                detail: (t) {
+                  final last = store.lastWithTitle(t, _type);
+                  if (last == null) return null;
+                  final cat = store.categoryById(
+                          store.learnedCategory(t, _type) ?? last.categoryId)
+                      ?.name;
+                  return [
+                    money(last.amount, store.currencyOf(last.accountId)),
+                    if (cat != null) cat,
+                    store.accountName(last.accountId),
+                  ].join(' · ');
+                },
                 onPicked: _pickedTitle,
                 textCapitalization: TextCapitalization.sentences,
                 style: TextStyle(
@@ -895,6 +939,7 @@ class SuggestField extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.suggest,
+    this.detail,
     this.onPicked,
     this.decoration = const InputDecoration(),
     this.style,
@@ -907,6 +952,9 @@ class SuggestField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final List<String> Function(String) suggest;
+
+  /// Keterangan kecil di bawah saran (mis. "Rp 24.000 · Kafe").
+  final String? Function(String)? detail;
   final ValueChanged<String>? onPicked;
   final InputDecoration decoration;
   final TextStyle? style;
@@ -961,11 +1009,22 @@ class SuggestField extends StatelessWidget {
                                 size: 16, color: C.muted),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Text(o,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontSize: 14, color: C.carbon)),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(o,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 14, color: C.carbon)),
+                                  if (detail?.call(o) case final d?)
+                                    Text(d,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 12, color: C.muted)),
+                                ],
+                              ),
                             ),
                           ],
                         ),

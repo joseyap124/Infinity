@@ -26,7 +26,8 @@ class _StatsTabState extends State<StatsTab> {
         case BudgetPeriod.weekly:
           _anchor = DateTime(_anchor.year, _anchor.month, _anchor.day + 7 * dir);
         case BudgetPeriod.monthly:
-          _anchor = DateTime(_anchor.year, _anchor.month + dir, 1);
+          final l = periodLabelOf(_anchor);
+          _anchor = periodRange(DateTime(l.year, l.month + dir)).start;
         case BudgetPeriod.yearly:
           _anchor = DateTime(_anchor.year + dir, 1, 1);
       }
@@ -40,7 +41,9 @@ class _StatsTabState extends State<StatsTab> {
         final last = r.end.subtract(const Duration(days: 1));
         return '${DateFormat('d MMM', 'id_ID').format(r.start)} - ${DateFormat('d MMM yyyy', 'id_ID').format(last)}';
       case BudgetPeriod.monthly:
-        return DateFormat('MMMM yyyy', 'id_ID').format(r.start);
+        final l = periodLabelOf(_anchor);
+        final span = periodSpanText(l);
+        return '${DateFormat('MMMM yyyy', 'id_ID').format(l)}${span.isEmpty ? '' : ' ($span)'}';
       case BudgetPeriod.yearly:
         return '${r.start.year}';
     }
@@ -58,9 +61,10 @@ class _StatsTabState extends State<StatsTab> {
               store.sumIDR(TxType.income, r), store.sumIDR(TxType.expense, r)));
         }
       case BudgetPeriod.monthly:
+        final l = periodLabelOf(_anchor);
         for (var i = 5; i >= 0; i--) {
-          final d = DateTime(_anchor.year, _anchor.month - i, 1);
-          final r = monthRange(d);
+          final d = DateTime(l.year, l.month - i);
+          final r = periodRange(d);
           out.add(TrendBucket(DateFormat('MMM', 'id_ID').format(d),
               store.sumIDR(TxType.income, r), store.sumIDR(TxType.expense, r)));
         }
@@ -182,7 +186,7 @@ class _StatsTabState extends State<StatsTab> {
           ),
           if (_mode == BudgetPeriod.monthly) ...[
             const SizedBox(height: 12),
-            MonthAdviceCard(store: store, month: r.start),
+            MonthAdviceCard(store: store, month: periodLabelOf(_anchor)),
           ],
           const SizedBox(height: 12),
           AppCard(

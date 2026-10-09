@@ -395,6 +395,10 @@ class FormResult {
 
 class AppSettings {
   BudgetPeriod budgetPeriod = BudgetPeriod.monthly;
+
+  /// Tanggal mulai "bulan" keuangan (1 = bulan kalender; 25 = mulai tanggal
+  /// gajian 25). Maks. 28 supaya ada di setiap bulan.
+  int periodStartDay = 1;
   double globalBudget = 0;
   Map<String, double> categoryBudgets = {};
   Map<String, double> rates = Map.of(kDefaultRates);
@@ -477,6 +481,7 @@ class AppSettings {
   /// [includeSecrets] false dipakai untuk ekspor backup (PIN tidak ikut).
   Map<String, dynamic> toJson({bool includeSecrets = true}) => {
         'budgetPeriod': budgetPeriod.name,
+        if (periodStartDay != 1) 'periodStartDay': periodStartDay,
         'globalBudget': globalBudget,
         'categoryBudgets': categoryBudgets,
         'rates': rates,
@@ -520,6 +525,7 @@ class AppSettings {
     final s = AppSettings();
     s.budgetPeriod =
         BudgetPeriod.values.byName(_s(j['budgetPeriod']) ?? 'monthly');
+    s.periodStartDay = _i(j['periodStartDay'], 1).clamp(1, 28);
     s.globalBudget = _d(j['globalBudget']);
     final cb = j['categoryBudgets'];
     if (cb is Map) {

@@ -945,4 +945,88 @@ void main() {
       expect(s.insights(now).firstWhere((i) => i.id == 'drive').title, contains('9 hari'));
     });
   });
+
+  group('v3.3', () {
+    tearDown(() => gPeriodStartDay = 1);
+
+    test('periode gajian: label dan rentang', () {
+      gPeriodStartDay = 25;
+      expect(periodLabelOf(DateTime(2026, 10, 9)), DateTime(2026, 10));
+      expect(periodLabelOf(DateTime(2026, 10, 27)), DateTime(2026, 11));
+      final r = periodRange(DateTime(2026, 10));
+      expect(r.start, DateTime(2026, 9, 25));
+      expect(r.end, DateTime(2026, 10, 25));
+      expect(periodSpanText(DateTime(2026, 10)), contains('25 Sep'));
+      // Pergantian tahun.
+      expect(periodRange(DateTime(2027, 1)).start, DateTime(2026, 12, 25));
+      gPeriodStartDay = 5;
+      expect(periodLabelOf(DateTime(2026, 10, 3)), DateTime(2026, 9));
+      expect(periodRange(DateTime(2026, 10)).start, DateTime(2026, 10, 5));
+      gPeriodStartDay = 1;
+      expect(periodRange(DateTime(2026, 10)), monthRange(DateTime(2026, 10)));
+      expect(periodSpanText(DateTime(2026, 10)), isEmpty);
+    });
+
+    test('anggaran dan rekap ikut tanggal gajian', () {
+      final s = storeWith([acc('bca', initial: 1000000)], [
+        tx('a', TxType.expense, 100000, 'bca', date: DateTime(2026, 9, 26)),
+        tx('b', TxType.expense, 50000, 'bca', date: DateTime(2026, 10, 24)),
+        tx('c', TxType.expense, 70000, 'bca', date: DateTime(2026, 10, 25)),
+        tx('g', TxType.income, 5000000, 'bca', date: DateTime(2026, 9, 25)),
+      ]);
+      s.updateSettings((x) => x.periodStartDay = 25);
+      expect(gPeriodStartDay, 25);
+      final r = BudgetPeriod.monthly.range(DateTime(2026, 10, 9));
+      expect(s.sumIDR(TxType.expense, r), 150000);
+      final rc = s.monthRecap(DateTime(2026, 10), DateTime(2026, 11, 2));
+      expect(rc.expense, 150000);
+      expect(rc.income, 5000000);
+      expect(rc.daysInMonth, 30);
+      // Bersih lagi kalau dikembalikan ke tanggal 1.
+      s.updateSettings((x) => x.periodStartDay = 1);
+      expect(s.sumIDR(TxType.expense, BudgetPeriod.monthly.range(DateTime(2026, 10, 9))), 120000);
+      final back = AppSettings.fromJson((AppSettings()..periodStartDay = 25).toJson());
+      expect(back.periodStartDay, 25);
+    });
+
+    test('kategori pintar dari kebiasaan', () {
+      final s = storeWith([acc('gopay', initial: 1000000, type: AccountType.ewallet)], [
+        tx('1', TxType.expense, 24000, 'gopay', cat: 'kafe', title: 'Kopi Kenangan', date: DateTime(2026, 10, 1)),
+        tx('2', TxType.expense, 26000, 'gopay', cat: 'kafe', title: 'kopi kenangan #2', date: DateTime(2026, 10, 3)),
+        tx('3', TxType.expense, 30000, 'gopay', cat: 'makan', title: 'Bakso', date: DateTime(2026, 10, 3)),
+        tx('4', TxType.expense, 30000, 'gopay', cat: 'jajan', title: 'Bakso', date: DateTime(2026, 10, 4)),
+      ]);
+      s.categories = [
+        TxCategory(id: 'kafe', name: 'Kafe', type: TxType.expense, icon: 'cafe', color: 0),
+        TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0),
+        TxCategory(id: 'jajan', name: 'Jajan', type: TxType.expense, icon: 'food', color: 0),
+      ];
+      s.updateSettings((_) {});
+      expect(s.learnedCategory('KOPI KENANGAN', TxType.expense), 'kafe');
+      expect(s.learnedCategory('Bakso', TxType.expense), isNull); // 50:50
+      expect(s.learnedCategory('Sate', TxType.expense), isNull);
+      expect(s.learnedCategory('Kopi Kenangan', TxType.income), isNull);
+    });
+
+    test('pencarian: semua kata, nominal, jenis, waktu', () {
+      final s = storeWith([acc('gopay', initial: 1000000, type: AccountType.ewallet), acc('bca')], [
+        tx('1', TxType.expense, 24000, 'gopay', title: 'Kopi susu', date: DateTime(2026, 10, 1)),
+        tx('2', TxType.expense, 55000, 'gopay', title: 'Kopi beans', date: DateTime(2026, 9, 1)),
+        tx('3', TxType.expense, 1500000, 'bca', title: 'Sewa kos', date: DateTime(2026, 10, 2)),
+        tx('4', TxType.income, 50000, 'bca', title: 'Kopi refund', date: DateTime(2026, 10, 3)),
+      ]);
+      Set<String> ids(List<Transaction> l) => l.map((t) => t.id).toSet();
+      expect(ids(s.search('kopi gopay')), {'1', '2'});
+      expect(ids(s.search('kopi >=50rb')), {'2', '4'});
+      expect(ids(s.search('kopi >50rb')), {'2'});
+      expect(ids(s.search('kopi >=50rb', type: TxType.expense)), {'2'});
+      expect(ids(s.search('<30000')), {'1'});
+      expect(ids(s.search('>=1,5jt')), {'3'});
+      expect(ids(s.search('1,5jt')), {'3'});
+      expect(ids(s.search('24.000')), {'1'});
+      expect(ids(s.search('kopi', range: monthRange(DateTime(2026, 10)))), {'1', '4'});
+      expect(AppStore.parseSearchAmount('50rb'), 50000);
+      expect(AppStore.parseSearchAmount('abc'), isNull);
+    });
+  });
 }

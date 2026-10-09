@@ -204,7 +204,13 @@ class _Faq {
 
 const List<_Faq> _faqs = [
   _Faq('Apa arti "Aman dibelanjakan hari ini"?',
-      'Kalau anggaran bulanan diatur: sisa anggaran dibagi sisa hari. Kalau belum: saldo e-wallet, tunai, dan bank, dikurangi tagihan kartu kredit, utang jatuh tempo, setoran target tabungan, dan tagihan berulang sampai akhir bulan, lalu dibagi sisa hari. Ketuk kartunya untuk melihat rinciannya. Akun tabungan bisa dikecualikan lewat edit akun.'),
+      'Kalau anggaran bulanan diatur: sisa anggaran dibagi sisa hari. Kalau belum: saldo e-wallet, tunai, dan bank, dikurangi tagihan kartu kredit, utang jatuh tempo, setoran target tabungan, dan tagihan berulang sampai akhir bulan keuangan, lalu dibagi sisa hari. Ketuk kartunya untuk melihat rinciannya. Akun tabungan bisa dikecualikan lewat edit akun.'),
+  _Faq('Bulan mulai tanggal gajian',
+      'Lainnya → Anggaran → Awal bulan keuangan. Misalnya gajian tanggal 25: "Oktober" dihitung 25 Sep sampai 24 Okt. Berlaku untuk anggaran, Aman dibelanjakan, Statistik bulanan, rekap & saran, dan filter "Bulan ini". Kalender di Riwayat tetap bulan kalender.'),
+  _Faq('Kategori terisi sendiri',
+      'Kalau judul yang sama (mis. "Kopi Kenangan") sudah minimal 2 kali kamu taruh di kategori yang sama, Infinity memilih kategori itu otomatis, termasuk untuk notifikasi. Kategori yang kamu pilih sendiri tidak pernah ditimpa.'),
+  _Faq('Cara mencari transaksi',
+      'Ketik beberapa kata sekaligus (semua harus cocok): "kopi gopay". Saring nominal dengan ">50rb", "<20000", ">=1jt". Pakai pilihan di bawah kolom cari untuk jenis dan waktu. Total hasil tampil di atas daftar.'),
   _Faq('Catat otomatis tidak jalan',
       '1) Pastikan izin akses notifikasi aktif (Lainnya → Catat Otomatis). Di Android 13+ perlu "Izinkan setelan terbatas" di Info aplikasi. 2) Di Xiaomi/Oppo/Vivo/Realme, atur Baterai Infinity ke "Tanpa batasan" dan izinkan Mulai otomatis. 3) Beri nama akun yang memuat nama aplikasinya ("GoPay", "BCA"). 4) Notifikasi yang tidak yakin akunnya masuk ke kartu "Dari Notifikasi" di Beranda untuk dicek.'),
   _Faq('Nominal dari notifikasi salah',

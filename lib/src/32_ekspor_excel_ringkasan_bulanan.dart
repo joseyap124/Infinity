@@ -131,12 +131,15 @@ extension ExportSummaryStore on AppStore {
 
   /// Bulan ini (s.d. hari ini) vs periode yang sama bulan lalu.
   MonthCompare monthCompare(DateTime now) {
-    final thisStart = DateTime(now.year, now.month, 1);
+    final curLabel = periodLabelOf(now);
+    final thisStart = periodRange(curLabel).start;
     final thisEnd = DateTime(now.year, now.month, now.day + 1);
-    final lastStart = DateTime(now.year, now.month - 1, 1);
-    final lastMonthDays = DateTime(now.year, now.month, 0).day;
+    final elapsed = thisEnd.difference(thisStart).inDays;
+    final lastR = periodRange(DateTime(curLabel.year, curLabel.month - 1));
+    final lastStart = lastR.start;
+    final lastLen = lastR.end.difference(lastR.start).inDays;
     final lastEnd = DateTime(
-        now.year, now.month - 1, math.min(now.day, lastMonthDays) + 1);
+        lastStart.year, lastStart.month, lastStart.day + math.min(elapsed, lastLen));
     final cur = DateTimeRange(start: thisStart, end: thisEnd);
     final prev = DateTimeRange(start: lastStart, end: lastEnd);
 
@@ -162,7 +165,7 @@ extension ExportSummaryStore on AppStore {
       expenseBefore: b.values.fold(0.0, (s, v) => s + v),
       incomeNow: sumIDR(TxType.income, cur),
       incomeBefore: sumIDR(TxType.income, prev),
-      day: now.day,
+      day: gPeriodStartDay > 1 ? elapsed : now.day,
       changes: changes,
     );
   }
@@ -219,7 +222,7 @@ class MonthCompareCard extends StatelessWidget {
                 child: Text('Dibanding bulan lalu',
                     style: TextStyle(fontWeight: FontWeight.w800, color: C.carbon)),
               ),
-              Text('s.d. tgl ${m.day}',
+              Text(gPeriodStartDay > 1 ? 's.d. hari ke-${m.day}' : 's.d. tgl ${m.day}',
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ],
           ),
