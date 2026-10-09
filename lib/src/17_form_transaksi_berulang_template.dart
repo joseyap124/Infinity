@@ -570,7 +570,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
 
   Widget _splitCard(Color accent) {
     final main = _mainShare;
-    final ok = main > 0;
+    final noTotal = _amount <= 0;
+    final ok = main > 0 || noTotal;
     Widget line({
       required String name,
       required VoidCallback onTapName,
@@ -692,9 +693,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Text(
-                ok
-                    ? 'Baris pertama otomatis berisi sisanya. Total tetap ${money(_amount, _fromCur)}.'
-                    : 'Bagian lain melebihi total ${money(_amount, _fromCur)}. Kurangi salah satunya.',
+                noTotal
+                    ? 'Isi Jumlah di atas dulu. Baris pertama otomatis berisi sisanya.'
+                    : ok
+                        ? 'Baris pertama otomatis berisi sisanya. Total tetap ${money(_amount, _fromCur)}.'
+                        : 'Bagian lain melebihi total ${money(_amount, _fromCur)}. Kurangi salah satunya.',
                 style: TextStyle(
                     fontSize: 12, color: ok ? C.muted : C.redDark)),
           ),
@@ -890,11 +893,18 @@ class _TxFormSheetState extends State<TxFormSheet> {
                         isDense: true,
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 8),
-                        prefixText: '${currencySymbol(_fromCur)} ',
-                        prefixStyle: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: accent),
+                        // prefixIcon (bukan prefixText) supaya simbol mata
+                        // uang tetap tampil walau kolom kosong dan tidak fokus.
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Text(currencySymbol(_fromCur),
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: accent)),
+                        ),
+                        prefixIconConstraints:
+                            const BoxConstraints(minWidth: 0, minHeight: 0),
                         hintText: '0',
                         hintStyle: TextStyle(
                             fontSize: 20,
