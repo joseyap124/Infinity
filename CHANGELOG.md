@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.5.1)
+## v3.5.1 (9 Okt 2026)
 
 ### Diperbaiki
 - **Transfer beda mata uang**: simbol mata uang di kolom "diterima" tetap tampil walau kolomnya kosong.
