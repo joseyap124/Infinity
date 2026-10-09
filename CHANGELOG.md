@@ -3,6 +3,11 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.5.2)
+
+### Diperbaiki
+- **Gagal pasang di HP Vivo** ("App not installed as package appears to be invalid" / "APK is missing the developer certificate"): APK sekarang punya tanda tangan model lama (v1) selain v2 dan v3, karena installer beberapa HP masih memeriksanya. Sertifikatnya tetap sama, jadi tetap bisa dipasang di atas versi lama tanpa hapus data. CI menolak rilis yang tidak punya tanda tangan v1.
+
 ## v3.5.1 (9 Okt 2026)
 
 ### Diperbaiki

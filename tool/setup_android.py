@@ -87,6 +87,11 @@ if "INFINITY_KEYSTORE" not in g:
                  '                keyAlias = "androiddebugkey"\n'
                  '                keyPassword = "android"\n'
                  '            }\n'
+                 '            // v1 juga: beberapa installer (mis. Vivo) menolak APK\n'
+                 '            // yang hanya bertanda tangan v2.\n'
+                 '            enableV1Signing = true\n'
+                 '            enableV2Signing = true\n'
+                 '            enableV3Signing = true\n'
                  '        }\n'
                  '    }\n\n    buildTypes {')
     else:
@@ -99,6 +104,9 @@ if "INFINITY_KEYSTORE" not in g:
                  '                keyAlias "androiddebugkey"\n'
                  '                keyPassword "android"\n'
                  '            }\n'
+                 '            enableV1Signing true\n'
+                 '            enableV2Signing true\n'
+                 '            enableV3Signing true\n'
                  '        }\n'
                  '    }\n\n    buildTypes {')
     g, n = re.subn(r"buildTypes\s*\{", block, g, count=1)

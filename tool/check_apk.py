@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Cek APK sebelum dirilis: library native harus rata 16 KB (syarat HP
-Android 15+ dengan halaman memori 16 KB). Keluar dengan kode 1 kalau gagal.
+Android 15+ dengan halaman memori 16 KB), dan APK harus punya tanda tangan
+v1 (JAR) selain v2, karena installer beberapa HP (mis. Vivo) menolak APK
+yang hanya bertanda tangan v2. Keluar dengan kode 1 kalau gagal.
 
     python3 tool/check_apk.py Infinity-v3.0.apk
 """
@@ -40,11 +42,23 @@ def check(path):
     return bad
 
 
+def has_v1(path):
+    with zipfile.ZipFile(path) as z:
+        names = z.namelist()
+    sig = [n for n in names if n.startswith('META-INF/')
+           and n.upper().endswith(('.RSA', '.EC', '.DSA'))]
+    ok = bool(sig) and 'META-INF/MANIFEST.MF' in names
+    print(('OK' if ok else 'GAGAL') + f' tanda tangan v1 (JAR): {", ".join(sig) or "tidak ada"}')
+    return ok
+
+
 if __name__ == '__main__':
     failed = []
     for p in sys.argv[1:]:
         failed += check(p)
+        if not has_v1(p):
+            failed.append(p + ' (tanpa tanda tangan v1)')
     if failed:
-        print('Library belum rata 16 KB:', ', '.join(failed))
+        print('Gagal:', ', '.join(failed))
         sys.exit(1)
     print('Semua library native rata 16 KB.')
