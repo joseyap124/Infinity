@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.2)
+## v3.2 (9 Okt 2026)
 
 Fokus keandalan: data tidak mudah hilang. Data lama aman, cukup pasang di atas versi sebelumnya.
 
