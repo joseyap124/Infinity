@@ -100,8 +100,10 @@ extension EventsStore on AppStore {
     final out = <String, double>{};
     for (final t in transactions) {
       if (t.eventId != eventId || t.type != TxType.expense) continue;
-      final k = t.categoryId == null ? '' : topCategoryId(t.categoryId!);
-      out[k] = (out[k] ?? 0) + amountIDR(t);
+      for (final (cid, v) in categoryParts(t)) {
+        final k = cid == null ? '' : topCategoryId(cid);
+        out[k] = (out[k] ?? 0) + v;
+      }
     }
     return out;
   }

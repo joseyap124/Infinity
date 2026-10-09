@@ -52,8 +52,8 @@ extension DataHealth on AppStore {
     final lostCat = transactions
         .where((t) =>
             t.type != TxType.transfer &&
-            t.categoryId != null &&
-            categoryById(t.categoryId) == null)
+            ((t.categoryId != null && categoryById(t.categoryId) == null) ||
+                t.splits.any((s) => categoryById(s.categoryId) == null)))
         .toList();
     if (lostCat.isNotEmpty) {
       out.add(HealthIssue(
@@ -175,27 +175,25 @@ extension DataHealth on AppStore {
   }
 
   void _reassignLostCategories() {
+    bool lost(String? c) => c != null && categoryById(c) == null;
     transactions = [
       for (final t in transactions)
-        (t.type != TxType.transfer &&
-                t.categoryId != null &&
-                categoryById(t.categoryId) == null)
-            ? Transaction(
-                id: t.id,
-                title: t.title,
-                amount: t.amount,
-                toAmount: t.toAmount,
-                type: t.type,
-                categoryId: fallbackCategory(t.type),
-                accountId: t.accountId,
-                toAccountId: t.toAccountId,
-                date: t.date,
-                note: t.note,
-                recurringId: t.recurringId,
-                photos: t.photos,
-                eventId: t.eventId,
-              )
-            : t
+        if (t.type == TxType.transfer)
+          t
+        else if (lost(t.categoryId) || t.splits.any((s) => lost(s.categoryId)))
+          t.copyWith(
+            categoryId: lost(t.categoryId)
+                ? fallbackCategory(t.type)
+                : t.categoryId,
+            splits: [
+              for (final s in t.splits)
+                lost(s.categoryId)
+                    ? TxSplit(fallbackCategory(t.type) ?? s.categoryId, s.amount)
+                    : s
+            ],
+          )
+        else
+          t
     ];
     _commit();
   }

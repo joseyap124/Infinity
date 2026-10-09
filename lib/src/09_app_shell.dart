@@ -7,6 +7,34 @@ part of '../main.dart';
 /// Pilihan tampilan dari setelan, format "mode:aksen", mis. "system:0".
 final ValueNotifier<String> themePref = ValueNotifier<String>('system:0');
 
+/// Ukuran huruf pilihan di app (Lainnya → Tampilan).
+final ValueNotifier<double> appTextScale = ValueNotifier<double>(1.0);
+
+/// Batas ukuran huruf efektif (HP x app). Di atas ini tata letak mulai
+/// berdesakan, jadi dibatasi.
+const double kMaxTextScale = 1.4;
+
+/// Ukuran huruf HP dikali pilihan di app.
+class _MulTextScaler extends TextScaler {
+  const _MulTextScaler(this.base, this.factor);
+  final TextScaler base;
+  final double factor;
+
+  @override
+  double scale(double fontSize) => base.scale(fontSize) * factor;
+
+  @override
+  // ignore: deprecated_member_use
+  double get textScaleFactor => base.textScaleFactor * factor;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _MulTextScaler && other.base == base && other.factor == factor;
+
+  @override
+  int get hashCode => Object.hash(base, factor);
+}
+
 String themeKey(AppSettings s) => '${s.themeMode}:${s.accentIndex}';
 
 class InfinityApp extends StatefulWidget {
@@ -101,6 +129,19 @@ class _InfinityAppState extends State<InfinityApp> with WidgetsBindingObserver {
       title: 'Infinity',
       debugShowCheckedModeBanner: false,
       theme: _theme(),
+      builder: (context, child) => ValueListenableBuilder<double>(
+        valueListenable: appTextScale,
+        builder: (context, f, _) {
+          final mq = MediaQuery.of(context);
+          return MediaQuery(
+            data: mq.copyWith(
+              textScaler: _MulTextScaler(mq.textScaler, f)
+                  .clamp(minScaleFactor: 0.85, maxScaleFactor: kMaxTextScale),
+            ),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
+      ),
       home: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
@@ -154,6 +195,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
       unawaited(Notifier.instance.requestPermission());
     }
     themePref.value = themeKey(store.settings);
+    appTextScale.value = store.settings.textScale;
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
     _scheduleNotifications();
@@ -193,7 +235,10 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     });
   }
 
-  void _syncTheme() => themePref.value = themeKey(store.settings);
+  void _syncTheme() {
+    themePref.value = themeKey(store.settings);
+    appTextScale.value = store.settings.textScale;
+  }
 
   /// Pintasan tidak bergantung pada saklar pengingat: cukup setelannya aktif
   /// dan izin notifikasi Android diberikan.

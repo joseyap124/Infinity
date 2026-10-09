@@ -51,6 +51,20 @@ class _TxFormSheetState extends State<TxFormSheet> {
 
   /// true kalau user sudah memilih kategori sendiri (jangan ditimpa tebakan).
   late bool _catTouched;
+
+  /// Bagian tambahan saat transaksi dibagi ke beberapa kategori. Bagian
+  /// kategori utama ([_categoryId]) = total dikurangi semua bagian ini.
+  final List<(String, TextEditingController)> _splits = [];
+  bool get _splitting => _splits.isNotEmpty;
+
+  double _splitAmount(TextEditingController c) =>
+      parseAmount(c.text, decimals: hasDecimals(_fromCur));
+
+  double get _mainShare =>
+      _amount - _splits.fold(0.0, (s, e) => s + _splitAmount(e.$2));
+
+  bool get _canSplit =>
+      widget.mode == FormMode.transaction && _type != TxType.transfer;
   late List<String> _photos;
   final _noteFocus = FocusNode();
 
@@ -88,6 +102,18 @@ class _TxFormSheetState extends State<TxFormSheet> {
     _noteCtrl.text = d.note;
     _catTouched = widget.isEditing;
     _titleFocus.addListener(_onTitleFocus);
+    if (d.splits.length > 1 && d.type != TxType.transfer) {
+      // Bagian pertama = kategori utama (dihitung otomatis).
+      _categoryId = store.categoryById(d.splits.first.categoryId) != null
+          ? d.splits.first.categoryId
+          : _categoryId;
+      for (final s in d.splits.skip(1)) {
+        _splits.add((
+          s.categoryId,
+          TextEditingController(text: amountToInput(s.amount, _fromCur))
+        ));
+      }
+    }
     _eventId = store.eventById(d.eventId)?.id ??
         ((widget.mode == FormMode.transaction && !widget.isEditing)
             ? store.autoEventFor(d.date)?.id
@@ -102,6 +128,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
     _noteCtrl.dispose();
     _titleFocus.dispose();
     _noteFocus.dispose();
+    for (final s in _splits) {
+      s.$2.dispose();
+    }
     super.dispose();
   }
 
@@ -134,6 +163,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     setState(() {
       _type = t;
       _categoryId = _defaultCategory(t);
+      _clearSplits();
       _error = null;
       if (t == TxType.transfer && _toId == _fromId) {
         _toId = _otherAccount(_fromId);
@@ -378,6 +408,17 @@ class _TxFormSheetState extends State<TxFormSheet> {
     if (picked != null) setState(() => _date = picked);
   }
 
+  /// Bagian kategori untuk disimpan (kategori sama digabung).
+  List<TxSplit> _mergedSplits() {
+    final m = <String, double>{};
+    m[_categoryId!] = _mainShare;
+    for (final (c, ctrl) in _splits) {
+      m[c] = (m[c] ?? 0) + _splitAmount(ctrl);
+    }
+    if (m.length < 2) return [];
+    return [for (final e in m.entries) TxSplit(e.key, e.value)];
+  }
+
   void _submit() {
     final amount = _amount;
     String? err;
@@ -389,6 +430,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
       err = 'Akun asal dan tujuan tidak boleh sama. Tambah akun lain dulu kalau baru punya satu.';
     } else if (_type != TxType.transfer && _categoryId == null) {
       err = 'Pilih kategori dulu.';
+    } else if (_splitting &&
+        _splits.any((s) => _splitAmount(s.$2) <= 0)) {
+      err = 'Isi nominal setiap bagian kategori, atau hapus bagian yang kosong.';
+    } else if (_splitting && _mainShare <= 0) {
+      err = 'Jumlah bagian melebihi total. Kurangi salah satu bagian.';
     } else if (widget.mode == FormMode.transaction && _type != TxType.income) {
       final acc = store.accountById(_fromId)!;
       final bal = store.balanceOf(_fromId, excludeTxId: widget.excludeTxId);
@@ -437,6 +483,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       note: _noteCtrl.text.trim(),
       photos: _photos,
       eventId: widget.mode == FormMode.transaction ? _eventId : null,
+      splits: _splitting && _canSplit ? _mergedSplits() : null,
     );
     final title = _titleCtrl.text.trim();
     draft.title = title.isEmpty ? _defaultTitle(store, draft) : title;
@@ -467,6 +514,193 @@ class _TxFormSheetState extends State<TxFormSheet> {
     final pid = c.parentId;
     final p = pid == null ? null : store.categoryById(pid);
     return p == null ? c.name : '${p.name} / ${c.name}';
+  }
+
+  void _clearSplits() {
+    for (final s in _splits) {
+      s.$2.dispose();
+    }
+    _splits.clear();
+  }
+
+  Future<String?> _chooseCategory(String? selected) {
+    FocusScope.of(context).unfocus();
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: C.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      sheetAnimationStyle: AnimationStyle.noAnimation,
+      builder: (_) => CategoryPanel(
+          store: store, type: _type, selectedId: selected, accent: _type.color),
+    );
+  }
+
+  /// Tambah satu bagian kategori (mulai membagi kalau belum).
+  Future<void> _addSplit() async {
+    final id = await _chooseCategory(null);
+    if (id == null || !mounted) return;
+    setState(() {
+      _splits.add((id, TextEditingController()));
+      _catTouched = true;
+      _error = null;
+    });
+  }
+
+  Future<void> _changeSplitCategory(int i) async {
+    final id = await _chooseCategory(_splits[i].$1);
+    if (id == null || !mounted) return;
+    setState(() => _splits[i] = (id, _splits[i].$2));
+  }
+
+  void _removeSplit(int i) {
+    setState(() {
+      _splits[i].$2.dispose();
+      _splits.removeAt(i);
+    });
+  }
+
+  String _catName(String? id) {
+    final c = store.categoryById(id);
+    if (c == null) return 'Pilih kategori';
+    final p = store.categoryById(c.parentId);
+    return p == null ? c.name : '${p.name} › ${c.name}';
+  }
+
+  Widget _splitCard(Color accent) {
+    final main = _mainShare;
+    final ok = main > 0;
+    Widget line({
+      required String name,
+      required VoidCallback onTapName,
+      required Widget amount,
+      VoidCallback? onRemove,
+    }) =>
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: onTapName,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: C.carbon)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(width: 120, child: amount),
+              SizedBox(
+                width: 36,
+                child: onRemove == null
+                    ? null
+                    : IconButton(
+                        tooltip: 'Hapus bagian',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: onRemove,
+                        icon: Icon(Icons.close_rounded,
+                            size: 18, color: C.muted)),
+              ),
+            ],
+          ),
+        );
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+      decoration: BoxDecoration(
+        color: C.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: accent.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text('Dibagi ke beberapa kategori',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        color: C.carbon)),
+              ),
+              TextButton(
+                onPressed: () => setState(_clearSplits),
+                child: const Text('Batal bagi'),
+              ),
+            ],
+          ),
+          line(
+            name: _catName(_categoryId),
+            onTapName: _pickCategory,
+            amount: Text(
+                money(main, _fromCur),
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: ok ? C.carbon : C.redDark)),
+          ),
+          for (var i = 0; i < _splits.length; i++)
+            line(
+              name: _catName(_splits[i].$1),
+              onTapName: () => _changeSplitCategory(i),
+              amount: TextField(
+                controller: _splits[i].$2,
+                keyboardType: TextInputType.numberWithOptions(
+                    decimal: hasDecimals(_fromCur)),
+                inputFormatters: [
+                  AmountFormatter(decimals: hasDecimals(_fromCur))
+                ],
+                textAlign: TextAlign.right,
+                onChanged: (_) => setState(() => _error = null),
+                style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: C.carbon),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: '0',
+                  filled: true,
+                  fillColor: C.bg,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
+                ),
+              ),
+              onRemove: () => _removeSplit(i),
+            ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: _addSplit,
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text('Tambah kategori'),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Text(
+                ok
+                    ? 'Baris pertama otomatis berisi sisanya. Total tetap ${money(_amount, _fromCur)}.'
+                    : 'Bagian lain melebihi total ${money(_amount, _fromCur)}. Kurangi salah satunya.',
+                style: TextStyle(
+                    fontSize: 12, color: ok ? C.muted : C.redDark)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickCategory() async {
@@ -678,13 +912,30 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 ],
               ),
             ),
-            if (!isTransfer)
+            if (!isTransfer && _splitting && _canSplit)
+              _splitCard(accent)
+            else if (!isTransfer)
               FormRow(
                 label: 'Kategori',
                 accent: accent,
                 onTap: _pickCategory,
-                child: FormValue(_categoryId == null ? null : _categoryLabel(),
-                    placeholder: 'Pilih kategori'),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FormValue(
+                          _categoryId == null ? null : _categoryLabel(),
+                          placeholder: 'Pilih kategori'),
+                    ),
+                    if (_canSplit && _categoryId != null)
+                      TextButton(
+                        onPressed: _addSplit,
+                        style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            foregroundColor: accent),
+                        child: const Text('Bagi'),
+                      ),
+                  ],
+                ),
               ),
             FormRow(
               label: isTransfer ? 'Dari' : 'Akun',

@@ -69,7 +69,12 @@ class TransactionDetailSheet extends StatelessWidget {
             child: Column(
               children: [
                 row('Tipe', t.type.label),
-                row('Kategori', store.categoryLabel(t)),
+                if (t.splits.isEmpty)
+                  row('Kategori', store.categoryLabel(t))
+                else
+                  for (final sp in t.splits)
+                    row(store.categoryById(sp.categoryId)?.name ?? 'Tanpa kategori',
+                        money(sp.amount, cur)),
                 if (t.type == TxType.transfer) ...[
                   row('Dari Akun', store.accountName(t.accountId)),
                   row('Ke Akun', store.accountName(t.toAccountId)),

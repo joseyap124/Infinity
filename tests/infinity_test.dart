@@ -1029,4 +1029,88 @@ void main() {
       expect(AppStore.parseSearchAmount('abc'), isNull);
     });
   });
+
+  group('v3.4', () {
+    AppStore splitStore() {
+      final s = storeWith([acc('gopay', initial: 1000000, type: AccountType.ewallet)], [
+        Transaction(
+          id: 'sp',
+          title: 'Indomaret',
+          amount: 150000,
+          type: TxType.expense,
+          categoryId: 'makan',
+          accountId: 'gopay',
+          date: DateTime(2026, 10, 9, 15),
+          splits: const [TxSplit('makan', 90000), TxSplit('rumah', 40000), TxSplit('pulsa', 20000)],
+        ),
+        tx('k', TxType.expense, 24000, 'gopay', cat: 'makan', title: 'Kopi', date: DateTime(2026, 10, 9, 9)),
+      ]);
+      s.categories = [
+        TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0),
+        TxCategory(id: 'rumah', name: 'Rumah tangga', type: TxType.expense, icon: 'home', color: 0),
+        TxCategory(id: 'pulsa', name: 'Pulsa', type: TxType.expense, icon: 'phone', color: 0),
+      ];
+      return s;
+    }
+
+    test('bagi kategori: saldo satu transaksi, statistik per kategori', () {
+      final s = splitStore();
+      final r = monthRange(DateTime(2026, 10));
+      expect(s.balanceOf('gopay'), 1000000 - 150000 - 24000);
+      expect(s.sumIDR(TxType.expense, r), 174000);
+      final cats = s.byTopCategory(TxType.expense, r);
+      expect(cats['makan'], 114000);
+      expect(cats['rumah'], 40000);
+      expect(cats['pulsa'], 20000);
+      expect(s.sumIDR(TxType.expense, r, topCategory: 'rumah'), 40000);
+      expect(s.categoryLabel(s.transactions.first), 'Makan + Rumah tangga + Pulsa');
+      expect(s.search('pulsa').map((t) => t.id), ['sp']);
+    });
+
+    test('bagi kategori: simpan, buka lagi, ekspor', () {
+      final s = splitStore();
+      final t = s.transactions.first;
+      final back = Transaction.fromJson(t.toJson());
+      expect(back.splits.length, 3);
+      expect(back.splits[1].categoryId, 'rumah');
+      expect(back.splits[1].amount, 40000);
+      // Transaksi biasa tidak menulis kolom splits.
+      expect(s.transactions[1].toJson().containsKey('splits'), isFalse);
+      // Draft: kurang dari 2 bagian = transaksi biasa.
+      final d = TxDraft.fromTransaction(t);
+      expect(d.splits.length, 3);
+      d.splits = [const TxSplit('makan', 150000)];
+      expect(d.toTransaction('x').splits, isEmpty);
+      // Ekspor: satu baris per bagian.
+      final rows = s.exportRows(null);
+      final indo = rows.where((r) => r[4] == 'Indomaret').toList();
+      expect(indo.length, 3);
+      expect(indo.fold<double>(0, (a, r) => a + (r[5] as double)), 150000);
+    });
+
+    test('bagi kategori: kategori terhapus ikut diperbaiki', () {
+      final s = splitStore();
+      s.categories.removeWhere((c) => c.id == 'pulsa');
+      s.categories.add(TxCategory(id: 'lain', name: 'Lain lain', type: TxType.expense, icon: 'other', color: 0));
+      final issue = s.healthCheck(DateTime(2026, 10, 9)).firstWhere((i) => i.title.contains('kategorinya sudah dihapus'));
+      issue.fix!();
+      final t = s.transactions.firstWhere((t) => t.id == 'sp');
+      expect(t.splits.any((x) => x.categoryId == 'pulsa'), isFalse);
+      expect(t.splits.length, 3);
+    });
+
+    test('widget menampilkan aman dibelanjakan dengan tanggal', () {
+      final s = splitStore();
+      final w = s.widgetData();
+      expect(w['w_budget'], anyOf(startsWith('Aman '), startsWith('Lewat ')));
+      s.settings.hideBalance = true;
+      expect(s.widgetData()['w_budget'], contains('••••'));
+    });
+
+    test('ukuran huruf tersimpan', () {
+      final a = AppSettings()..textScale = 1.3;
+      expect(AppSettings.fromJson(a.toJson()).textScale, 1.3);
+      expect(AppSettings.fromJson(AppSettings().toJson()).textScale, 1.0);
+    });
+  });
 }

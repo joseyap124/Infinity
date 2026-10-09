@@ -3,6 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.4)
+
+### Ditambah
+- **Satu transaksi, beberapa kategori**: di form transaksi, ketuk "Bagi" di sebelah kategori. Misalnya belanja Indomaret Rp 150.000 dibagi ke Makan, Rumah tangga, dan Pulsa. Baris pertama otomatis berisi sisanya, jadi total selalu pas. Riwayat tetap menampilkan satu transaksi; Statistik, Anggaran, rekap, Acara, dan ekspor Excel menghitung per kategori.
+- **Ukuran huruf** (Lainnya → Tampilan): Normal, Besar, Sangat besar. Dikalikan dengan ukuran huruf HP, dibatasi supaya tampilan tetap rapi.
+
+### Diubah
+- **Widget layar utama** menampilkan "Aman dibelanjakan" hari ini (dengan tanggalnya) dan sisa anggaran, serta nama bulan keuangan kalau memakai tanggal gajian.
+
 ## v3.3 (9 Okt 2026)
 
 Mencatat lebih cepat dan bulan keuangan bisa ikut tanggal gajian.

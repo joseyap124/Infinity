@@ -106,6 +106,23 @@ class TxCategory {
       );
 }
 
+/// Satu bagian transaksi yang dibagi ke beberapa kategori (v3.4).
+/// [amount] dalam mata uang akun transaksi.
+class TxSplit {
+  const TxSplit(this.categoryId, this.amount);
+  final String categoryId;
+  final double amount;
+
+  Map<String, dynamic> toJson() => {'c': categoryId, 'a': amount};
+
+  static TxSplit? fromJson(Object? j) {
+    if (j is! Map) return null;
+    final c = _s(j['c']);
+    if (c == null) return null;
+    return TxSplit(c, _d(j['a']));
+  }
+}
+
 class Transaction {
   const Transaction({
     required this.id,
@@ -121,10 +138,15 @@ class Transaction {
     this.recurringId,
     this.photos = const [],
     this.eventId,
+    this.splits = const [],
   });
 
   final String id;
   final String title;
+
+  /// Kalau tidak kosong: nominal dibagi ke beberapa kategori. [categoryId]
+  /// berisi kategori bagian terbesar (untuk ikon dan tampilan ringkas).
+  final List<TxSplit> splits;
 
   /// Acara/tag (mis. "Trip Bali") untuk menjumlah pengeluaran satu acara.
   final String? eventId;
@@ -164,7 +186,27 @@ class Transaction {
         'recurringId': recurringId,
         if (photos.isNotEmpty) 'photos': photos,
         if (eventId != null) 'eventId': eventId,
+        if (splits.isNotEmpty) 'splits': splits.map((s) => s.toJson()).toList(),
       };
+
+  /// Salinan dengan beberapa kolom diganti.
+  Transaction copyWith({String? categoryId, List<TxSplit>? splits}) =>
+      Transaction(
+        id: id,
+        title: title,
+        amount: amount,
+        toAmount: toAmount,
+        type: type,
+        categoryId: categoryId ?? this.categoryId,
+        accountId: accountId,
+        toAccountId: toAccountId,
+        date: date,
+        note: note,
+        recurringId: recurringId,
+        photos: photos,
+        eventId: eventId,
+        splits: splits ?? this.splits,
+      );
 
   factory Transaction.fromJson(Map<String, dynamic> j) => Transaction(
         id: j['id'] as String,
@@ -182,6 +224,11 @@ class Transaction {
             ? (j['photos'] as List).whereType<String>().toList()
             : const [],
         eventId: _s(j['eventId']),
+        splits: j['splits'] is List
+            ? List.unmodifiable((j['splits'] as List)
+                .map(TxSplit.fromJson)
+                .whereType<TxSplit>())
+            : const [],
       );
 }
 
@@ -313,8 +360,13 @@ class TxDraft {
     this.note = '',
     List<String>? photos,
     this.eventId,
+    List<TxSplit>? splits,
   })  : date = date ?? DateTime.now(),
-        photos = photos ?? [];
+        photos = photos ?? [],
+        splits = splits ?? [];
+
+  /// Bagian per kategori (kosong = satu kategori biasa).
+  List<TxSplit> splits;
 
   /// Acara/tag transaksi (boleh kosong).
   String? eventId;
@@ -344,6 +396,7 @@ class TxDraft {
         note: t.note,
         photos: [...t.photos],
         eventId: t.eventId,
+        splits: [...t.splits],
       );
 
   factory TxDraft.fromTemplate(TxTemplate t) => TxDraft(
@@ -371,6 +424,9 @@ class TxDraft {
         recurringId: recurringId,
         photos: List.unmodifiable(photos),
         eventId: eventId,
+        splits: type == TxType.transfer || splits.length < 2
+            ? const []
+            : List.unmodifiable(splits),
       );
 
   TxTemplate toTemplate(String id) => TxTemplate(
@@ -407,6 +463,9 @@ class AppSettings {
 
   /// 'system' | 'light' | 'dark'
   String themeMode = 'system';
+
+  /// Ukuran huruf di dalam app (dikali ukuran huruf HP): 1.0 / 1.15 / 1.3.
+  double textScale = 1.0;
   int accentIndex = 0;
 
   /// Akun yang otomatis terpilih saat mencatat transaksi baru.
@@ -488,6 +547,7 @@ class AppSettings {
         if (includeSecrets) 'pin': pin,
         'hideBalance': hideBalance,
         'themeMode': themeMode,
+        if (textScale != 1.0) 'textScale': textScale,
         'accentIndex': accentIndex,
         'defaultAccountId': defaultAccountId,
         'balanceSetAt': balanceSetAt,
@@ -543,6 +603,7 @@ class AppSettings {
     s.rates['IDR'] = 1;
     s.pin = _s(j['pin']);
     s.hideBalance = j['hideBalance'] == true;
+    s.textScale = _d(j['textScale'] ?? 1.0).clamp(0.85, 1.3);
     final tm = _s(j['themeMode']);
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);

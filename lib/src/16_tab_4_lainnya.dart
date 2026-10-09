@@ -76,6 +76,21 @@ class MoreTab extends StatelessWidget {
                   onChanged: (v) =>
                       store.updateSettings((x) => x.themeMode = v),
                 ),
+                const SizedBox(height: 12),
+                const SmallLabel('Ukuran huruf'),
+                const SizedBox(height: 8),
+                Segmented<double>(
+                  values: const [1.0, 1.15, 1.3],
+                  selected: s.textScale,
+                  labelOf: (v) => switch (v) {
+                    1.15 => 'Besar',
+                    1.3 => 'Sangat besar',
+                    _ => 'Normal',
+                  },
+                  dense: true,
+                  onChanged: (v) =>
+                      store.updateSettings((x) => x.textScale = v),
+                ),
                 const SizedBox(height: 14),
                 const SizedBox(height: 4),
                 InkWell(

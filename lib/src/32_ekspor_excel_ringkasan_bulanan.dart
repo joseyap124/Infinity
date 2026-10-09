@@ -92,39 +92,42 @@ extension ExportSummaryStore on AppStore {
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
     final df = DateFormat('MM/dd/yyyy HH:mm:ss');
+    (String, String) catNames(String? id) {
+      final c = categoryById(id);
+      if (c == null) return ('', '');
+      final pid = c.parentId;
+      final p = pid == null ? null : categoryById(pid);
+      return p != null ? (p.name, c.name) : (c.name, '');
+    }
+
     for (final t in txs) {
-      String cat = '', sub = '';
-      if (t.type == TxType.transfer) {
-        cat = accountName(t.toAccountId);
-      } else {
-        final c = categoryById(t.categoryId);
-        if (c != null) {
-          final pid = c.parentId;
-          final p = pid == null ? null : categoryById(pid);
-          if (p != null) {
-            cat = p.name;
-            sub = c.name;
-          } else {
-            cat = c.name;
-          }
-        }
+      // Transaksi yang dibagi ke beberapa kategori: satu baris per bagian,
+      // supaya total per kategori di Excel tetap benar.
+      final parts = t.type == TxType.transfer
+          ? [(null as String?, amountIDR(t))]
+          : categoryParts(t);
+      final rate = amountIDR(t) == 0 ? 1.0 : t.amount / amountIDR(t);
+      for (final (cid, idr) in parts) {
+        final (cat, sub) = t.type == TxType.transfer
+            ? (accountName(t.toAccountId), '')
+            : catNames(cid);
+        rows.add([
+          df.format(t.date),
+          accountName(t.accountId),
+          cat,
+          sub,
+          t.title,
+          idr,
+          switch (t.type) {
+            TxType.expense => 'Expense',
+            TxType.income => 'Income',
+            TxType.transfer => 'Transfer-Out',
+          },
+          parts.length > 1 ? '${t.note} (bagian dari ${t.title})'.trim() : t.note,
+          parts.length > 1 ? idr * rate : t.amount,
+          currencyOf(t.accountId),
+        ]);
       }
-      rows.add([
-        df.format(t.date),
-        accountName(t.accountId),
-        cat,
-        sub,
-        t.title,
-        amountIDR(t),
-        switch (t.type) {
-          TxType.expense => 'Expense',
-          TxType.income => 'Income',
-          TxType.transfer => 'Transfer-Out',
-        },
-        t.note,
-        t.amount,
-        currencyOf(t.accountId),
-      ]);
     }
     return rows;
   }
@@ -147,9 +150,10 @@ extension ExportSummaryStore on AppStore {
       final m = <String, double>{};
       for (final t in transactions) {
         if (t.type != TxType.expense || !inRange(t.date, r)) continue;
-        final cid = t.categoryId;
-        final top = cid == null ? '' : topCategoryId(cid);
-        m[top] = (m[top] ?? 0) + amountIDR(t);
+        for (final (cid, v) in categoryParts(t)) {
+          final top = cid == null ? '' : topCategoryId(cid);
+          m[top] = (m[top] ?? 0) + v;
+        }
       }
       return m;
     }

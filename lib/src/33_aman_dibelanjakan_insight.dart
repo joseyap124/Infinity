@@ -358,13 +358,15 @@ extension InsightStore on AppStore {
     final week = <String, double>{}, hist = <String, double>{};
     for (final t in transactions) {
       if (t.type != TxType.expense) continue;
-      final cid = t.categoryId;
-      if (cid == null || t.recurringId != null) continue;
-      final top = topCategoryId(cid);
-      if (!t.date.isBefore(weekStart) && t.date.isBefore(end)) {
-        week[top] = (week[top] ?? 0) + amountIDR(t);
-      } else if (!t.date.isBefore(histStart) && t.date.isBefore(weekStart)) {
-        hist[top] = (hist[top] ?? 0) + amountIDR(t);
+      if (t.recurringId != null) continue;
+      for (final (cid, v) in categoryParts(t)) {
+        if (cid == null) continue;
+        final top = topCategoryId(cid);
+        if (!t.date.isBefore(weekStart) && t.date.isBefore(end)) {
+          week[top] = (week[top] ?? 0) + v;
+        } else if (!t.date.isBefore(histStart) && t.date.isBefore(weekStart)) {
+          hist[top] = (hist[top] ?? 0) + v;
+        }
       }
     }
     final out = <(String, double, double)>[];

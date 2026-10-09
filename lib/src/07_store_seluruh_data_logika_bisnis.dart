@@ -259,6 +259,7 @@ class AppStore extends ChangeNotifier {
     settings.biometric = old.biometric;
     settings.secureScreen = old.secureScreen;
     settings.themeMode = old.themeMode;
+    settings.textScale = old.textScale;
     settings.accentIndex = old.accentIndex;
     settings.autoBackup = old.autoBackup;
     settings.lastAutoBackup = old.lastAutoBackup;
@@ -477,6 +478,11 @@ class AppStore extends ChangeNotifier {
 
   String categoryLabel(Transaction t) {
     if (t.type == TxType.transfer) return 'Transfer';
+    if (t.splits.isNotEmpty) {
+      return t.splits
+          .map((s) => categoryById(s.categoryId)?.name ?? 'Tanpa kategori')
+          .join(' + ');
+    }
     final c = categoryById(t.categoryId);
     if (c == null) return 'Tanpa kategori';
     final parent = categoryById(c.parentId);
@@ -511,13 +517,32 @@ class AppStore extends ChangeNotifier {
 
   // ---------------------------------------------------------------- agregat
 
+  /// Bagian per kategori dalam Rupiah. Transaksi biasa: satu bagian.
+  /// Transaksi yang dibagi: satu bagian per kategori; selisih pembulatan
+  /// masuk ke kategori utama.
+  List<(String?, double)> categoryParts(Transaction t) {
+    final total = amountIDR(t);
+    if (t.splits.isEmpty) return [(t.categoryId, total)];
+    final rate = t.amount == 0 ? 0.0 : total / t.amount;
+    final out = <(String?, double)>[];
+    var rest = t.amount;
+    for (final s in t.splits) {
+      out.add((s.categoryId, s.amount * rate));
+      rest -= s.amount;
+    }
+    if (rest.abs() > 0.004) out.add((t.categoryId, rest * rate));
+    return out;
+  }
+
   double sumIDR(TxType type, DateTimeRange r, {String? topCategory}) {
     var s = 0.0;
     for (final t in transactions) {
       if (t.type != type || !inRange(t.date, r)) continue;
       if (topCategory != null) {
-        final cid = t.categoryId;
-        if (cid == null || topCategoryId(cid) != topCategory) continue;
+        for (final (cid, v) in categoryParts(t)) {
+          if (cid != null && topCategoryId(cid) == topCategory) s += v;
+        }
+        continue;
       }
       s += amountIDR(t);
     }
@@ -528,8 +553,10 @@ class AppStore extends ChangeNotifier {
     final m = <String, double>{};
     for (final t in transactions) {
       if (t.type != type || !inRange(t.date, r)) continue;
-      final key = t.categoryId == null ? '_none' : topCategoryId(t.categoryId!);
-      m[key] = (m[key] ?? 0) + amountIDR(t);
+      for (final (cid, v) in categoryParts(t)) {
+        final key = cid == null ? '_none' : topCategoryId(cid);
+        m[key] = (m[key] ?? 0) + v;
+      }
     }
     return m;
   }
@@ -538,9 +565,10 @@ class AppStore extends ChangeNotifier {
     final m = <String, double>{};
     for (final t in transactions) {
       if (t.type != type || !inRange(t.date, r)) continue;
-      final cid = t.categoryId;
-      if (cid == null || topCategoryId(cid) != topId) continue;
-      m[cid] = (m[cid] ?? 0) + amountIDR(t);
+      for (final (cid, v) in categoryParts(t)) {
+        if (cid == null || topCategoryId(cid) != topId) continue;
+        m[cid] = (m[cid] ?? 0) + v;
+      }
     }
     return m;
   }
@@ -732,7 +760,10 @@ class AppStore extends ChangeNotifier {
     if (categories.any((c) => c.parentId == id)) {
       return 'Hapus sub-kategorinya dulu.';
     }
-    final used = transactions.where((t) => t.categoryId == id).length;
+    final used = transactions
+        .where((t) =>
+            t.categoryId == id || t.splits.any((s) => s.categoryId == id))
+        .length;
     if (used > 0) return 'Kategori masih dipakai $used transaksi.';
     if (recurring.any((r) => r.categoryId == id) ||
         templates.any((t) => t.categoryId == id)) {
@@ -1125,7 +1156,9 @@ class AppStore extends ChangeNotifier {
       final idx = <String, List<(DateTime, String)>>{};
       for (final t in transactions) {
         final c = t.categoryId;
-        if (t.type == TxType.transfer || c == null) continue;
+        if (t.type == TxType.transfer || c == null || t.splits.isNotEmpty) {
+          continue;
+        }
         final tk = titleKey(t.title);
         if (tk.length < 3) continue;
         (idx['${t.type.name}|$tk'] ??= []).add((t.date, c));
@@ -1452,22 +1485,30 @@ class AppStore extends ChangeNotifier {
     final month = currentPeriod(now);
     final income = sumIDR(TxType.income, month);
     final expense = sumIDR(TxType.expense, month);
-    String budget = 'Anggaran belum diatur';
+    // Baris bawah: sisa aman dibelanjakan hari ini (ditandai tanggal, karena
+    // widget tidak diperbarui tengah malam kalau app tidak dibuka).
+    final day = DateFormat('d MMM', 'id_ID').format(now);
+    final safe = safeToSpend(now);
+    final left = safe.leftToday;
+    String line = left >= 0
+        ? 'Aman $day: ${hide ? '••••' : 'Rp ${compactMoney(left)}'}'
+        : 'Lewat $day: ${hide ? '••••' : 'Rp ${compactMoney(-left)}'}';
     if (s.globalBudget > 0) {
       final spent = sumIDR(TxType.expense, s.budgetPeriod.range(now));
       final remaining = s.globalBudget - spent;
       final pct = (remaining / s.globalBudget * 100).clamp(0, 100).round();
-      budget = hide
-          ? 'Sisa anggaran $pct%'
-          : 'Sisa anggaran Rp ${compactMoney(remaining)} ($pct%)';
+      line = '$line · anggaran $pct%';
     }
+    final label = periodLabelOf(now);
     return {
-      'w_month': DateFormat('MMMM yyyy', 'id_ID').format(now),
+      'w_month': gPeriodStartDay > 1
+          ? DateFormat('MMM yyyy', 'id_ID').format(label)
+          : DateFormat('MMMM yyyy', 'id_ID').format(label),
       'w_balance': hide ? 'Rp ••••••' : money(netWorthIDR),
       // Ringkas (mis. "Rp 7,5 jt") supaya muat di widget kecil.
       'w_income': hide ? 'Masuk ••••' : 'Masuk Rp ${compactMoney(income)}',
       'w_expense': hide ? 'Keluar ••••' : 'Keluar Rp ${compactMoney(expense)}',
-      'w_budget': budget,
+      'w_budget': line,
     };
   }
 
