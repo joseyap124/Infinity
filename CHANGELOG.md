@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.4)
+## v3.4 (9 Okt 2026)
 
 ### Ditambah
 - **Satu transaksi, beberapa kategori**: di form transaksi, ketuk "Bagi" di sebelah kategori. Misalnya belanja Indomaret Rp 150.000 dibagi ke Makan, Rumah tangga, dan Pulsa. Baris pertama otomatis berisi sisanya, jadi total selalu pas. Riwayat tetap menampilkan satu transaksi; Statistik, Anggaran, rekap, Acara, dan ekspor Excel menghitung per kategori.
