@@ -713,13 +713,10 @@ class DashboardTab extends StatelessWidget {
 
   Widget _header(BuildContext context) {
     final hide = store.settings.hideBalance;
+    // Tanpa pita warna: latar Beranda sama dengan latar app (v3.6.1).
     return Container(
-      decoration: BoxDecoration(
-        color: C.accentDark,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-      ),
       padding: EdgeInsets.fromLTRB(
-          16, MediaQuery.paddingOf(context).top + 8, 16, 16),
+          16, MediaQuery.paddingOf(context).top + 8, 16, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -741,15 +738,15 @@ class DashboardTab extends StatelessWidget {
                             Text(store.settings.displayName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    color: Colors.white,
+                                style: TextStyle(
+                                    color: C.carbon,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w900)),
                             Text(_greeting(),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    color: Colors.white,
+                                style: TextStyle(
+                                    color: C.muted,
                                     fontSize: 11.5,
                                     height: 1.25)),
                           ],
@@ -766,7 +763,7 @@ class DashboardTab extends StatelessWidget {
                     hide
                         ? Icons.visibility_off_rounded
                         : Icons.visibility_rounded,
-                    color: Colors.white),
+                    color: C.carbon),
               ),
             ],
           ),
@@ -951,12 +948,7 @@ class DashboardTab extends StatelessWidget {
       decoration: BoxDecoration(
         color: C.surface,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 8)),
-        ],
+        border: Border.all(color: C.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

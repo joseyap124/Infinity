@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.6)
+## Berikutnya (v3.6.1)
+
+### Diubah
+- **Beranda tanpa pita warna**: latar belakang bagian atas Beranda sekarang polos seperti halaman lain (tidak ada blok hijau atau warna aksen). Nama dan sapaan mengikuti warna teks tema, ikon status bar mengikuti tema, dan kartu akun diberi garis tipis sebagai pengganti bayangan.
+
+## v3.6 (10 Okt 2026)
 
 Beranda baru, statistik kebutuhan/keinginan/tabungan, dan backup yang lebih aman.
 

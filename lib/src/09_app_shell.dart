@@ -448,7 +448,9 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
           MoreTab(store: store),
         ];
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: (_tab == 0
+          // Beranda tidak lagi punya pita warna, jadi ikon status bar sama
+          // dengan tab lain (gelap di tema terang, terang di tema gelap).
+          value: (C.isDark
                   ? SystemUiOverlayStyle.light
                   : SystemUiOverlayStyle.dark)
               .copyWith(statusBarColor: Colors.transparent),
