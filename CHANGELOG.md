@@ -6,7 +6,7 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya (v3.6.1)
 
 ### Diubah
-- **Beranda tanpa pita warna**: latar belakang bagian atas Beranda sekarang polos seperti halaman lain (tidak ada blok hijau atau warna aksen). Nama dan sapaan mengikuti warna teks tema, ikon status bar mengikuti tema, dan kartu akun diberi garis tipis sebagai pengganti bayangan.
+- **Beranda tanpa warna di belakang**: tidak ada lagi blok hijau atau warna aksen di latar atas. Latar sama dengan halaman lain; nama, sapaan, dan ikon status bar mengikuti tema. Kartu gelap sekarang berisi juga Total saldo dan "Kelola akun". Akun dan tombol Bills/Budget/Patungan/Utang jadi kartu putih polos bergaris tipis (akun diberi titik warna kecil), bukan lagi kotak berwarna di dalam satu kartu besar.
 
 ## v3.6 (10 Okt 2026)
 

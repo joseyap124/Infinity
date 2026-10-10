@@ -790,12 +790,19 @@ class DashboardTab extends StatelessWidget {
     final over = left < 0;
     const inColor = Color(0xFF4ADE80);
     const outColor = Color(0xFFFB7185);
-    final bg = C.isDark ? const Color(0xFF262A33) : const Color(0xFF1B1F27);
-    final total = income + expense;
-    final inShare = total <= 0 ? 0.5 : income / total;
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(24),
+    final top = C.isDark ? const Color(0xFF1F2E34) : const Color(0xFF0E2733);
+    final bottom = C.isDark ? const Color(0xFF243C3C) : const Color(0xFF153F3E);
+    final totalFlow = income + expense;
+    final inShare = totalFlow <= 0 ? 0.5 : income / totalFlow;
+    final netWorth = store.netWorthIDR;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [top, bottom]),
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
         child: Column(
@@ -881,6 +888,38 @@ class DashboardTab extends StatelessWidget {
             ),
             InkWell(
               borderRadius: BorderRadius.circular(12),
+              onTap: () => _push(context, AccountsPage(store: store)),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 4),
+                child: Row(
+                  children: [
+                    const Text('Total saldo ',
+                        style:
+                            TextStyle(fontSize: 12.5, color: Colors.white60)),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(hide ? 'Rp ••••••••' : money(netWorth),
+                            style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white)),
+                      ),
+                    ),
+                    const Text('Kelola akun',
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white70)),
+                    const Icon(Icons.chevron_right_rounded,
+                        size: 18, color: Colors.white54),
+                  ],
+                ),
+              ),
+            ),
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
               onTap: onSeeAll,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -937,140 +976,112 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
-  /// Total saldo, akun dalam grid 2 kolom (maks 4), dan 4 tombol pintas.
+  /// Akun dalam grid 2 kolom (maks 4) dan 4 tombol pintas, semuanya kartu
+  /// putih polos di atas latar halaman (tanpa blok warna di belakang).
   Widget _accountsCard(BuildContext context) {
-    final total = store.netWorthIDR;
     final hide = store.settings.hideBalance;
     final shown = store.accounts.take(4).toList();
     final more = store.accounts.length - shown.length;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
-      decoration: BoxDecoration(
-        color: C.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: C.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () => _push(context, AccountsPage(store: store)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Text('Total saldo',
-                      style: TextStyle(fontSize: 12.5, color: C.muted)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        hide ? 'Rp ••••••••' : money(total),
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: total < 0 ? C.redDark : C.carbon),
-                      ),
-                    ),
-                  ),
-                  Text('Kelola akun',
-                      style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: C.accentDark)),
-                  Icon(Icons.chevron_right_rounded,
-                      size: 18, color: C.accentDark),
-                ],
-              ),
-            ),
-          ),
-          LayoutBuilder(builder: (context, box) {
-            const gap = 8.0;
-            final w = (box.maxWidth - gap) / 2;
-            return Wrap(
-              spacing: gap,
-              runSpacing: gap,
-              children: [
-                for (final a in shown)
-                  SizedBox(width: w, child: _accountTile(context, a, hide)),
-              ],
-            );
-          }),
-          if (more > 0)
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => _push(context, AccountsPage(store: store)),
-                style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(horizontal: 8)),
-                child: Text('Semua akun (${store.accounts.length}) ›',
-                    style: const TextStyle(fontSize: 12.5)),
-              ),
-            ),
-          const SizedBox(height: 6),
-          Divider(height: 1, color: C.line),
-          const SizedBox(height: 8),
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LayoutBuilder(builder: (context, box) {
+          const gap = 10.0;
+          final w = (box.maxWidth - gap) / 2;
+          return Wrap(
+            spacing: gap,
+            runSpacing: gap,
             children: [
-              _quickAction(Icons.receipt_long_rounded, 'Bills', C.amberDark,
-                  () => _push(context, RecurringPage(store: store))),
-              _quickAction(Icons.track_changes_rounded, 'Budget',
-                  C.accentDark,
-                  () => _push(context, BudgetPage(store: store))),
-              _quickAction(Icons.groups_rounded, 'Patungan', C.blueDark,
-                  () => showSheet<void>(context, PatunganSheet(store: store))),
-              _quickAction(Icons.request_quote_rounded, 'Utang', C.redDark,
-                  () => _push(context, DebtsPage(store: store))),
+              for (final a in shown)
+                SizedBox(width: w, child: _accountTile(context, a, hide)),
             ],
+          );
+        }),
+        if (more > 0)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => _push(context, AccountsPage(store: store)),
+              style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 8)),
+              child: Text('Semua akun (${store.accounts.length}) ›',
+                  style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: C.accentDark)),
+            ),
           ),
-        ],
-      ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _quickAction(Icons.receipt_long_rounded, 'Bills', C.amberDark,
+                () => _push(context, RecurringPage(store: store))),
+            const SizedBox(width: 10),
+            _quickAction(Icons.track_changes_rounded, 'Budget', C.redDark,
+                () => _push(context, BudgetPage(store: store))),
+            const SizedBox(width: 10),
+            _quickAction(Icons.groups_rounded, 'Patungan', C.blueDark,
+                () => showSheet<void>(context, PatunganSheet(store: store))),
+            const SizedBox(width: 10),
+            _quickAction(Icons.handshake_rounded, 'Utang', C.income,
+                () => _push(context, DebtsPage(store: store))),
+          ],
+        ),
+      ],
     );
   }
 
   Widget _accountTile(BuildContext context, Account a, bool hide) {
     final bal = store.balanceOf(a.id);
-    return GestureDetector(
-      onTap: () => openAccountHistory(context, store, a),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: a.colorValue.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: [
-            CatIcon(icon: a.type.icon, color: a.colorValue, size: 30),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Material(
+      color: C.surface,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => openAccountHistory(context, store, a),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: C.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Text(a.currency == 'IDR' ? a.name : '${a.name} · ${a.currency}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 11,
-                          color: C.muted,
-                          fontWeight: FontWeight.w600)),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(hide ? '•••••' : money(bal, a.currency),
+                  Container(
+                    width: 9,
+                    height: 9,
+                    decoration: BoxDecoration(
+                        color: a.colorValue, shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                        a.currency == 'IDR' ? a.name : '${a.name} · ${a.currency}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: bal < 0 ? C.redDark : C.carbon)),
+                            fontSize: 12,
+                            color: C.muted,
+                            fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(hide ? '•••••' : money(bal, a.currency),
+                    style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w800,
+                        color: bal < 0 ? C.redDark : C.carbon)),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1079,27 +1090,31 @@ class DashboardTab extends StatelessWidget {
   Widget _quickAction(
       IconData icon, String label, Color color, VoidCallback onTap) {
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                    color: color, borderRadius: BorderRadius.circular(14)),
-                child: Icon(icon, color: Colors.white, size: 20),
-              ),
-              const SizedBox(height: 4),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: C.carbon)),
-            ],
+      child: Material(
+        color: C.surface,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: C.line),
+            ),
+            child: Column(
+              children: [
+                Icon(icon, color: color, size: 24),
+                const SizedBox(height: 4),
+                Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: C.carbon)),
+              ],
+            ),
           ),
         ),
       ),
