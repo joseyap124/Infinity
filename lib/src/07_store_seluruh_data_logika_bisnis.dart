@@ -253,24 +253,46 @@ class AppStore extends ChangeNotifier {
     _seenCaptureKeys = seen;
   }
 
-  /// Pengaturan keamanan tidak ikut terhapus/tertimpa saat reset atau impor.
+  /// Yang selalu tetap milik HP ini, juga saat impor backup: keamanan (PIN,
+  /// biometrik, layar aman), catatan backup otomatis, dan foto profil (file
+  /// fotonya hanya ada di HP ini, tidak ikut backup).
   void _keepSecurity(AppSettings old) {
     settings.pin = old.pin;
     settings.biometric = old.biometric;
     settings.secureScreen = old.secureScreen;
-    settings.themeMode = old.themeMode;
-    settings.textScale = old.textScale;
-    settings.homeCards = old.homeCards;
-    settings.accentIndex = old.accentIndex;
     settings.autoBackup = old.autoBackup;
     settings.lastAutoBackup = old.lastAutoBackup;
     settings.lastBackupSig = old.lastBackupSig;
     settings.lastDriveSave = old.lastDriveSave;
     settings.droppedCaptures = old.droppedCaptures;
-    settings.displayName = old.displayName;
     settings.avatarPath = old.avatarPath;
+  }
+
+  /// Tampilan dan profil. Dipertahankan saat reset/hapus semua, tapi saat impor
+  /// diambil dari file backup (lihat [_keepMissingAppearance]).
+  void _keepAppearance(AppSettings old) {
+    settings.themeMode = old.themeMode;
+    settings.textScale = old.textScale;
+    settings.homeCards = old.homeCards;
+    settings.accentIndex = old.accentIndex;
+    settings.displayName = old.displayName;
     settings.greetingMode = old.greetingMode;
     settings.greetingText = old.greetingText;
+  }
+
+  /// Backup lama (sebelum v3.5.3) tidak punya semua kunci tampilan. Yang tidak
+  /// ada di file tetap memakai nilai di HP ini, bukan nilai bawaan.
+  void _keepMissingAppearance(AppSettings old, Object? fileSettings) {
+    final has = fileSettings is Map ? fileSettings : const {};
+    if (!has.containsKey('themeMode')) settings.themeMode = old.themeMode;
+    if (!has.containsKey('textScale')) settings.textScale = old.textScale;
+    if (!has.containsKey('homeCards')) settings.homeCards = old.homeCards;
+    if (!has.containsKey('accentIndex')) settings.accentIndex = old.accentIndex;
+    if (!has.containsKey('displayName')) settings.displayName = old.displayName;
+    if (!has.containsKey('greetingMode')) {
+      settings.greetingMode = old.greetingMode;
+      settings.greetingText = old.greetingText;
+    }
   }
 
   String exportJson() => const JsonEncoder.withIndent('  ')
@@ -286,6 +308,7 @@ class AppStore extends ChangeNotifier {
     final seen = _seenCaptureKeys;
     _applyJson(Map<String, dynamic>.from(decoded));
     _keepSecurity(old);
+    _keepMissingAppearance(old, decoded['settings']);
     pendingCaptures = pend;
     _seenCaptureKeys = seen;
     processRecurring(notify: false);
@@ -296,6 +319,7 @@ class AppStore extends ChangeNotifier {
     final old = settings;
     _seedDemo();
     _keepSecurity(old);
+    _keepAppearance(old);
     processRecurring(notify: false);
     _commit();
   }
@@ -304,6 +328,7 @@ class AppStore extends ChangeNotifier {
     final old = settings;
     _seedEmpty();
     _keepSecurity(old);
+    _keepAppearance(old);
     _commit();
   }
 
@@ -1326,6 +1351,67 @@ class AppStore extends ChangeNotifier {
     }
   }
 
+  /// Ringkasan isi backup tanpa mengubah data apa pun. Lempar FormatException.
+  static BackupInfo peekJson(String raw) {
+    Object? d;
+    try {
+      d = jsonDecode(raw.trim());
+    } on FormatException {
+      throw const FormatException('Bukan data backup Infinity.');
+    }
+    if (d is! Map || d['accounts'] is! List) {
+      throw const FormatException('Bukan data backup Infinity.');
+    }
+    int n(Object? v) => v is List ? v.length : 0;
+    DateTime? last;
+    final txs = d['transactions'];
+    if (txs is List) {
+      for (final t in txs) {
+        if (t is! Map) continue;
+        final dt = DateTime.tryParse('${t['date']}');
+        if (dt != null && (last == null || dt.isAfter(last))) last = dt;
+      }
+    }
+    return BackupInfo(
+      exportedAt: DateTime.tryParse('${d['exportedAt']}'),
+      accounts: n(d['accounts']),
+      transactions: n(txs),
+      lastTransaction: last,
+      recurring: n(d['recurring']),
+      templates: n(d['templates']),
+      debts: n(d['debts']),
+      goals: n(d['goals']),
+      events: n(d['events']),
+    );
+  }
+
+  /// Sama seperti [peekJson] untuk isi file .infb atau .json.
+  Future<BackupInfo> peekFile(List<int> bytes, {String? password}) async {
+    if (SecureBackup.looksEncrypted(bytes)) {
+      final (json, _) = await SecureBackup.decrypt(bytes, password ?? '');
+      return peekJson(json);
+    }
+    return peekJson(utf8.decode(bytes));
+  }
+
+  /// Ringkasan data yang sedang ada di HP ini, untuk dibandingkan.
+  BackupInfo currentInfo() {
+    DateTime? last;
+    for (final t in transactions) {
+      if (last == null || t.date.isAfter(last)) last = t.date;
+    }
+    return BackupInfo(
+      accounts: accounts.length,
+      transactions: transactions.length,
+      lastTransaction: last,
+      recurring: recurring.length,
+      templates: templates.length,
+      debts: debts.length,
+      goals: goals.length,
+      events: events.length,
+    );
+  }
+
   /// Pulihkan dari isi file .infb atau .json. Lempar FormatException.
   Future<int> restoreFromFile(List<int> bytes, {String? password}) async {
     if (SecureBackup.looksEncrypted(bytes)) {
@@ -1527,4 +1613,41 @@ class AppStore extends ChangeNotifier {
     settings.hideBalance = !settings.hideBalance;
     _commit();
   }
+}
+
+/// Isi sebuah backup (atau data sekarang) dalam angka, untuk pratinjau
+/// sebelum memulihkan.
+class BackupInfo {
+  const BackupInfo({
+    this.exportedAt,
+    this.accounts = 0,
+    this.transactions = 0,
+    this.lastTransaction,
+    this.recurring = 0,
+    this.templates = 0,
+    this.debts = 0,
+    this.goals = 0,
+    this.events = 0,
+  });
+
+  final DateTime? exportedAt;
+  final int accounts;
+  final int transactions;
+  final DateTime? lastTransaction;
+  final int recurring;
+  final int templates;
+  final int debts;
+  final int goals;
+  final int events;
+
+  /// Satu baris angka: "3 kantong, 120 transaksi, 2 target, ...".
+  String counts() => [
+        '$accounts kantong',
+        '$transactions transaksi',
+        '$goals target',
+        '$debts utang/piutang',
+        '$recurring berulang',
+        '$templates template',
+        '$events acara',
+      ].join(', ');
 }

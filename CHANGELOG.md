@@ -3,6 +3,16 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v3.5.3)
+
+### Ditambah
+- **Pratinjau backup sebelum memulihkan**: dialog menampilkan isi file (tanggal dibuat, jumlah kantong, transaksi, target, utang/piutang, berulang, template, acara) di samping data di HP sekarang, plus peringatan kalau data sekarang lebih baru atau lebih banyak. Jadi ketahuan kalau salah pilih file. Kata sandi file .infb ditanya dan diperiksa sebelum dialog ini.
+
+### Diubah
+- **Pulihkan backup sekarang memulihkan semua pengaturan**, termasuk tema, ukuran huruf, warna, susunan kartu Beranda, nama, dan sapaan. Yang tetap milik HP ini hanya PIN, biometrik, layar aman, catatan backup otomatis, dan foto profil (filenya tidak ikut backup). Backup lama yang tidak punya pengaturan tampilan tidak menimpa tampilan HP ini dengan nilai bawaan.
+- Ukuran huruf sekarang selalu ditulis di backup (sebelumnya dilewati kalau normal).
+- Reset dan hapus semua tetap mempertahankan tampilan seperti biasa.
+
 ## v3.5.2 (9 Okt 2026)
 
 ### Diperbaiki

@@ -47,15 +47,49 @@ class _BackupPageState extends State<BackupPage> {
     setState(() => _importCtrl.text = data?.text ?? '');
   }
 
+  /// Isi backup di samping data sekarang, supaya ketahuan kalau salah pilih file.
+  String _compareText(String name, BackupInfo file) {
+    final now = store.currentInfo();
+    final full = DateFormat('d MMM yyyy, HH.mm', 'id_ID');
+    final day = DateFormat('d MMM yyyy', 'id_ID');
+    final b = StringBuffer('Isi $name\n');
+    final at = file.exportedAt;
+    if (at != null) b.writeln('Dibuat ${full.format(at)}');
+    b.writeln(file.counts());
+    final fl = file.lastTransaction;
+    if (fl != null) b.writeln('Transaksi terakhir ${day.format(fl)}');
+    b.writeln('\nData sekarang');
+    b.writeln(now.counts());
+    final nl = now.lastTransaction;
+    if (nl != null) b.writeln('Transaksi terakhir ${day.format(nl)}');
+    final newer = (nl != null && fl != null && nl.isAfter(fl)) ||
+        now.transactions > file.transactions ||
+        now.goals > file.goals ||
+        now.debts > file.debts ||
+        now.accounts > file.accounts;
+    if (newer) {
+      b.writeln(
+          '\nPerhatian: data sekarang lebih baru atau lebih banyak daripada isi file ini. Pastikan ini file yang benar.');
+    }
+    b.write('\nSemua data sekarang akan DIGANTI. PIN dan pengaturan keamanan tetap.');
+    return b.toString();
+  }
+
   Future<void> _restore() async {
     if (_importCtrl.text.trim().isEmpty) {
       setState(() => _error = 'Tempel data backup dulu.');
       return;
     }
+    final BackupInfo info;
+    try {
+      info = AppStore.peekJson(_importCtrl.text);
+    } on FormatException catch (e) {
+      setState(() => _error = e.message);
+      return;
+    }
     final ok = await confirmDialog(context,
         title: 'Pulihkan backup?',
-        message:
-            'Semua data sekarang akan DIGANTI dengan isi backup. Salin backup data sekarang dulu kalau masih perlu.',
+        message: _compareText('yang ditempel', info),
         confirmLabel: 'Pulihkan',
         destructive: true);
     if (!ok || !mounted) return;
@@ -204,10 +238,20 @@ class _BackupPageState extends State<BackupPage> {
           confirm: false, title: 'Kata sandi untuk ${picked.name}');
       if (pw == null || !mounted) return;
     }
+    final BackupInfo info;
+    try {
+      info = await store.peekFile(picked.bytes, password: pw);
+    } on FormatException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+      return;
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Gagal membuka backup: $e');
+      return;
+    }
+    if (!mounted) return;
     final ok = await confirmDialog(context,
         title: 'Pulihkan backup?',
-        message:
-            'Semua data sekarang akan DIGANTI dengan isi ${picked.name}. Backup data sekarang dulu kalau masih perlu.',
+        message: _compareText(picked.name, info),
         confirmLabel: 'Pulihkan',
         destructive: true);
     if (!ok || !mounted) return;

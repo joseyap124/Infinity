@@ -1136,4 +1136,122 @@ void main() {
       }
     });
   });
+
+  group('v3.5.3', () {
+    AppStore full() {
+      final s = storeWith([acc('bca', initial: 501000), acc('gopay')], [
+        tx('1', TxType.expense, 450000, 'bca', cat: 'makan', date: DateTime(2026, 10, 3)),
+        tx('2', TxType.transfer, 50000, 'bca', to: 'gopay', date: DateTime(2026, 10, 4)),
+      ]);
+      s.templates = [const TxTemplate(id: 't1', title: 'Kopi', amount: 24000, type: TxType.expense, accountId: 'bca')];
+      s.recurring = [
+        RecurringRule(id: 'kos', title: 'Kos', amount: 1500000, type: TxType.expense, accountId: 'bca', frequency: Frequency.monthly, start: DateTime(2099, 1, 1)),
+      ];
+      s.debts = [Debt(id: 'd', person: 'Ani', theyOwe: false, amount: 50000, date: DateTime(2026, 10, 1), payments: [DebtPayment(date: DateTime(2026, 10, 2), amount: 10000)])];
+      s.goals = [Goal(id: 'g', name: 'HP baru', target: 4000000, color: 1, saved: 500000)];
+      s.events = [TxEvent(id: 'bali', name: 'Trip Bali', start: DateTime(2026, 12, 20))];
+      s.settings
+        ..themeMode = 'dark'
+        ..textScale = 1.3
+        ..homeCards = ['goals', 'quick']
+        ..accentIndex = 2
+        ..displayName = 'Jose'
+        ..greetingMode = 'custom'
+        ..greetingText = 'Halo'
+        ..pin = '1234'
+        ..avatarPath = '/a/foto.jpg';
+      return s;
+    }
+
+    test('semua koleksi dan saldo pulih sama persis', () {
+      final s = full();
+      final s2 = AppStore();
+      s2.importJson(s.exportJson());
+      expect(s2.balanceOf('bca'), 1000);
+      expect(s2.balanceOf('gopay'), 50000);
+      expect(s2.accounts.map((a) => a.id), ['bca', 'gopay']);
+      expect(s2.transactions.length, 2);
+      expect(s2.templates.single.title, 'Kopi');
+      expect(s2.recurring.single.id, 'kos');
+      expect(s2.debts.single.remaining, 40000);
+      expect(s2.goals.single.saved, 500000);
+      expect(s2.events.single.name, 'Trip Bali');
+    });
+
+    test('tampilan dan profil ikut pulih, keamanan tetap milik HP ini', () {
+      final s2 = AppStore();
+      s2.settings
+        ..themeMode = 'light'
+        ..textScale = 1.0
+        ..accentIndex = 0
+        ..pin = '9999'
+        ..avatarPath = '/b/lain.jpg';
+      s2.importJson(full().exportJson());
+      expect(s2.settings.themeMode, 'dark');
+      expect(s2.settings.textScale, 1.3);
+      expect(s2.settings.homeCards, ['goals', 'quick']);
+      expect(s2.settings.accentIndex, 2);
+      expect(s2.settings.displayName, 'Jose');
+      expect(s2.settings.greetingMode, 'custom');
+      expect(s2.settings.greetingText, 'Halo');
+      expect(s2.settings.pin, '9999');
+      expect(s2.settings.avatarPath, '/b/lain.jpg');
+    });
+
+    test('backup lama tanpa kunci tampilan memakai nilai HP ini, bukan bawaan', () {
+      final j = jsonDecode(full().exportJson()) as Map<String, dynamic>;
+      final st = j['settings'] as Map<String, dynamic>;
+      for (final k in ['themeMode', 'textScale', 'homeCards', 'accentIndex', 'displayName', 'greetingMode', 'greetingText']) {
+        st.remove(k);
+      }
+      final s2 = AppStore();
+      s2.settings
+        ..themeMode = 'dark'
+        ..textScale = 1.15
+        ..homeCards = ['recent']
+        ..accentIndex = 3
+        ..displayName = 'Rumah'
+        ..greetingMode = 'motivation';
+      s2.importJson(jsonEncode(j));
+      expect(s2.settings.themeMode, 'dark');
+      expect(s2.settings.textScale, 1.15);
+      expect(s2.settings.homeCards, ['recent']);
+      expect(s2.settings.accentIndex, 3);
+      expect(s2.settings.displayName, 'Rumah');
+      expect(s2.settings.greetingMode, 'motivation');
+      expect(s2.transactions.length, 2);
+    });
+
+    test('reset tetap mempertahankan tampilan dan keamanan', () {
+      final s = full();
+      s.clearAll();
+      expect(s.settings.themeMode, 'dark');
+      expect(s.settings.textScale, 1.3);
+      expect(s.settings.pin, '1234');
+      expect(s.transactions, isEmpty);
+    });
+
+    test('ringkasan isi backup untuk pratinjau', () {
+      final s = full();
+      final info = AppStore.peekJson(s.exportJson());
+      expect(info.accounts, 2);
+      expect(info.transactions, 2);
+      expect(info.goals, 1);
+      expect(info.debts, 1);
+      expect(info.recurring, 1);
+      expect(info.templates, 1);
+      expect(info.events, 1);
+      expect(info.lastTransaction, DateTime(2026, 10, 4));
+      expect(info.exportedAt, isNotNull);
+      final now = s.currentInfo();
+      expect(now.transactions, 2);
+      expect(now.lastTransaction, DateTime(2026, 10, 4));
+      expect(() => AppStore.peekJson('bukan json'), throwsFormatException);
+      expect(() => AppStore.peekJson('{"a":1}'), throwsFormatException);
+    });
+
+    test('ukuran huruf selalu ditulis di backup', () {
+      expect(AppSettings().toJson().containsKey('textScale'), isTrue);
+    });
+  });
 }

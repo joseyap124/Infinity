@@ -550,7 +550,7 @@ class AppSettings {
         if (includeSecrets) 'pin': pin,
         'hideBalance': hideBalance,
         'themeMode': themeMode,
-        if (textScale != 1.0) 'textScale': textScale,
+        'textScale': textScale,
         'homeCards': homeCards,
         'accentIndex': accentIndex,
         'defaultAccountId': defaultAccountId,
