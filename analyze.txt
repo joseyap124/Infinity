@@ -1,0 +1,20 @@
+Analyzing lib...                                                
+
+   info • The import of 'dart:typed_data' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/services.dart'. Try removing the import directive • lib/main.dart:22:8 • unnecessary_import
+   info • Use interpolation to compose strings and values. Try using string interpolation to build the composite string • lib/src/02_format_parsing.dart:146:9 • prefer_interpolation_to_compose_strings
+   info • Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' • lib/src/10_shared_ui.dart:230:9 • use_null_aware_elements
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/src/10_shared_ui.dart:570:31 • unnecessary_underscores
+   info • Type could be non-nullable. Try changing the type to be non-nullable • lib/src/13_tab_1_beranda.dart:94:22 • unnecessary_nullable_for_final_variable_declarations
+   info • Angle brackets will be interpreted as HTML. Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;` • lib/src/13_tab_1_beranda.dart:146:48 • unintended_html_in_doc_comment
+   info • Angle brackets will be interpreted as HTML. Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;` • lib/src/13_tab_1_beranda.dart:146:67 • unintended_html_in_doc_comment
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/src/13_tab_1_beranda.dart:267:41 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/src/13_tab_1_beranda.dart:267:45 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/src/13_tab_1_beranda.dart:316:33 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/src/13_tab_1_beranda.dart:316:37 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/src/13_tab_1_beranda.dart:1505:35 • unnecessary_underscores
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/src/20_halaman_akun.dart:161:38 • unnecessary_underscores
+   info • Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check • lib/src/29_halaman_backup_pulihkan.dart:120:13 • use_build_context_synchronously
+   info • Type could be non-nullable. Try changing the type to be non-nullable • lib/src/32_ekspor_excel_ringkasan_bulanan.dart:78:20 • unnecessary_nullable_for_final_variable_declarations
+   info • Unnecessary use of multiple underscores. Try using '_' • lib/src/33_aman_dibelanjakan_insight.dart:944:35 • unnecessary_underscores
+
+16 issues found. (ran in 7.2s)

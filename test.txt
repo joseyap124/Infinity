@@ -1,0 +1,100 @@
+
+::group::✅ Passing tests
+✅ Saldo pemasukan, pengeluaran, transfer
+✅ Saldo transfer beda mata uang memakai jumlah diterima
+✅ Saldo excludeTxId mengabaikan transaksi yang sedang diedit
+✅ Saldo penyesuaian saldo dicatat sebagai transaksi
+✅ Akun urutkan akun (aturan ReorderableListView)
+✅ Akun hapus akun ikut menghapus transaksinya
+✅ Akun akun utama dipakai sebagai bawaan
+✅ Catat otomatis notifikasi baru langsung dicatat
+✅ Catat otomatis notifikasi sebelum saldo diubah manual tidak mengubah saldo
+✅ Utang & target cicilan utang dan lunas
+✅ Utang & target lewat tenggat
+✅ Utang & target target ikut saldo akun atau manual
+✅ Utang & target tersimpan dan terbaca ulang lewat JSON
+✅ Ekspor Excel ekspor lalu impor ulang menghasilkan transaksi yang sama
+✅ Ekspor Excel ringkasan bulan ini vs bulan lalu (hari yang sama)
+✅ Struk (OCR) total di baris yang sama, abaikan subtotal & total item
+✅ Struk (OCR) angka total di baris berikutnya
+✅ Struk (OCR) tanpa kata total = null
+✅ Teks cepat 25rb kopi
+✅ Teks cepat 25 rbu nasgor
+✅ Teks cepat kopi 25.000
+✅ Teks cepat 1,5jt hp
+✅ Teks cepat 2 jta motor
+✅ Teks cepat 12k ojek
+✅ Teks cepat 15000 parkir
+✅ Teks cepat 25 nasgor
+✅ Teks cepat tanpa angka = null
+✅ Saran ketikan awal kata, paling sering di atas
+✅ Import Money Manager kunci nama mengabaikan emoji, spasi, kurung
+✅ Import Money Manager rencana import: akun baru, transfer, anti-dobel
+✅ Import Money Manager baca xlsx (shared strings + tanggal seri Excel)
+✅ Backup terenkripsi enkripsi lalu buka kembali
+✅ Backup terenkripsi kata sandi salah ditolak
+✅ Notifikasi GoPay & cocokkan saldo nominal bukan angka saldo, isi saldo = transfer
+✅ Notifikasi GoPay & cocokkan saldo pembayaran dengan sisa saldo
+✅ Notifikasi GoPay & cocokkan saldo promo diabaikan
+✅ Notifikasi GoPay & cocokkan saldo isi saldo masuk antrean sebagai transfer bank → GoPay
+✅ Notifikasi GoPay & cocokkan saldo saldo cocok setelah isi saldo dicatat
+✅ Notifikasi GoPay & cocokkan saldo saldo beda lalu disamakan pada waktu notifikasi
+✅ Aman dibelanjakan & insight dari saldo: dibagi sisa hari, belanja hari ini terpisah
+✅ Aman dibelanjakan & insight langganan terdeteksi dari 3 bulan berturut
+✅ Aman dibelanjakan & insight pengeluaran tidak biasa: 7 hari > 2x rata-rata
+✅ Splash hanya saat pertama kali dibuka
+✅ Template edit template tidak membuat template baru
+✅ Riwayat akun saldo berjalan per akun, transfer masuk dan keluar
+✅ Riwayat akun AUD tersedia dengan kurs awal
+✅ Kurs & tabungan kurs basi diingatkan hanya kalau ada akun asing
+✅ Kurs & tabungan akun tabungan tidak dihitung di aman dibelanjakan
+✅ Patungan bagi rata dalam rupiah bulat, sisa ke bagian pertama
+✅ Patungan saldo turun penuh, pengeluaran hanya bagianku, teman jadi piutang
+✅ Kekayaan bersih saldo akhir tiap bulan, kartu kredit minus, akun asing dikurs
+✅ Acara total acara, tandai otomatis, hapus acara melepas tanda
+✅ Perkiraan akhir bulan saldo sekarang + jadwal berulang yang belum tercatat
+✅ Catatan error error dicatat dan bisa dihapus
+✅ Kesehatan data & backup dobel dan kategori hilang terdeteksi, kategori bisa diperbaiki
+✅ Kesehatan data & backup backup diverifikasi sebelum disimpan
+::endgroup::
+::group::✅ Data besar 20.000 transaksi 5 tahun tetap cepat dan saldo konsisten
+20k tx: saldo x300 6ms, insight 23ms, total 108ms
+::endgroup::
+::group::✅ Passing tests
+✅ Kalender & rekap tahunan tanggal 31, 29 Februari, dan pergantian tahun
+✅ Kalender & rekap tahunan rekap tahun: total, bulan paling boros, kekayaan awal-akhir
+✅ Rekap & saran bulanan 7 tingkat menabung
+✅ Rekap & saran bulanan boros: tekor, kategori naik, belum ada anggaran, dana darurat kurang
+✅ Rekap & saran bulanan bulan berjalan: pengeluaran besar di awal bulan tidak meledakkan perkiraan
+✅ Rekap & saran bulanan hemat: dipuji
+✅ v3.1 parseRate gaya Indonesia
+✅ v3.1 hapus piutang patungan merapikan Talangan
+✅ v3.2 sidik backup: abaikan waktu backup, berubah kalau data berubah
+✅ v3.2 antrean Perlu dicek: maksimal 300, yang terbuang dihitung
+✅ v3.2 pengingat simpan ke Drive
+✅ v3.3 periode gajian: label dan rentang
+✅ v3.3 anggaran dan rekap ikut tanggal gajian
+✅ v3.3 kategori pintar dari kebiasaan
+✅ v3.3 pencarian: semua kata, nominal, jenis, waktu
+✅ v3.4 bagi kategori: saldo satu transaksi, statistik per kategori
+✅ v3.4 bagi kategori: simpan, buka lagi, ekspor
+✅ v3.4 bagi kategori: kategori terhapus ikut diperbaiki
+✅ v3.4 widget menampilkan aman dibelanjakan dengan tanggal
+✅ v3.4 ukuran huruf tersimpan
+✅ v3.5 kartu Beranda: bawaan ringkas, urutan tersimpan, id asing dibuang
+✅ v3.5 insight dibagi: Beranda vs Rencana
+✅ v3.5.3 semua koleksi dan saldo pulih sama persis
+✅ v3.5.3 tampilan dan profil ikut pulih, keamanan tetap milik HP ini
+✅ v3.5.3 backup lama tanpa kunci tampilan memakai nilai HP ini, bukan bawaan
+✅ v3.5.3 reset tetap mempertahankan tampilan dan keamanan
+✅ v3.5.3 ringkasan isi backup untuk pratinjau
+✅ v3.5.3 ukuran huruf selalu ditulis di backup
+✅ v3.6 golongan pengeluaran golongan bawaan: kategori sendiri, lalu induk, lalu belum digolongkan
+✅ v3.6 golongan pengeluaran pilihan user menang, anak mengikuti induk, bisa dikembalikan
+✅ v3.6 golongan pengeluaran total per golongan: biasa, dibagi, transfer ke akun tabungan
+✅ v3.6 golongan pengeluaran transfer biasa antar akun harian tidak dihitung tabungan
+✅ v3.6 golongan pengeluaran pilihan golongan ikut backup dan pulih
+✅ v3.6 golongan pengeluaran jumlah transaksi periode ini untuk kartu Beranda
+::endgroup::
+
+🎉 91 tests passed.
