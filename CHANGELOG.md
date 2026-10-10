@@ -3,15 +3,22 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.5.3)
+## Berikutnya (v3.6)
+
+Beranda baru, statistik kebutuhan/keinginan/tabungan, dan backup yang lebih aman.
 
 ### Ditambah
-- **Pratinjau backup sebelum memulihkan**: dialog menampilkan isi file (tanggal dibuat, jumlah kantong, transaksi, target, utang/piutang, berulang, template, acara) di samping data di HP sekarang, plus peringatan kalau data sekarang lebih baru atau lebih banyak. Jadi ketahuan kalau salah pilih file. Kata sandi file .infb ditanya dan diperiksa sebelum dialog ini.
+- **Beranda baru**: kartu gelap berisi "Aman dibelanjakan hari ini", Masuk dan Keluar periode ini dengan bar perbandingan, dan "N transaksi periode ini" yang membuka daftar transaksi. Di bawahnya total saldo, akun dalam grid 2 kolom (maksimal 4, sisanya lewat "Semua akun"), dan empat tombol: **Bills** (tagihan dan langganan), **Budget**, **Patungan**, **Utang**. Tombol "Catat" di kanan bawah tetap ada.
+- **Catat cepat** jadi satu baris chip kecil yang bisa digeser, supaya Beranda fokus ke informasi dan transaksi terakhir.
+- **Statistik golongan pengeluaran** (Statistik): berapa persen pemasukan periode ini yang jadi Kebutuhan, Keinginan, Tabungan, Investasi diri, dan Kewajiban, dibanding periode sebelumnya. Murni statistik, tidak membatasi apa pun. Golongan tiap kategori bisa diubah (Atur golongan), kategori anak mengikuti induknya. Transfer ke akun yang ditandai "jangan hitung" (tabungan, dana darurat) dihitung sebagai Tabungan.
+- **Cadangan otomatis sebelum memulihkan**: data di HP disimpan dulu ke Download/Infinity (`infinity-sebelum-pulih-...`), jadi salah pilih file backup bisa dikembalikan.
+- **Pratinjau backup sebelum memulihkan**: dialog menampilkan isi file (tanggal dibuat, jumlah kantong, transaksi, target, utang/piutang, berulang, template, acara) di samping data di HP sekarang, plus peringatan kalau data sekarang lebih baru atau lebih banyak. Kata sandi file .infb ditanya dan diperiksa sebelum dialog ini.
 
 ### Diubah
-- **Pulihkan backup sekarang memulihkan semua pengaturan**, termasuk tema, ukuran huruf, warna, susunan kartu Beranda, nama, dan sapaan. Yang tetap milik HP ini hanya PIN, biometrik, layar aman, catatan backup otomatis, dan foto profil (filenya tidak ikut backup). Backup lama yang tidak punya pengaturan tampilan tidak menimpa tampilan HP ini dengan nilai bawaan.
+- **Pulihkan backup sekarang memulihkan semua pengaturan**, termasuk tema, ukuran huruf, warna, susunan kartu Beranda, nama, sapaan, dan golongan pengeluaran. Yang tetap milik HP ini hanya PIN, biometrik, layar aman, catatan backup otomatis, dan foto profil (filenya tidak ikut backup). Backup lama yang tidak punya pengaturan tampilan tidak menimpa tampilan HP ini dengan nilai bawaan.
 - Ukuran huruf sekarang selalu ditulis di backup (sebelumnya dilewati kalau normal).
 - Reset dan hapus semua tetap mempertahankan tampilan seperti biasa.
+- Tombol pintas "Bayar / Terima / Transfer / Rencana" di Beranda diganti Bills / Budget / Patungan / Utang. Mencatat tetap lewat tombol "Catat".
 
 ## v3.5.2 (9 Okt 2026)
 

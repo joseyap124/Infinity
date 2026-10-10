@@ -20,6 +20,20 @@ class _StatsTabState extends State<StatsTab> {
 
   DateTimeRange get _range => _mode.range(_anchor);
 
+  /// Periode sebelum yang sedang dilihat, untuk perbandingan.
+  DateTimeRange get _prevRange {
+    switch (_mode) {
+      case BudgetPeriod.weekly:
+        return weekRange(
+            DateTime(_anchor.year, _anchor.month, _anchor.day - 7));
+      case BudgetPeriod.monthly:
+        final l = periodLabelOf(_anchor);
+        return periodRange(DateTime(l.year, l.month - 1));
+      case BudgetPeriod.yearly:
+        return yearRange(DateTime(_anchor.year - 1, 1, 1));
+    }
+  }
+
   void _shift(int dir) {
     setState(() {
       switch (_mode) {
@@ -184,6 +198,8 @@ class _StatsTabState extends State<StatsTab> {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          SpendKindCard(store: store, range: r, prev: _prevRange),
           if (_mode == BudgetPeriod.monthly) ...[
             const SizedBox(height: 12),
             MonthAdviceCard(store: store, month: periodLabelOf(_anchor)),

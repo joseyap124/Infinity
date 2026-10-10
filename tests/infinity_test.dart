@@ -1254,4 +1254,121 @@ void main() {
       expect(AppSettings().toJson().containsKey('textScale'), isTrue);
     });
   });
+
+  group('v3.6 golongan pengeluaran', () {
+    TxCategory c(String id, {String? parent}) => TxCategory(
+        id: id,
+        name: id,
+        type: TxType.expense,
+        icon: 'food',
+        color: 0xFF000000,
+        parentId: parent);
+
+    AppStore withCats(List<Account> a, [List<Transaction> t = const []]) {
+      final s = storeWith(a, t);
+      s.categories = [
+        c('pokok'),
+        c('makan', parent: 'pokok'),
+        c('sehat'),
+        c('olahraga', parent: 'sehat'),
+        c('edu'),
+        c('buku', parent: 'edu'),
+        c('sosial'),
+        c('gift_out', parent: 'sosial'),
+        c('donasi', parent: 'sosial'),
+        c('hiburan'),
+        c('cafe', parent: 'hiburan'),
+        c('cicilan'),
+        c('mine'),
+      ];
+      return s;
+    }
+
+    final oct = DateTimeRange(start: DateTime(2026, 10, 1), end: DateTime(2026, 11, 1));
+
+    test('golongan bawaan: kategori sendiri, lalu induk, lalu belum digolongkan', () {
+      final s = withCats([acc('bca')]);
+      expect(s.kindOf('pokok'), SpendKind.need);
+      expect(s.kindOf('makan'), SpendKind.need);
+      expect(s.kindOf('olahraga'), SpendKind.grow);
+      expect(s.kindOf('buku'), SpendKind.grow);
+      expect(s.kindOf('gift_out'), SpendKind.want);
+      expect(s.kindOf('donasi'), SpendKind.duty);
+      expect(s.kindOf('cafe'), SpendKind.want);
+      expect(s.kindOf('cicilan'), SpendKind.duty);
+      expect(s.kindOf('mine'), SpendKind.other);
+      expect(s.kindOf(null), SpendKind.other);
+    });
+
+    test('pilihan user menang, anak mengikuti induk, bisa dikembalikan', () {
+      final s = withCats([acc('bca')]);
+      s.setSpendKind('hiburan', SpendKind.need);
+      expect(s.kindOf('cafe'), SpendKind.need);
+      s.setSpendKind('cafe', SpendKind.save);
+      expect(s.kindOf('cafe'), SpendKind.save);
+      expect(s.kindOf('hiburan'), SpendKind.need);
+      s.setSpendKind('cafe', null);
+      s.setSpendKind('hiburan', null);
+      expect(s.kindOf('cafe'), SpendKind.want);
+      s.setSpendKind('mine', SpendKind.want);
+      expect(s.kindOf('mine'), SpendKind.want);
+    });
+
+    test('total per golongan: biasa, dibagi, transfer ke akun tabungan', () {
+      final bca = acc('bca', initial: 10000000);
+      const sav = Account(
+          id: 'sav',
+          name: 'Tabungan',
+          type: AccountType.bank,
+          color: 0xFF000000,
+          excludeSafe: true);
+      final big = tx('3', TxType.expense, 100000, 'bca', cat: 'makan', date: DateTime(2026, 10, 6))
+          .copyWith(splits: const [TxSplit('makan', 60000), TxSplit('cafe', 30000)]);
+      final s = withCats([bca, sav], [
+        tx('1', TxType.expense, 200000, 'bca', cat: 'makan', date: DateTime(2026, 10, 2)),
+        tx('2', TxType.expense, 50000, 'bca', cat: 'cafe', date: DateTime(2026, 10, 3)),
+        big,
+        tx('4', TxType.transfer, 700000, 'bca', to: 'sav', date: DateTime(2026, 10, 7)),
+        tx('5', TxType.expense, 999, 'bca', cat: 'cafe', date: DateTime(2026, 9, 30)),
+        tx('6', TxType.income, 5000000, 'bca', date: DateTime(2026, 10, 1)),
+      ]);
+      final m = s.spendByKind(oct);
+      // makan: 200000 + 60000 + sisa 10000 (induk) = 270000
+      expect(m[SpendKind.need], 270000);
+      // cafe: 50000 + 30000
+      expect(m[SpendKind.want], 80000);
+      expect(m[SpendKind.save], 700000);
+      expect(m.containsKey(SpendKind.duty), isFalse);
+    });
+
+    test('transfer biasa antar akun harian tidak dihitung tabungan', () {
+      final s = withCats([acc('bca', initial: 100000), acc('gopay')], [
+        tx('1', TxType.transfer, 50000, 'bca', to: 'gopay', date: DateTime(2026, 10, 2)),
+      ]);
+      expect(s.spendByKind(oct), isEmpty);
+    });
+
+    test('pilihan golongan ikut backup dan pulih', () {
+      final s = withCats([acc('bca')]);
+      s.setSpendKind('cafe', SpendKind.need);
+      final raw = s.exportJson();
+      final s2 = withCats([acc('bca')]);
+      s2.importJson(raw);
+      s2.categories = s.categories;
+      expect(s2.settings.spendKinds['cafe'], 'need');
+      expect(s2.kindOf('cafe'), SpendKind.need);
+      // Pengaturan tanpa pilihan tidak menulis kunci kosong.
+      expect(AppSettings().toJson().containsKey('spendKinds'), isFalse);
+    });
+
+    test('jumlah transaksi periode ini untuk kartu Beranda', () {
+      final s = withCats([acc('bca', initial: 1000)], [
+        tx('1', TxType.expense, 10, 'bca', date: DateTime(2026, 10, 2)),
+        tx('2', TxType.income, 10, 'bca', date: DateTime(2026, 10, 31, 23)),
+        tx('3', TxType.expense, 10, 'bca', date: DateTime(2026, 11, 1)),
+        tx('4', TxType.expense, 10, 'bca', date: DateTime(2026, 9, 30)),
+      ]);
+      expect(periodTxCount(s, oct), 2);
+    });
+  });
 }

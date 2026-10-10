@@ -1320,6 +1320,35 @@ class AppStore extends ChangeNotifier {
     return ok;
   }
 
+  /// Ada data yang berarti di HP ini (bukan app yang masih kosong).
+  bool get hasData =>
+      transactions.isNotEmpty || goals.isNotEmpty || debts.isNotEmpty;
+
+  /// Simpan data sekarang ke Download/Infinity sebelum dipulihkan dari backup
+  /// lain. Namanya khusus ("infinity-sebelum-pulih-...") supaya tidak ikut
+  /// dihapus rotasi backup otomatis. Mengembalikan nama file, atau null kalau
+  /// gagal.
+  Future<String?> backupBeforeRestore() async {
+    try {
+      final stamp = DateFormat('yyyy-MM-dd_HHmmss').format(DateTime.now());
+      final pw = await backupPassword();
+      final json = exportJson();
+      if (pw != null) {
+        final name = 'infinity-sebelum-pulih-$stamp.infb';
+        final bytes = await SecureBackup.encrypt(json, _photoBytes(), pw);
+        final ok = await NativeBridge.saveDownloadBytes(
+            name, bytes, 'application/octet-stream');
+        return ok ? name : null;
+      }
+      final name = 'infinity-sebelum-pulih-$stamp.json';
+      final ok = await NativeBridge.saveDownload(name, json);
+      return ok ? name : null;
+    } catch (e, st) {
+      ErrorLog.record(e, st, source: 'backup-sebelum-pulih');
+      return null;
+    }
+  }
+
   /// Backup terenkripsi (.infb, ikut foto) untuk dikirim ke luar HP, mis.
   /// Google Drive. Null kalau kata sandi backup belum diatur.
   Future<Uint8List?> encryptedBackup() async {

@@ -71,8 +71,25 @@ class _BackupPageState extends State<BackupPage> {
       b.writeln(
           '\nPerhatian: data sekarang lebih baru atau lebih banyak daripada isi file ini. Pastikan ini file yang benar.');
     }
-    b.write('\nSemua data sekarang akan DIGANTI. PIN dan pengaturan keamanan tetap.');
+    b.write('\nSemua data sekarang akan DIGANTI, tapi disimpan dulu ke Download/Infinity. PIN dan pengaturan keamanan tetap.');
     return b.toString();
+  }
+
+  /// Simpan data sekarang dulu. False kalau gagal dan kamu memilih batal.
+  Future<bool> _saveCurrentFirst() async {
+    if (!store.hasData) return true;
+    final name = await store.backupBeforeRestore();
+    if (name != null) {
+      if (mounted) snack(context, 'Data lama disimpan dulu: $name');
+      return true;
+    }
+    if (!mounted) return false;
+    return confirmDialog(context,
+        title: 'Data lama belum tersimpan',
+        message:
+            'Data sekarang tidak berhasil disimpan dulu. Kalau dilanjutkan, data sekarang akan hilang. Tetap pulihkan?',
+        confirmLabel: 'Tetap pulihkan',
+        destructive: true);
   }
 
   Future<void> _restore() async {
@@ -93,6 +110,7 @@ class _BackupPageState extends State<BackupPage> {
         confirmLabel: 'Pulihkan',
         destructive: true);
     if (!ok || !mounted) return;
+    if (!await _saveCurrentFirst()) return;
     try {
       store.importJson(_importCtrl.text);
       setState(() {
@@ -255,6 +273,7 @@ class _BackupPageState extends State<BackupPage> {
         confirmLabel: 'Pulihkan',
         destructive: true);
     if (!ok || !mounted) return;
+    if (!await _saveCurrentFirst()) return;
     try {
       final n = await store.restoreFromFile(picked.bytes, password: pw);
       if (!mounted) return;

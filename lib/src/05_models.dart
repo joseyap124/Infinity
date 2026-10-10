@@ -469,6 +469,9 @@ class AppSettings {
 
   /// Kartu yang tampil di Beranda, berurutan (lihat [kHomeCards]).
   List<String> homeCards = [...kDefaultHomeCards];
+
+  /// Golongan pengeluaran yang diubah user: id kategori -> nama SpendKind.
+  Map<String, String> spendKinds = {};
   int accentIndex = 0;
 
   /// Akun yang otomatis terpilih saat mencatat transaksi baru.
@@ -552,6 +555,7 @@ class AppSettings {
         'themeMode': themeMode,
         'textScale': textScale,
         'homeCards': homeCards,
+        if (spendKinds.isNotEmpty) 'spendKinds': spendKinds,
         'accentIndex': accentIndex,
         'defaultAccountId': defaultAccountId,
         'balanceSetAt': balanceSetAt,
@@ -614,6 +618,12 @@ class AppSettings {
           .where(kHomeCards.containsKey)
           .toSet()
           .toList();
+    }
+    if (j['spendKinds'] is Map) {
+      s.spendKinds = {
+        for (final e in (j['spendKinds'] as Map).entries)
+          if (e.value is String) e.key.toString(): e.value as String
+      };
     }
     final tm = _s(j['themeMode']);
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
