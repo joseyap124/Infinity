@@ -227,7 +227,7 @@ class _StatsTabState extends State<StatsTab> {
                 if (byCat.isEmpty)
                   EmptyState(
                       icon: Icons.donut_large_rounded,
-                      title: tr('Belum ada {0} di periode ini', [_type.label.toLowerCase()]))
+                      title: tr('Belum ada {0} di periode ini', [tr(_type.label).toLowerCase()]))
                 else ...[
                   Center(
                     child: SizedBox(

@@ -756,6 +756,16 @@ const Map<String, String> kEnStrings = {
   'Ekspor .xlsx': 'Export .xlsx',
   'Excel tersimpan di Download/Infinity 📊': 'Excel saved to Download/Infinity 📊',
   'Gagal menyimpan file Excel.': 'Could not save the Excel file.',
+  'Rekap & saran {0}': '{0} recap & tips',
+  '{0}{1} perlu diperbaiki · {2} sudah bagus': '{0}{1} to improve · {2} going well',
+  'Belum cukup data': 'Not enough data yet',
+  'Defisit besar': 'Large deficit',
+  'Tekor tipis': 'Slight deficit',
+  'Baru mulai menabung': 'Just starting to save',
+  'Lumayan': 'Decent',
+  'Bagus!': 'Good!',
+  'Luar biasa! 🎉': 'Excellent! 🎉',
+  'Juara menabung! 🏆': 'Savings champion! 🏆',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

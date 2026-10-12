@@ -841,7 +841,7 @@ class AppStore extends ChangeNotifier {
     if (cat != null &&
         cat.parentId == null &&
         topCategories(cat.type).length <= 1) {
-      return tr('Minimal harus ada satu kategori {0}.', [cat.type.label.toLowerCase()]);
+      return tr('Minimal harus ada satu kategori {0}.', [tr(cat.type.label).toLowerCase()]);
     }
     categories.removeWhere((c) => c.id == id);
     settings.categoryBudgets.remove(id);

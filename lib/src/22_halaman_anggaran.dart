@@ -52,7 +52,7 @@ class _BudgetPageState extends State<BudgetPage> {
     });
     store.setBudget(_period, parseAmount(_globalCtrl.text), per);
     Navigator.of(context).pop();
-    snack(context, tr('Anggaran {0} disimpan 🎯', [_period.label.toLowerCase()]));
+    snack(context, tr('Anggaran {0} disimpan 🎯', [tr(_period.label).toLowerCase()]));
   }
 
   @override

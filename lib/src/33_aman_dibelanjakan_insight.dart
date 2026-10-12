@@ -443,7 +443,7 @@ extension InsightStore on AppStore {
           title:
               tr('Rekap {0} siap {1}', [DateFormat('MMMM', gDateLoc).format(last), tier?.emoji ?? '📋']),
           body:
-              tr('{0}{1} hal yang bisa diperbaiki bulan ini.', [tier == null ? '' : '${tier.label}. ', fixes]),
+              tr('{0}{1} hal yang bisa diperbaiki bulan ini.', [tier == null ? '' : '${tr(tier.label)}. ', fixes]),
           icon: Icons.fact_check_rounded,
           color: C.accentDark,
           action: 'Lihat',

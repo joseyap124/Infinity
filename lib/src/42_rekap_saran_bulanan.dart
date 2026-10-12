@@ -480,7 +480,7 @@ class MonthAdviceCard extends StatelessWidget {
                 Text(
                     r.advice.isEmpty
                         ? 'Belum cukup data'
-                        : tr('{0}{1} perlu diperbaiki · {2} sudah bagus', [tier == null ? '' : '${tier.label} · ', fixes, praise]),
+                        : tr('{0}{1} perlu diperbaiki · {2} sudah bagus', [tier == null ? '' : '${tr(tier.label)} · ', fixes, praise]),
                     style: TextStyle(fontSize: 12, color: C.muted)),
               ],
             ),

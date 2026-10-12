@@ -263,7 +263,7 @@ class _HistoryTabState extends State<HistoryTab> {
       if (list.isEmpty)
         EmptyState(
             icon: Icons.receipt_long_rounded,
-            title: tr('Belum ada transaksi {0}', [_filter.label.toLowerCase()]),
+            title: tr('Belum ada transaksi {0}', [tr(_filter.label).toLowerCase()]),
             subtitle: 'Ketuk tombol "Catat" buat mulai.')
       else
         ...groupedTxWidgets(context, store, list),
