@@ -29,7 +29,6 @@ Rencana berikutnya, urutannya bisa bergeser:
 - **Bahasa**: pilihan English dan 简体中文 di Pengaturan. Dikerjakan bertahap, kalimat yang belum diterjemahkan tetap tampil Indonesia.
 - **Notifikasi dengan tombol**: saat notifikasi bank atau e-wallet terdeteksi (mis. SeaBank Rp 15.000), Infinity memunculkan notifikasi dengan tombol Keluar, Masuk, dan Abaikan. Ada tiga mode: mati, tanya dulu, dan otomatis.
 - **Pintasan ikon**: tahan ikon Infinity di layar utama untuk langsung Catat pengeluaran, Catat pemasukan, atau Transfer.
-- **Ubin Quick Settings "Catat"**: ketuk dari panel atas HP untuk membuka layar catat tanpa membuka app dulu.
 - **Pilih banyak transaksi di Riwayat**: tahan satu transaksi untuk memilih beberapa, lalu ubah kategori, ubah akun, atau hapus sekaligus.
 - **Bagikan ringkasan bulan sebagai gambar**: dari Statistik atau Rekap, dengan opsi sembunyikan nominal (default aktif) dan dikirim lewat menu bagikan Android. Gambar dibuat di HP, tidak ada yang diunggah.
 - **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
