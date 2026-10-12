@@ -106,6 +106,7 @@ part 'src/52_cicilan.dart';
 part 'src/53_fitur.dart';
 part 'src/54_ikon_flat.dart';
 part 'src/55_maskot.dart';
+part 'src/56_ritme_budget.dart';
 // WIDGET-IMPORTS-END
 
 void main() {

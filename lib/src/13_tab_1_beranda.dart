@@ -1142,6 +1142,7 @@ class DashboardTab extends StatelessWidget {
     final remaining = s.globalBudget - spent;
     final ratio = hasBudget ? remaining / s.globalBudget : 0.0;
     final status = hasBudget ? BudgetStatus.of(ratio) : null;
+    final elapsed = periodElapsed(range, now);
     final catRows = s.categoryBudgets.entries
         .where((e) => e.value > 0 && store.categoryById(e.key) != null)
         .toList();
@@ -1187,19 +1188,6 @@ class DashboardTab extends StatelessWidget {
                 'Belum ada batas anggaran. Ketuk kartu ini untuk pasang rem 🛑',
                 style: TextStyle(color: C.muted, fontSize: 13))
           else ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: status.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(status.message,
-                  style: TextStyle(
-                      color: status.color,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13)),
-            ),
-            const SizedBox(height: 12),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -1229,9 +1217,17 @@ class DashboardTab extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            FunProgressBar(value: ratio, color: status.color),
-            const SizedBox(height: 8),
-            Text(tr('Terpakai {0} dari {1}', [money(spent), money(s.globalBudget)]),
+            PaceBar(value: ratio, color: status.color, marker: 1 - elapsed),
+            const SizedBox(height: 6),
+            Text(paceSentence(spent, s.globalBudget, elapsed),
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: C.carbon)),
+            const SizedBox(height: 2),
+            Text(
+                tr('Terpakai {0} dari {1} · {2}',
+                    [money(spent), money(s.globalBudget), tr(status.message)]),
                 style: TextStyle(fontSize: 12, color: C.muted)),
           ],
           if (catRows.isNotEmpty) ...[
@@ -1240,17 +1236,19 @@ class DashboardTab extends StatelessWidget {
             const SizedBox(height: 10),
             const SmallLabel('Per Kategori'),
             const SizedBox(height: 6),
-            for (final e in catRows) _catBudgetRow(e.key, e.value, range),
+            for (final e in catRows) _catBudgetRow(e.key, e.value, range, elapsed),
           ],
         ],
       ),
     );
   }
 
-  Widget _catBudgetRow(String catId, double limit, DateTimeRange range) {
+  Widget _catBudgetRow(
+      String catId, double limit, DateTimeRange range, double elapsed) {
     final cat = store.categoryById(catId)!;
     final spent = store.sumIDR(TxType.expense, range, topCategory: catId);
     final st = BudgetStatus.of((limit - spent) / limit);
+    final tag = paceTagFor(spent, limit, elapsed);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -1277,11 +1275,20 @@ class DashboardTab extends StatelessWidget {
                             color: st == BudgetStatus.broke
                                 ? C.redDark
                                 : C.muted)),
+                    const SizedBox(width: 6),
+                    Text('${tag.symbol} ${tr(tag.label)}',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: tag.color)),
                   ],
                 ),
-                const SizedBox(height: 6),
-                FunProgressBar(
-                    value: spent / limit, color: st.color, height: 8),
+                const SizedBox(height: 4),
+                PaceBar(
+                    value: spent / limit,
+                    color: st.color,
+                    marker: elapsed,
+                    height: 8),
               ],
             ),
           ),

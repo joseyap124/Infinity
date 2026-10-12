@@ -2252,4 +2252,128 @@ void main() {
       expect(titles.any((t) => t.contains('Headset')), isTrue);
     });
   });
+  group('v5.0 maskot, fitur, ritme', () {
+    final now = DateTime(2026, 10, 12, 12);
+    MascotMood mood(double left, {double perDay = 100, DateTime? last, bool accounts = true}) =>
+        mascotMoodFor(
+            leftToday: left,
+            perDay: perDay,
+            lastTx: last ?? now,
+            now: now,
+            hasAccounts: accounts);
+
+    test('suasana maskot mengikuti sisa jatah hari ini', () {
+      expect(mood(100), MascotMood.happy);
+      expect(mood(80), MascotMood.happy);
+      expect(mood(79), MascotMood.ok);
+      expect(mood(50), MascotMood.ok);
+      expect(mood(49), MascotMood.warn);
+      expect(mood(30), MascotMood.warn);
+      expect(mood(29), MascotMood.danger);
+      expect(mood(0), MascotMood.danger);
+      expect(mood(-1), MascotMood.over);
+    });
+
+    test('maskot ngantuk setelah 3 hari tanpa catatan, mengalahkan yang lain', () {
+      expect(mood(100, last: now.subtract(const Duration(days: 2))), MascotMood.happy);
+      expect(mood(100, last: now.subtract(const Duration(days: 3))), MascotMood.sleepy);
+      expect(mood(-50, last: now.subtract(const Duration(days: 5))), MascotMood.sleepy);
+      expect(mascotMoodFor(leftToday: 100, perDay: 100, lastTx: null, now: now, hasAccounts: true),
+          MascotMood.sleepy);
+      // Belum punya akun: tidak ngantuk.
+      expect(mascotMoodFor(leftToday: 100, perDay: 100, lastTx: null, now: now, hasAccounts: false),
+          MascotMood.happy);
+    });
+
+    test('transaksi terakhir mengabaikan yang terjadwal di masa depan', () {
+      final s = storeWith([acc('a')], [
+        tx('1', TxType.expense, 1, 'a', date: DateTime(2026, 10, 10)),
+        tx('2', TxType.expense, 1, 'a', date: DateTime(2026, 10, 20)),
+      ]);
+      expect(lastTransactionDate(s, now), DateTime(2026, 10, 10));
+    });
+
+    test('saklar fitur: bawaan, tersimpan, dan hanya menyimpan yang beda', () {
+      final a = AppSettings();
+      expect(a.feature('cicilan'), isTrue);
+      expect(a.feature('tunda'), isFalse);
+      expect(a.feature('bocor'), isFalse);
+      a.features['cicilan'] = false;
+      a.features['tunda'] = true;
+      final back = AppSettings.fromJson(a.toJson());
+      expect(back.feature('cicilan'), isFalse);
+      expect(back.feature('tunda'), isTrue);
+      expect(back.feature('utang'), isTrue);
+      expect(AppSettings.fromJson(<String, dynamic>{}).features, isEmpty);
+    });
+
+    test('cicilan dimatikan: tidak dihitung, data tetap ada', () {
+      final s = storeWith([acc('a', initial: 1000000)]);
+      final next = DateTime.now().add(const Duration(days: 5));
+      s.installments = [
+        Installment(
+            id: 'i1',
+            name: 'Headset',
+            total: 1200000,
+            tenor: 3,
+            firstDue: DateTime(next.year, next.month, 1),
+            dueDay: next.day,
+            accountId: 'a'),
+      ];
+      expect(s.installmentsRemaining, greaterThan(0));
+      s.updateSettings((x) => x.features['cicilan'] = false);
+      expect(s.installmentsRemaining, 0);
+      expect(s.activeInstallments, isEmpty);
+      expect(s.installments, hasLength(1));
+      s.updateSettings((x) => x.features.remove('cicilan'));
+      expect(s.installmentsRemaining, greaterThan(0));
+    });
+
+    test('mode animasi pembuka tersimpan', () {
+      final a = AppSettings();
+      expect(a.splashMode, 'once');
+      a.splashMode = 'off';
+      expect(AppSettings.fromJson(a.toJson()).splashMode, 'off');
+      a.splashMode = 'always';
+      expect(AppSettings.fromJson(a.toJson()).splashMode, 'always');
+      expect(AppSettings.fromJson(<String, dynamic>{'splashMode': 'aneh'}).splashMode, 'once');
+    });
+
+    test('gaya ikon: flat dan mono diterima, yang aneh jadi kartun', () {
+      for (final st in ['cartoon', 'flat', 'classic', 'mono']) {
+        final a = AppSettings()..iconStyle = st;
+        expect(AppSettings.fromJson(a.toJson()).iconStyle, st);
+      }
+      expect(AppSettings.fromJson(<String, dynamic>{'iconStyle': 'xx'}).iconStyle, 'cartoon');
+    });
+
+    test('ritme: bagian periode berjalan dan penanda kategori', () {
+      final range = DateTimeRange(start: DateTime(2026, 10, 1), end: DateTime(2026, 11, 1));
+      expect(periodElapsed(range, DateTime(2026, 10, 1, 9)), closeTo(1 / 31, 1e-9));
+      expect(periodElapsed(range, DateTime(2026, 10, 31, 23)), 1.0);
+      final half = periodElapsed(range, DateTime(2026, 10, 16)); // 16/31
+      expect(paceTagFor(0.60 * 1000, 1000, half), PaceTag.even); // 60% vs 51.6%: masih pas
+      expect(paceTagFor(0.70 * 1000, 1000, half), PaceTag.fast);
+      expect(paceTagFor(0.40 * 1000, 1000, half), PaceTag.slow);
+      expect(paceTagFor(0.50 * 1000, 1000, half), PaceTag.even);
+      expect(paceTagFor(10, 0, half), PaceTag.even);
+    });
+
+    test('kalimat ritme', () {
+      // Batas 3.000.000, hari ke-10 dari 30: seharusnya 1.000.000.
+      expect(paceDiff(1400000, 3000000, 10 / 30), closeTo(400000, 1e-6));
+      expect(paceSentence(1400000, 3000000, 10 / 30), contains('Lebih cepat'));
+      expect(paceSentence(600000, 3000000, 10 / 30), contains('Lebih hemat'));
+      expect(paceSentence(1000000, 3000000, 10 / 30), contains('Pas'));
+    });
+
+    test('perkiraan uang habis', () {
+      final today = DateTime(2026, 10, 12);
+      // Rata-rata 100rb/hari, sisa 500rb: habis 5 hari lagi.
+      expect(runOutDate(remaining: 500000, spentSoFar: 1200000, daysElapsed: 12, today: today),
+          DateTime(2026, 10, 17));
+      expect(runOutDate(remaining: -1, spentSoFar: 1200000, daysElapsed: 12, today: today), today);
+      expect(runOutDate(remaining: 500000, spentSoFar: 0, daysElapsed: 12, today: today), isNull);
+    });
+  });
 }

@@ -797,6 +797,10 @@ class SafeSpendSheet extends StatelessWidget {
           Divider(color: C.line),
           line(s.leftToday < 0 ? 'Lewat jatah hari ini' : 'Sisa jatah hari ini', s.leftToday, bold: true),
           const SizedBox(height: 10),
+          Text(runOutSentence(store, s, DateTime.now()),
+              style: TextStyle(
+                  fontSize: 12.5, fontWeight: FontWeight.w800, color: C.carbon)),
+          const SizedBox(height: 6),
           Text(
               'Kalau hari ini hemat, jatah besok naik. Kalau boros, jatah hari-hari berikutnya otomatis mengecil.',
               style: TextStyle(fontSize: 12, color: C.muted)),
