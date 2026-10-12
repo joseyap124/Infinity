@@ -102,6 +102,7 @@ part 'src/48_terjemahan_en.dart';
 part 'src/49_terjemahan_zh.dart';
 part 'src/50_pilih_banyak.dart';
 part 'src/51_bagikan_ringkasan.dart';
+part 'src/52_cicilan.dart';
 // WIDGET-IMPORTS-END
 
 void main() {

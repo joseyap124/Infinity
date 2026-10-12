@@ -2095,4 +2095,138 @@ void main() {
       expect(langOf(null), AppLang.id);
     });
   });
+
+  group('Cicilan 0% (v4.6)', () {
+    Installment inst({
+      String id = 'i1',
+      double total = 300000,
+      int tenor = 3,
+      int day = 1,
+      DateTime? first,
+      String account = 'a',
+      List<String>? paid,
+    }) =>
+        Installment(
+          id: id,
+          name: 'Headset',
+          total: total,
+          tenor: tenor,
+          dueDay: day,
+          firstDue: first ?? DateTime(2026, 11, 1),
+          accountId: account,
+          paidTx: paid,
+        );
+
+    test('total dibagi tenor, sisa pembulatan masuk cicilan terakhir', () {
+      final x = inst(total: 100001, tenor: 3);
+      expect(x.amountOf(0), 33334);
+      expect(x.amountOf(1), 33334);
+      expect(x.amountOf(2), 33333);
+      expect(x.amountOf(0) + x.amountOf(1) + x.amountOf(2), 100001);
+      final once = inst(total: 131266, tenor: 1);
+      expect(once.amountOf(0), 131266);
+      expect(once.remaining, 131266);
+    });
+
+    test('jatuh tempo tanggal 31 dipotong ke akhir bulan pendek', () {
+      final x = inst(tenor: 4, day: 31, first: DateTime(2027, 1, 1));
+      expect(x.dueOf(0), DateTime(2027, 1, 31));
+      expect(x.dueOf(1), DateTime(2027, 2, 28));
+      expect(x.dueOf(2), DateTime(2027, 3, 31));
+      expect(x.dueOf(3), DateTime(2027, 4, 30));
+      expect(inst(tenor: 3, first: DateTime(2026, 11, 1)).lastDue, DateTime(2027, 1, 1));
+    });
+
+    test('sisa dan lunas mengikuti jumlah yang sudah dibayar', () {
+      final x = inst(total: 300000, tenor: 3, paid: ['', '']);
+      expect(x.paidCount, 2);
+      expect(x.remaining, 100000);
+      expect(x.nextDue, DateTime(2027, 1, 1));
+      expect(x.done, isFalse);
+      final y = inst(total: 300000, tenor: 3, paid: ['', '', '']);
+      expect(y.done, isTrue);
+      expect(y.remaining, 0);
+      expect(y.nextDue, isNull);
+    });
+
+    test('Tandai dibayar mencatat pengeluaran, Urungkan membatalkannya', () {
+      final s = storeWith([acc('a', initial: 1000000)]);
+      s.installments = [inst()];
+      final id = s.markInstallmentPaid('i1')!;
+      expect(s.installments.single.paidCount, 1);
+      expect(s.balanceOf('a'), 900000);
+      final t = s.transactions.single;
+      expect(t.id, id);
+      expect(t.type, TxType.expense);
+      expect(t.amount, 100000);
+      s.undoInstallmentPayment('i1');
+      expect(s.installments.single.paidCount, 0);
+      expect(s.transactions, isEmpty);
+      expect(s.balanceOf('a'), 1000000);
+      // lunas: tidak bisa dibayar lagi
+      s.installments = [inst(paid: ['', '', ''])];
+      expect(s.markInstallmentPaid('i1'), isNull);
+    });
+
+    test('Aman dibelanjakan menyisihkan cicilan yang jatuh tempo tanggal 1', () {
+      final now = DateTime(2026, 10, 22, 10);
+      final s = storeWith([acc('a', initial: 3100000)]);
+      s.installments = [inst(total: 131266, tenor: 1)];
+      final r = s.safeToSpend(now);
+      expect(r.installments, 131266);
+      expect(r.installmentsOn, DateTime(2026, 11, 1));
+      expect(r.perDay, closeTo((3100000 - 131266) / 10, 0.01));
+      // jatuh tempo tanggal 2 sudah di luar jangkauan
+      s.installments = [inst(total: 131266, tenor: 1, day: 2)];
+      expect(s.safeToSpend(now).installments, 0);
+      // yang sudah dibayar tidak disisihkan lagi
+      s.installments = [inst(total: 131266, tenor: 1, paid: [''])];
+      expect(s.safeToSpend(now).installments, 0);
+    });
+
+    test('cicilan yang lewat jatuh tempo dan belum dibayar tetap disisihkan', () {
+      final now = DateTime(2026, 10, 22, 10);
+      final s = storeWith([acc('a', initial: 3100000)]);
+      s.installments = [inst(total: 200000, tenor: 2, first: DateTime(2026, 10, 1))];
+      final dues = s.installmentsDueBefore(DateTime(2026, 11, 2));
+      expect(dues.map((d) => d.date), [DateTime(2026, 10, 1), DateTime(2026, 11, 1)]);
+      expect(s.safeToSpend(now).installments, 200000);
+    });
+
+    test('backup: tersimpan, terbaca, dan ikut terhapus bersama akunnya', () {
+      final s = storeWith([acc('a', initial: 1000), acc('b')]);
+      s.installments = [
+        inst(paid: ['tx9']),
+        inst(id: 'i2', account: 'b'),
+      ];
+      final json = s.exportJson();
+      expect(AppStore.peekJson(json).installments, 2);
+      expect(s.currentInfo().counts(), contains('2'));
+      final s2 = AppStore();
+      s2.importJson(json);
+      expect(s2.installments.map((x) => x.id), ['i1', 'i2']);
+      expect(s2.installments.first.paidTx, ['tx9']);
+      expect(s2.installments.first.dueOf(1), DateTime(2026, 12, 1));
+      expect(s2.accountInUse('b'), isTrue);
+      s2.deleteAccountWithData('b');
+      expect(s2.installments.map((x) => x.id), ['i1']);
+      // backup lama tanpa cicilan tetap bisa dibuka
+      final old = jsonDecode(json) as Map<String, dynamic>..remove('installments');
+      final s3 = AppStore();
+      s3.importJson(jsonEncode(old));
+      expect(s3.installments, isEmpty);
+    });
+
+    test('pengingat cicilan masuk daftar notifikasi', () {
+      final s = storeWith([acc('a')]);
+      s.settings.notifEnabled = true;
+      s.settings.notifRecurring = true;
+      final next = DateTime.now().add(const Duration(days: 10));
+      s.installments = [
+        inst(first: DateTime(next.year, next.month, 1), day: next.day),
+      ];
+      final titles = s.plannedNotifications().map((n) => n.title).toList();
+      expect(titles.any((t) => t.contains('Headset')), isTrue);
+    });
+  });
 }

@@ -19,6 +19,7 @@ class AppStore extends ChangeNotifier {
   List<TxCategory> categories = [];
   List<Transaction> transactions = [];
   List<RecurringRule> recurring = [];
+  List<Installment> installments = [];
   List<TxTemplate> templates = [];
   List<Debt> debts = [];
   List<Goal> goals = [];
@@ -198,6 +199,7 @@ class AppStore extends ChangeNotifier {
         'categories': categories.map((c) => c.toJson()).toList(),
         'transactions': transactions.map((t) => t.toJson()).toList(),
         'recurring': recurring.map((r) => r.toJson()).toList(),
+        'installments': installments.map((x) => x.toJson()).toList(),
         'templates': templates.map((t) => t.toJson()).toList(),
         'debts': debts.map((d) => d.toJson()).toList(),
         'goals': goals.map((g) => g.toJson()).toList(),
@@ -224,6 +226,10 @@ class AppStore extends ChangeNotifier {
         .map(RecurringRule.fromJson)
         .where((r) => ids.contains(r.accountId))
         .toList();
+    final ins = _list(j['installments'])
+        .map(Installment.fromJson)
+        .where((x) => ids.contains(x.accountId))
+        .toList();
     final tpl = _list(j['templates'])
         .map(TxTemplate.fromJson)
         .where((t) => ids.contains(t.accountId))
@@ -244,6 +250,7 @@ class AppStore extends ChangeNotifier {
     categories = cats;
     transactions = txs;
     recurring = rec;
+    installments = ins;
     templates = tpl;
     debts = dbt;
     goals = gls;
@@ -375,6 +382,7 @@ class AppStore extends ChangeNotifier {
     categories = _defaultCategories();
     transactions = [];
     recurring = [];
+    installments = [];
     templates = [];
     debts = [];
     goals = [];
@@ -769,6 +777,7 @@ class AppStore extends ChangeNotifier {
   bool accountInUse(String id) =>
       transactions.any((t) => t.accountId == id || t.toAccountId == id) ||
       recurring.any((r) => r.accountId == id || r.toAccountId == id) ||
+      installments.any((x) => x.accountId == id) ||
       templates.any((t) => t.accountId == id || t.toAccountId == id);
 
   /// Hapus akun beserta transaksi, transaksi berulang, dan template yang
@@ -777,6 +786,7 @@ class AppStore extends ChangeNotifier {
     if (accounts.length <= 1) return tr('Minimal harus ada satu akun.');
     transactions.removeWhere((t) => t.accountId == id || t.toAccountId == id);
     recurring.removeWhere((r) => r.accountId == id || r.toAccountId == id);
+    installments.removeWhere((x) => x.accountId == id);
     templates.removeWhere((t) => t.accountId == id || t.toAccountId == id);
     accounts.removeWhere((a) => a.id == id);
     _commit();
@@ -1005,6 +1015,23 @@ class AppStore extends ChangeNotifier {
     }
 
     if (s.notifRecurring) {
+      for (final x in installments) {
+        if (x.done) continue;
+        // Tagihan terdekat saja, dengan pengingat sehari sebelumnya.
+        final k = x.paidCount;
+        final due = x.dueOf(k);
+        final amount = money(x.amountOf(k));
+        add(DateTime(due.year, due.month, due.day, 8),
+            tr('💳 Cicilan {0} jatuh tempo hari ini', [x.name]),
+            hide
+                ? tr('Buka Infinity untuk menandainya dibayar.')
+                : tr('{0} dari {1}. Buka Infinity untuk menandainya dibayar.', [amount, accountName(x.accountId)]));
+        add(DateTime(due.year, due.month, due.day - 1, 19),
+            tr('⏰ Besok: cicilan {0}', [x.name]),
+            hide
+                ? tr('Pastikan saldonya cukup ya.')
+                : tr('{0} dari {1}. Pastikan saldonya cukup ya.', [amount, accountName(x.accountId)]));
+      }
       for (final r in recurring) {
         if (!r.active) continue;
         final amount = money(r.amount, currencyOf(r.accountId));
@@ -1482,7 +1509,10 @@ class AppStore extends ChangeNotifier {
 
   /// Ada data yang berarti di HP ini (bukan app yang masih kosong).
   bool get hasData =>
-      transactions.isNotEmpty || goals.isNotEmpty || debts.isNotEmpty;
+      transactions.isNotEmpty ||
+      goals.isNotEmpty ||
+      debts.isNotEmpty ||
+      installments.isNotEmpty;
 
   /// Simpan data sekarang ke Download/Infinity sebelum dipulihkan dari backup
   /// lain. Namanya khusus ("infinity-sebelum-pulih-...") supaya tidak ikut
@@ -1571,6 +1601,7 @@ class AppStore extends ChangeNotifier {
       debts: n(d['debts']),
       goals: n(d['goals']),
       events: n(d['events']),
+      installments: n(d['installments']),
     );
   }
 
@@ -1598,6 +1629,7 @@ class AppStore extends ChangeNotifier {
       debts: debts.length,
       goals: goals.length,
       events: events.length,
+      installments: installments.length,
     );
   }
 
@@ -1899,6 +1931,7 @@ class BackupInfo {
     this.debts = 0,
     this.goals = 0,
     this.events = 0,
+    this.installments = 0,
   });
 
   final DateTime? exportedAt;
@@ -1910,6 +1943,7 @@ class BackupInfo {
   final int debts;
   final int goals;
   final int events;
+  final int installments;
 
   /// Satu baris angka: "3 kantong, 120 transaksi, 2 target, ...".
   String counts() => [
@@ -1920,5 +1954,6 @@ class BackupInfo {
         tr('{0} berulang', [recurring]),
         tr('{0} template', [templates]),
         tr('{0} acara', [events]),
+        if (installments > 0) tr('{0} cicilan', [installments]),
       ].join(', ');
 }

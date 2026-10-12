@@ -3,7 +3,30 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v4.5)
+## Berikutnya (v4.6)
+
+Cicilan 0%: catat barang yang kamu cicil (SPayLater, Kredivo, kartu kredit) supaya tagihannya tidak kelewat dan ikut dihitung di "Aman dibelanjakan".
+
+### Ditambah
+- **Cicilan** di tab Rencana (kartu baru) dan halaman **Cicilan**: nama barang, total harga, berapa kali bayar (**1x**, 3, 6, 12, atau jumlah sendiri), tanggal jatuh tempo tiap bulan, sudah dibayar berapa kali, dan akun yang dipakai bayar. Bunga selalu 0%, jadi cicilan per bulan adalah total dibagi jumlah kali bayar (sisa pembulatan masuk ke cicilan terakhir).
+- **Tandai dibayar**: mencatat pengeluaran dari akun yang kamu pilih dan mengurangi sisa cicilan. Ada tombol **Urungkan** yang menghapus transaksi itu lagi. Menghapus cicilan juga bisa diurungkan; transaksi yang sudah tercatat tetap ada di Riwayat.
+- **Aman dibelanjakan** menyisihkan cicilan yang jatuh tempo sampai sehari setelah periode berakhir (mis. tagihan tanggal 1 saat periode berakhir tanggal 31), termasuk yang sudah lewat tapi belum ditandai dibayar. Rinciannya muncul sebagai baris "Cicilan jatuh tempo", dan kartu di Beranda menunjukkan berapa yang sudah dikurangi.
+- **Saran** di Beranda dan Rencana saat ada cicilan jatuh tempo dalam 3 hari atau sudah lewat.
+- **Pengingat** lewat notifikasi pada hari jatuh tempo (08.00) dan sehari sebelumnya (19.00), mengikuti pengaturan notifikasi "berulang".
+- Cicilan ikut backup dan pemulihan, dan ikut terhapus bersama akunnya kalau akun dihapus. Backup lama tanpa cicilan tetap bisa dipulihkan.
+- Terjemahan English dan 简体中文 untuk semua teks baru.
+
+### Catatan
+- Infinity tidak mengambil data dari Shopee atau aplikasi lain. Cicilan diisi manual.
+- Tanggal jatuh tempo 29 sampai 31 dipotong ke hari terakhir di bulan yang lebih pendek.
+- Mengubah "sudah dibayar berapa kali" di form edit menghitung ulang jadwal dari hari ini, tanpa membuat atau menghapus transaksi.
+
+### Akan datang
+Rencana berikutnya, urutannya bisa bergeser:
+- **Kamus kata umum** untuk menampilkan judul transaksi, catatan, dan nama akun dalam bahasa yang dipilih (hanya tampilan, data aslinya tidak diubah), kemungkinan sebagai pilihan di Pengaturan.
+- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
+
+## v4.5 (12 Okt 2026)
 
 Bahasa tahap 2: hampir semua layar sekarang ikut pilihan bahasa.
 
@@ -18,11 +41,6 @@ Bahasa tahap 2: hampir semua layar sekarang ikut pilihan bahasa.
 ### Catatan
 - English membedakan tunggal dan jamak untuk kata yang umum ("1 day", "2 days", "1 transaction"). Bahasa lain tidak punya bentuk jamak.
 - Teks yang tidak ada di kamus tetap tampil dalam bahasa Indonesia, bukan kosong atau rusak.
-
-### Akan datang
-Rencana berikutnya, urutannya bisa bergeser:
-- **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
-- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
 
 ## v4.4 (12 Okt 2026)
 

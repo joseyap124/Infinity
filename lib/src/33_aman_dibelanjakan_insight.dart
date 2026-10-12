@@ -15,7 +15,15 @@ class SafeSpend {
     required this.parts,
     required this.periodEnd,
     this.excluded = 0,
+    this.installments = 0,
+    this.installmentsOn,
   });
+
+  /// Cicilan 0% yang jatuh tempo sebelum akhir periode + 1 hari (sudah dikurangkan).
+  final double installments;
+
+  /// Tanggal tagihan cicilan terdekat yang dicadangkan.
+  final DateTime? installmentsOn;
 
   /// Saldo akun yang ditandai "jangan hitung" (dalam Rupiah).
   final double excluded;
@@ -40,7 +48,7 @@ class SafeSpend {
       perDay <= 0 ? (spentToday > 0 ? 1 : 0) : (spentToday / perDay).clamp(0.0, 1.0);
 }
 
-enum InsightKind { capture, recap, balance, projection, rates, event, debt, bill, subscription, unusual, goal, backup }
+enum InsightKind { capture, recap, balance, projection, rates, event, debt, bill, subscription, unusual, goal, backup, installment }
 
 /// Saldo di notifikasi bank/e-wallet berbeda dengan hitungan Infinity.
 class BalanceMismatch {
@@ -188,6 +196,17 @@ extension InsightStore on AppStore {
       parts.add(('Tagihan & langganan berulang', -upExp));
       base -= upExp;
     }
+    // Cicilan yang jatuh tempo sampai sehari setelah periode berakhir (mis.
+    // tagihan tanggal 1 saat periode berakhir tanggal 31) dicadangkan dari sekarang.
+    final dues = installmentsDueBefore(end.add(const Duration(days: 1)));
+    var instSum = 0.0;
+    for (final d in dues) {
+      instSum += d.amount;
+    }
+    if (instSum > 0) {
+      parts.add(('Cicilan jatuh tempo', -instSum));
+      base -= instSum;
+    }
     final daysLeft = math.max(1, end.difference(today).inDays);
     final perDay = math.max(0.0, base) / daysLeft;
     return SafeSpend(
@@ -199,6 +218,8 @@ extension InsightStore on AppStore {
       parts: parts,
       periodEnd: end,
       excluded: fromBudget ? 0 : skipped,
+      installments: instSum,
+      installmentsOn: dues.isEmpty ? null : dues.first.date,
     );
   }
 
@@ -541,6 +562,32 @@ extension InsightStore on AppStore {
         color: C.blueDark,
       ));
     }
+    // Cicilan 0% yang jatuh tempo dalam 3 hari (atau sudah lewat), per tanggal.
+    final instByDate = <DateTime, List<InstallmentDue>>{};
+    for (final d in nextInstallmentDues()) {
+      if (d.date.difference(today).inDays > 3) continue;
+      instByDate.putIfAbsent(d.date, () => []).add(d);
+    }
+    for (final e in instByDate.entries) {
+      final id = 'inst_${e.key.millisecondsSinceEpoch}';
+      if (hidden(id)) continue;
+      final days = e.key.difference(today).inDays;
+      final sum = e.value.fold(0.0, (v, d) => v + d.amount);
+      final dateText = df.format(e.key);
+      out.add(Insight(
+        id: id,
+        kind: InsightKind.installment,
+        title: days < 0
+            ? tr('Cicilan lewat jatuh tempo')
+            : days == 0
+                ? tr('Cicilan jatuh tempo hari ini')
+                : tr('Cicilan jatuh tempo {0}', [dateText]),
+        body: tr('{0} cicilan, {1}. Pastikan saldo cukup.', [e.value.length, money(sum)]),
+        icon: Icons.schedule_rounded,
+        color: days < 0 ? C.redDark : C.amberDark,
+        action: 'Lihat',
+      ));
+    }
     for (final a in accounts.where((a) => a.type == AccountType.credit)) {
       final bal = balanceOf(a.id);
       if (bal >= 0) continue;
@@ -668,8 +715,11 @@ class SafeSpendCard extends StatelessWidget {
                   Text(
                       hide
                           ? 'Ketuk untuk rincian'
-                          : tr('Jatah {0}/hari · {1} hari lagi{2}', [money(s.perDay), s.daysLeft, s.spentToday > 0 ? tr(' · keluar hari ini {0}', [money(s.spentToday)]) : '']),
-                      maxLines: 2,
+                          : tr('Jatah {0}/hari · {1} hari lagi{2}', [money(s.perDay), s.daysLeft, s.spentToday > 0 ? tr(' · keluar hari ini {0}', [money(s.spentToday)]) : '']) +
+                              (s.installments > 0
+                                  ? '\n${tr('Sudah dikurangi cicilan {0} ({1})', [money(s.installments), DateFormat('d MMM', gDateLoc).format(s.installmentsOn!)])}'
+                                  : ''),
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 11.5, color: C.muted)),
                 ],
@@ -776,6 +826,7 @@ class SafeSpendSheet extends StatelessWidget {
 /// Insight yang mendesak/harian (tampil di Beranda).
 const Set<InsightKind> kHomeInsights = {
   InsightKind.backup,
+  InsightKind.installment,
   InsightKind.capture,
   InsightKind.balance,
   InsightKind.bill,
@@ -791,6 +842,7 @@ const Set<InsightKind> kPlanInsights = {
   InsightKind.goal,
   InsightKind.debt,
   InsightKind.event,
+  InsightKind.installment,
   InsightKind.bill,
 };
 
@@ -851,6 +903,9 @@ class InsightStrip extends StatelessWidget {
       case InsightKind.backup:
         Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => BackupPage(store: store)));
+      case InsightKind.installment:
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => InstallmentsPage(store: store)));
       case InsightKind.bill:
       case InsightKind.unusual:
         break;

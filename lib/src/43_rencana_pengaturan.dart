@@ -240,6 +240,15 @@ class PlanTab extends StatelessWidget {
             _section(context, 'Kartu kredit'),
             home._creditCard(context, credits),
           ],
+          _section(context, 'Cicilan',
+              action: store.installments.isEmpty ? null : 'Semua',
+              onAction: () => _pushPage(context, InstallmentsPage(store: store))),
+          if (store.activeInstallments.isEmpty)
+            _empty(context, Icons.credit_score_rounded,
+                'Belum ada cicilan 0%. Misalnya SPayLater atau Kredivo.',
+                'Tambah', () => _pushPage(context, InstallmentsPage(store: store)))
+          else
+            InstallmentSummaryCard(store: store),
           _section(context, 'Target tabungan',
               action: store.goals.isEmpty ? null : 'Semua',
               onAction: () => _pushPage(context, GoalsPage(store: store))),

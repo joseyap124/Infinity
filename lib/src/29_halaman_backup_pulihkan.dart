@@ -69,6 +69,7 @@ class _BackupPageState extends State<BackupPage> {
         now.transactions > file.transactions ||
         now.goals > file.goals ||
         now.debts > file.debts ||
+        now.installments > file.installments ||
         now.accounts > file.accounts;
     if (newer) {
       b.writeln(
