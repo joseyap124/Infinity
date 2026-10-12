@@ -985,16 +985,17 @@ void main() {
       s.markDriveSaved(now.subtract(const Duration(days: 9)));
       expect(s.backupStatus(now).level, BackupLevel.offsite);
 
-      // Backup di HP 9 hari lalu dan datanya sudah berubah: paling mendesak.
+      // Backup di HP 15 hari lalu dan datanya sudah berubah: paling mendesak.
       s.updateSettings((x) {
-        x.lastAutoBackup = now.subtract(const Duration(days: 9));
+        x.lastAutoBackup = now.subtract(const Duration(days: 15));
         x.lastBackupSig = 'lama';
       });
       final st = s.backupStatus(now);
       expect(st.level, BackupLevel.stale);
-      expect(st.newTx, 12);
+      // Transaksi bertanggal setelah backup: i = 6..11.
+      expect(st.newTx, 6);
 
-      // Backup 9 hari lalu tapi isinya masih sama persis: tidak dianggap lama.
+      // Backup 15 hari lalu tapi isinya masih sama persis: tidak dianggap lama.
       s.updateSettings((x) => x.lastBackupSig = s.backupSignature());
       expect(s.backupStatus(now).level, isNot(BackupLevel.stale));
     });
