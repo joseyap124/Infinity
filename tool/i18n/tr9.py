@@ -32,7 +32,7 @@ t('Uang yang kamu pinjamkan ke orang lain.', 'Money you lent to other people.', 
 t('Uang yang kamu pinjam dari orang lain.', 'Money you borrowed from other people.', '你向别人借的钱。')
 t('Tidak ada piutang', 'No receivables', '没有应收款')
 t('Tidak ada utang', 'No debts', '没有债务')
-t('Ketuk "Catat" untuk menambah.', 'Tap "Record" to add one.', '点按“记录”即可添加。')
+t('Ketuk "Catat" untuk menambah.', 'Tap "Add" to create one.', '点按“记账”即可添加。')
 t('Sudah lunas ({0})', 'Settled ({0})', '已还清（{0}）')
 t('Catatan ini tidak mengubah saldo akun. Kalau uangnya memang keluar/masuk rekening, catat juga transaksinya. Pengecualian: piutang dari Patungan, yang uangnya otomatis pindah dari akun Talangan saat dibayar.', 'This note does not change account balances. If the money really left or entered an account, record the transaction too. Exception: receivables from Split Bills, where the money moves automatically from the Advance account when paid.', '此记录不会改变账户余额。如果钱确实进出了账户，请同时记录交易。例外：来自“分摊账单”的应收款，付款时资金会自动从垫付账户转移。')
 t('Lunas', 'Settled', '已还清')

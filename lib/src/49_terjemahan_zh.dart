@@ -909,7 +909,7 @@ const Map<String, String> kZhStrings = {
   'Uang yang kamu pinjam dari orang lain.': '你向别人借的钱。',
   'Tidak ada piutang': '没有应收款',
   'Tidak ada utang': '没有债务',
-  'Ketuk "Catat" untuk menambah.': '点按“记录”即可添加。',
+  'Ketuk "Catat" untuk menambah.': '点按“记账”即可添加。',
   'Sudah lunas ({0})': '已还清（{0}）',
   'Catatan ini tidak mengubah saldo akun. Kalau uangnya memang keluar/masuk rekening, catat juga transaksinya. Pengecualian: piutang dari Patungan, yang uangnya otomatis pindah dari akun Talangan saat dibayar.': '此记录不会改变账户余额。如果钱确实进出了账户，请同时记录交易。例外：来自“分摊账单”的应收款，付款时资金会自动从垫付账户转移。',
   'Lunas': '已还清',

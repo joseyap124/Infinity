@@ -910,7 +910,7 @@ const Map<String, String> kEnStrings = {
   'Uang yang kamu pinjam dari orang lain.': 'Money you borrowed from other people.',
   'Tidak ada piutang': 'No receivables',
   'Tidak ada utang': 'No debts',
-  'Ketuk "Catat" untuk menambah.': 'Tap "Record" to add one.',
+  'Ketuk "Catat" untuk menambah.': 'Tap "Add" to create one.',
   'Sudah lunas ({0})': 'Settled ({0})',
   'Catatan ini tidak mengubah saldo akun. Kalau uangnya memang keluar/masuk rekening, catat juga transaksinya. Pengecualian: piutang dari Patungan, yang uangnya otomatis pindah dari akun Talangan saat dibayar.': 'This note does not change account balances. If the money really left or entered an account, record the transaction too. Exception: receivables from Split Bills, where the money moves automatically from the Advance account when paid.',
   'Lunas': 'Settled',
