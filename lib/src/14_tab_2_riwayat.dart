@@ -139,7 +139,7 @@ class _HistoryTabState extends State<HistoryTab> {
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
           child: Text(
-              tr('{0} hasil', [results.length])
+              '${results.length} hasil'
               '${outSum > 0 ? ' · keluar ${hide ? '••••' : money(outSum)}' : ''}'
               '${inSum > 0 ? ' · masuk ${hide ? '••••' : money(inSum)}' : ''}',
               style: TextStyle(

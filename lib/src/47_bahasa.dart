@@ -150,7 +150,7 @@ class Text extends StatelessWidget {
   final TextStyle? style;
   final StrutStyle? strutStyle;
   final TextAlign? textAlign;
-  final TextDirection? textDirection;
+  final ui.TextDirection? textDirection;
   final Locale? locale;
   final bool? softWrap;
   final TextOverflow? overflow;

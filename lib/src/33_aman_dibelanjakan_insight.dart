@@ -417,7 +417,7 @@ extension InsightStore on AppStore {
         id: 'bal_${m.accountId}',
         kind: InsightKind.balance,
         title: tr('Saldo {0} beda {1}', [acc.name, money(m.diff.abs(), acc.currency)]),
-        body: tr('Menurut notifikasi ({0}) {1}, ', [tf.format(m.at), money(m.reported, acc.currency)])
+        body: 'Menurut notifikasi (${tf.format(m.at)}) ${money(m.reported, acc.currency)}, '
             'di Infinity ${money(m.app, acc.currency)}. Ada transaksi yang belum dicatat?',
         icon: Icons.account_balance_wallet_rounded,
         color: C.amberDark,
@@ -865,7 +865,7 @@ class InsightStrip extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: Text(tr('Samakan saldo {0}?', [acc.name])),
         content: Text(
-            tr('Infinity akan mencatat penyesuaian {0}{1} ', [m.diff > 0 ? '+' : '-', money(m.diff.abs(), acc.currency)])
+            'Infinity akan mencatat penyesuaian ${m.diff > 0 ? '+' : '-'}${money(m.diff.abs(), acc.currency)} '
             'pada waktu notifikasi, supaya saldo saat itu jadi ${money(m.reported, acc.currency)}. '
             'Kalau selisihnya karena transaksi yang lupa dicatat, lebih baik catat transaksinya saja.'),
         actions: [

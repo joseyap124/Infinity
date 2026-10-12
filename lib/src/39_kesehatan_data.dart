@@ -241,7 +241,7 @@ class DataHealthPage extends StatelessWidget {
                               style: const TextStyle(
                                   fontWeight: FontWeight.w900, fontSize: 16)),
                           Text(
-                              tr('{0} transaksi · {1} akun', [store.transactions.length, store.accounts.length])
+                              '${store.transactions.length} transaksi · ${store.accounts.length} akun'
                               '${oldest == null ? '' : ' · sejak ${DateFormat('MMM yyyy', gDateLoc).format(oldest)}'}',
                               style: TextStyle(fontSize: 12.5, color: C.muted)),
                         ],
