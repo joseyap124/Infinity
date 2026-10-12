@@ -389,7 +389,7 @@ class SettingsPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Column(children: [
                   _row(context, Icons.palette_rounded, C.accentDark, 'Tampilan',
-                      '$theme · huruf $size · ${C.accents[s.accentIndex].$1}',
+                      tr('{0} · huruf {1} · {2}', [tr(theme), tr(size), tr(C.accents[s.accentIndex].$1)]),
                       () => _pushPage(context, AppearancePage(store: store))),
                   _row(
                       context,

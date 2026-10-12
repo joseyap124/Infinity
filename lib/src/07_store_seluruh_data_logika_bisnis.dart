@@ -774,7 +774,7 @@ class AppStore extends ChangeNotifier {
   /// Hapus akun beserta transaksi, transaksi berulang, dan template yang
   /// memakainya. null = berhasil.
   String? deleteAccountWithData(String id) {
-    if (accounts.length <= 1) return 'Minimal harus ada satu akun.';
+    if (accounts.length <= 1) return tr('Minimal harus ada satu akun.');
     transactions.removeWhere((t) => t.accountId == id || t.toAccountId == id);
     recurring.removeWhere((r) => r.accountId == id || r.toAccountId == id);
     templates.removeWhere((t) => t.accountId == id || t.toAccountId == id);
@@ -803,9 +803,9 @@ class AppStore extends ChangeNotifier {
 
   /// null = berhasil, selain itu pesan error.
   String? deleteAccount(String id) {
-    if (accounts.length <= 1) return 'Minimal harus ada satu akun.';
+    if (accounts.length <= 1) return tr('Minimal harus ada satu akun.');
     if (accountInUse(id)) {
-      return 'Akun ini masih dipakai transaksi, transaksi berulang, atau template. Hapus atau pindahkan dulu.';
+      return tr('Akun ini masih dipakai transaksi, transaksi berulang, atau template. Hapus atau pindahkan dulu.');
     }
     accounts.removeWhere((a) => a.id == id);
     _commit();
@@ -826,22 +826,22 @@ class AppStore extends ChangeNotifier {
 
   String? deleteCategory(String id) {
     if (categories.any((c) => c.parentId == id)) {
-      return 'Hapus sub-kategorinya dulu.';
+      return tr('Hapus sub-kategorinya dulu.');
     }
     final used = transactions
         .where((t) =>
             t.categoryId == id || t.splits.any((s) => s.categoryId == id))
         .length;
-    if (used > 0) return 'Kategori masih dipakai $used transaksi.';
+    if (used > 0) return tr('Kategori masih dipakai {0} transaksi.', [used]);
     if (recurring.any((r) => r.categoryId == id) ||
         templates.any((t) => t.categoryId == id)) {
-      return 'Kategori masih dipakai transaksi berulang atau template.';
+      return tr('Kategori masih dipakai transaksi berulang atau template.');
     }
     final cat = categoryById(id);
     if (cat != null &&
         cat.parentId == null &&
         topCategories(cat.type).length <= 1) {
-      return 'Minimal harus ada satu kategori ${cat.type.label.toLowerCase()}.';
+      return tr('Minimal harus ada satu kategori {0}.', [cat.type.label.toLowerCase()]);
     }
     categories.removeWhere((c) => c.id == id);
     settings.categoryBudgets.remove(id);
@@ -1013,17 +1013,17 @@ class AppStore extends ChangeNotifier {
           final due = occurrence(r.start, r.frequency, r.generated + k);
           add(
               due,
-              '🔁 ${r.title} jatuh tempo hari ini',
+              tr('🔁 {0} jatuh tempo hari ini', [r.title]),
               hide
-                  ? 'Buka Infinity supaya langsung tercatat.'
-                  : '${r.type.label} $amount · ${accountName(r.accountId)}. Buka Infinity supaya langsung tercatat.');
+                  ? tr('Buka Infinity supaya langsung tercatat.')
+                  : tr('{0} {1} · {2}. Buka Infinity supaya langsung tercatat.', [tr(r.type.label), amount, accountName(r.accountId)]));
           if (r.frequency == Frequency.monthly ||
               r.frequency == Frequency.yearly) {
             add(DateTime(due.year, due.month, due.day - 1, 19),
-                '⏰ Besok: ${r.title}',
+                tr('⏰ Besok: {0}', [r.title]),
                 hide
-                    ? 'Pastikan saldonya cukup ya.'
-                    : '$amount dari ${accountName(r.accountId)}. Pastikan saldonya cukup ya.');
+                    ? tr('Pastikan saldonya cukup ya.')
+                    : tr('{0} dari {1}. Pastikan saldonya cukup ya.', [amount, accountName(r.accountId)]));
           }
         }
       }
@@ -1036,15 +1036,15 @@ class AppStore extends ChangeNotifier {
         final due = nextDueDate(a.dueDay, now);
         final debt = money(-bal, a.currency);
         add(DateTime(due.year, due.month, due.day - 3, 9),
-            '💳 Tagihan ${a.name} 3 hari lagi',
+            tr('💳 Tagihan {0} 3 hari lagi', [a.name]),
             hide
-                ? 'Jatuh tempo ${DateFormat('d MMM', gDateLoc).format(due)}. Cek nominalnya di Infinity.'
-                : 'Tagihan $debt jatuh tempo ${DateFormat('d MMM', gDateLoc).format(due)}.');
+                ? tr('Jatuh tempo {0}. Cek nominalnya di Infinity.', [DateFormat('d MMM', gDateLoc).format(due)])
+                : tr('Tagihan {0} jatuh tempo {1}.', [debt, DateFormat('d MMM', gDateLoc).format(due)]));
         add(DateTime(due.year, due.month, due.day, 8),
-            '💳 Hari ini jatuh tempo ${a.name}',
+            tr('💳 Hari ini jatuh tempo {0}', [a.name]),
             hide
-                ? 'Bayar tagihan hari ini supaya tidak kena denda.'
-                : 'Bayar tagihan $debt hari ini supaya tidak kena denda.');
+                ? tr('Bayar tagihan hari ini supaya tidak kena denda.')
+                : tr('Bayar tagihan {0} hari ini supaya tidak kena denda.', [debt]));
       }
     }
 
@@ -1054,12 +1054,12 @@ class AppStore extends ChangeNotifier {
         if (d.settled || due == null) continue;
         final amt = money(d.remaining);
         final what = d.theyOwe
-            ? '${d.person} janji bayar'
-            : 'Bayar utang ke ${d.person}';
-        add(DateTime(due.year, due.month, due.day - 1, 19), '🤝 Besok: $what',
-            hide ? 'Cek di Utang & Piutang.' : 'Sisa $amt. Cek di Utang & Piutang.');
-        add(DateTime(due.year, due.month, due.day, 9), '🤝 Hari ini: $what',
-            hide ? 'Cek di Utang & Piutang.' : 'Sisa $amt.');
+            ? tr('{0} janji bayar', [d.person])
+            : tr('Bayar utang ke {0}', [d.person]);
+        add(DateTime(due.year, due.month, due.day - 1, 19), tr('🤝 Besok: {0}', [what]),
+            hide ? tr('Cek di Utang & Piutang.') : tr('Sisa {0}. Cek di Utang & Piutang.', [amt]));
+        add(DateTime(due.year, due.month, due.day, 9), tr('🤝 Hari ini: {0}', [what]),
+            hide ? tr('Cek di Utang & Piutang.') : tr('Sisa {0}.', [amt]));
       }
     }
 
@@ -1073,8 +1073,8 @@ class AppStore extends ChangeNotifier {
       out.add(PlannedNotification(
           id: 1,
           when: t,
-          title: '✍️ Sudah catat pengeluaran hari ini?',
-          body: 'Catat sekarang biar saldo dan budget tetap akurat.',
+          title: tr('✍️ Sudah catat pengeluaran hari ini?'),
+          body: tr('Catat sekarang biar saldo dan budget tetap akurat.'),
           daily: true));
     }
     return out;
@@ -1772,22 +1772,22 @@ class AppStore extends ChangeNotifier {
       final spent = sumIDR(TxType.expense, s.budgetPeriod.range(now));
       final remaining = s.globalBudget - spent;
       final pct = (remaining / s.globalBudget * 100).clamp(0, 100).round();
-      budgetLine = 'Anggaran tersisa $pct%';
+      budgetLine = tr('Anggaran tersisa {0}%', [pct]);
     }
     final label = periodLabelOf(now);
-    final saldo = hide ? 'Rp ••••••' : money(netWorthIDR);
+    final saldo = hide ? tr('Rp ••••••') : money(netWorthIDR);
     return {
       'w_month': gPeriodStartDay > 1
           ? DateFormat('MMM yyyy', gDateLoc).format(label)
           : DateFormat('MMMM yyyy', gDateLoc).format(label),
-      'w_safe_label': over ? 'Lewat jatah · $day' : 'Aman dibelanjakan · $day',
+      'w_safe_label': over ? tr('Lewat jatah · {0}', [day]) : tr('Aman dibelanjakan · {0}', [day]),
       // Ringkas (mis. "Rp 7,5 jt") supaya muat di widget.
-      'w_safe': hide ? 'Rp ••••' : 'Rp ${compactMoney(over ? -left : left)}',
+      'w_safe': hide ? tr('Rp ••••') : tr('Rp {0}', [compactMoney(over ? -left : left)]),
       'w_balance': budgetLine.isEmpty
-          ? 'Total saldo $saldo'
-          : 'Saldo $saldo · $budgetLine',
-      'w_income': hide ? 'Masuk ••••' : 'Masuk Rp ${compactMoney(income)}',
-      'w_expense': hide ? 'Keluar ••••' : 'Keluar Rp ${compactMoney(expense)}',
+          ? tr('Total saldo {0}', [saldo])
+          : tr('Saldo {0} · {1}', [saldo, budgetLine]),
+      'w_income': hide ? tr('Masuk ••••') : tr('Masuk Rp {0}', [compactMoney(income)]),
+      'w_expense': hide ? tr('Keluar ••••') : tr('Keluar Rp {0}', [compactMoney(expense)]),
     };
   }
 
@@ -1834,12 +1834,12 @@ class BackupInfo {
 
   /// Satu baris angka: "3 kantong, 120 transaksi, 2 target, ...".
   String counts() => [
-        '$accounts kantong',
-        '$transactions transaksi',
-        '$goals target',
-        '$debts utang/piutang',
-        '$recurring berulang',
-        '$templates template',
-        '$events acara',
+        tr('{0} kantong', [accounts]),
+        tr('{0} transaksi', [transactions]),
+        tr('{0} target', [goals]),
+        tr('{0} utang/piutang', [debts]),
+        tr('{0} berulang', [recurring]),
+        tr('{0} template', [templates]),
+        tr('{0} acara', [events]),
       ].join(', ');
 }

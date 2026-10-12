@@ -2278,7 +2278,8 @@ class FormValue extends StatelessWidget {
 
 /// Nama kategori untuk kotak kecil: tanpa emoji dan tanpa keterangan dalam
 /// kurung, mis. "Bills (Listrik, Air, Kuota) 💡" menjadi "Bills".
-String shortCategoryName(String name) {
+String shortCategoryName(String rawName) {
+  final name = tr(rawName);
   final t = name
       .replaceAll(_emojiRe, '')
       .replaceAll(RegExp(r'\s*\([^)]*\)'), '')

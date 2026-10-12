@@ -851,7 +851,7 @@ class DashboardTab extends StatelessWidget {
                           Text(
                               hide
                                   ? 'Ketuk untuk rincian'
-                                  : tr('Jatah {0}/hari · {1} hari lagi{2}', [money(s.perDay), s.daysLeft, s.spentToday > 0 ? ' · keluar hari ini ${money(s.spentToday)}' : '']),
+                                  : tr('Jatah {0}/hari · {1} hari lagi{2}', [money(s.perDay), s.daysLeft, s.spentToday > 0 ? tr(' · keluar hari ini {0}', [money(s.spentToday)]) : '']),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(

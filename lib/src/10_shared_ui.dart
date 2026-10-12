@@ -143,11 +143,11 @@ PreferredSizeWidget pageBar(String title, {List<Widget>? actions}) => AppBar(
 InputDecoration fieldDeco(String label,
     {IconData? icon, String? prefix, String? helper, Color? accent}) {
   return InputDecoration(
-    labelText: label,
-    helperText: helper,
+    labelText: tr(label),
+    helperText: helper == null ? null : tr(helper),
     helperMaxLines: 3,
     prefixIcon: icon == null ? null : Icon(icon),
-    prefixText: prefix,
+    prefixText: prefix == null ? null : tr(prefix),
     filled: true,
     fillColor: C.bg,
     border: OutlineInputBorder(

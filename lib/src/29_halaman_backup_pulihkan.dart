@@ -55,16 +55,16 @@ class _BackupPageState extends State<BackupPage> {
     final now = store.currentInfo();
     final full = DateFormat('d MMM yyyy, HH.mm', gDateLoc);
     final day = DateFormat('d MMM yyyy', gDateLoc);
-    final b = StringBuffer('Isi $name\n');
+    final b = StringBuffer(tr('Isi {0}\n', [name]));
     final at = file.exportedAt;
-    if (at != null) b.writeln('Dibuat ${full.format(at)}');
+    if (at != null) b.writeln(tr('Dibuat {0}', [full.format(at)]));
     b.writeln(file.counts());
     final fl = file.lastTransaction;
-    if (fl != null) b.writeln('Transaksi terakhir ${day.format(fl)}');
-    b.writeln('\nData sekarang');
+    if (fl != null) b.writeln(tr('Transaksi terakhir {0}', [day.format(fl)]));
+    b.writeln(tr('\nData sekarang'));
     b.writeln(now.counts());
     final nl = now.lastTransaction;
-    if (nl != null) b.writeln('Transaksi terakhir ${day.format(nl)}');
+    if (nl != null) b.writeln(tr('Transaksi terakhir {0}', [day.format(nl)]));
     final newer = (nl != null && fl != null && nl.isAfter(fl)) ||
         now.transactions > file.transactions ||
         now.goals > file.goals ||
@@ -72,9 +72,9 @@ class _BackupPageState extends State<BackupPage> {
         now.accounts > file.accounts;
     if (newer) {
       b.writeln(
-          '\nPerhatian: data sekarang lebih baru atau lebih banyak daripada isi file ini. Pastikan ini file yang benar.');
+          tr('\nPerhatian: data sekarang lebih baru atau lebih banyak daripada isi file ini. Pastikan ini file yang benar.'));
     }
-    b.write('\nSemua data sekarang akan DIGANTI, tapi disimpan dulu ke Download/Infinity. PIN dan pengaturan keamanan tetap.');
+    b.write(tr('\nSemua data sekarang akan DIGANTI, tapi disimpan dulu ke Download/Infinity. PIN dan pengaturan keamanan tetap.'));
     return b.toString();
   }
 

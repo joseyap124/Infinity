@@ -362,8 +362,8 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     final ok = await confirmDialog(context,
         title: tr('Hapus akun "{0}"?', [a.name]),
         message: notes.isEmpty
-            ? 'Akun kosong, aman dihapus.'
-            : '${notes.join('\n\n')}\n\nTidak bisa dibatalkan. Salin backup dulu kalau ragu.',
+            ? tr('Akun kosong, aman dihapus.')
+            : tr('{0}\n\nTidak bisa dibatalkan. Salin backup dulu kalau ragu.', [notes.join('\n\n')]),
         confirmLabel: txCount > 0 ? 'Hapus semua' : 'Hapus',
         destructive: true);
     if (!ok || !mounted) return;

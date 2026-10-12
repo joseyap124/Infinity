@@ -489,27 +489,27 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
               onDestinationSelected: (i) => setState(() => _tab = i),
               backgroundColor: C.surface,
               indicatorColor: C.accent.withValues(alpha: 0.18),
-              destinations: const [
+              destinations: [
                 NavigationDestination(
                     icon: Icon(Icons.home_outlined),
                     selectedIcon: Icon(Icons.home_rounded),
-                    label: 'Beranda'),
+                    label: tr('Beranda')),
                 NavigationDestination(
                     icon: Icon(Icons.receipt_long_outlined),
                     selectedIcon: Icon(Icons.receipt_long_rounded),
-                    label: 'Riwayat'),
+                    label: tr('Riwayat')),
                 NavigationDestination(
                     icon: Icon(Icons.track_changes_outlined),
                     selectedIcon: Icon(Icons.track_changes_rounded),
-                    label: 'Rencana'),
+                    label: tr('Rencana')),
                 NavigationDestination(
                     icon: Icon(Icons.pie_chart_outline),
                     selectedIcon: Icon(Icons.pie_chart_rounded),
-                    label: 'Statistik'),
+                    label: tr('Statistik')),
                 NavigationDestination(
                     icon: Icon(Icons.grid_view_outlined),
                     selectedIcon: Icon(Icons.grid_view_rounded),
-                    label: 'Lainnya'),
+                    label: tr('Lainnya')),
               ],
             ),
           ),
