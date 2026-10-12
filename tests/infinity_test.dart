@@ -1758,4 +1758,80 @@ void main() {
       expect(shortCategoryName('🍲'), '🍲');
     });
   });
+
+  group('v4.2 bahasa', () {
+    tearDown(() => gLang.value = AppLang.id);
+
+    test('bahasa Indonesia: teks apa adanya, isian {0} diisi', () {
+      gLang.value = AppLang.id;
+      expect(tr('Beranda'), 'Beranda');
+      expect(tr('Saldo {0}', ['Rp 5']), 'Saldo Rp 5');
+    });
+
+    test('English dan 中文 memakai terjemahan, yang belum ada kembali ke Indonesia', () {
+      gLang.value = AppLang.en;
+      expect(tr('Beranda'), 'Home');
+      expect(tr('Saldo {0}', ['Rp 5']), 'Balance Rp 5');
+      expect(tr('Kalimat yang belum diterjemahkan'), 'Kalimat yang belum diterjemahkan');
+      gLang.value = AppLang.zh;
+      expect(tr('Beranda'), '首页');
+      expect(tr('Simpan {0}', ['Rp 5']), '保存 Rp 5');
+      expect(tr('Kalimat yang belum diterjemahkan'), 'Kalimat yang belum diterjemahkan');
+    });
+
+    test('isian bisa dipakai lebih dari sekali dan urutannya bebas', () {
+      gLang.value = AppLang.en;
+      expect(tr('Sisa limit {0} dari {1}', ['Rp 1', 'Rp 9']), 'Limit left Rp 1 of Rp 9');
+      gLang.value = AppLang.zh;
+      expect(tr('Sisa limit {0} dari {1}', ['Rp 1', 'Rp 9']), '额度剩余 Rp 1 / Rp 9');
+      // Urutan isian di terjemahan boleh berbeda dari kalimat Indonesia.
+      expect(tr('{0} Anggaran {1} hampir habis.', ['A', 'B']), 'A B预算快用完了。');
+    });
+
+    test('pola untuk teks berangka', () {
+      gLang.value = AppLang.en;
+      expect(tr('12 transaksi'), '12 transactions');
+      gLang.value = AppLang.zh;
+      expect(tr('12 transaksi'), '12 笔交易');
+    });
+
+    test('kamus English dan 中文 punya kunci yang sama dan isian yang sama', () {
+      expect(kEnStrings.keys.toSet(), kZhStrings.keys.toSet());
+      final ph = RegExp(r'\{\d+\}');
+      for (final k in kEnStrings.keys) {
+        final a = (ph.allMatches(k).map((m) => m.group(0)!).toList()..sort()).join();
+        final b = (ph.allMatches(kEnStrings[k]!).map((m) => m.group(0)!).toList()..sort()).join();
+        final c = (ph.allMatches(kZhStrings[k]!).map((m) => m.group(0)!).toList()..sort()).join();
+        expect(b, a, reason: 'EN: $k');
+        expect(c, a, reason: 'ZH: $k');
+      }
+    });
+
+    test('nama kategori bawaan punya terjemahan', () {
+      gLang.value = AppLang.en;
+      expect(tr('Makan dan Minum 🍲'), 'Food & Drinks 🍲');
+      expect(shortCategoryName('Makan dan Minum 🍲'), 'Food & Drinks');
+      gLang.value = AppLang.id;
+      expect(shortCategoryName('Makan dan Minum 🍲'), 'Makan dan Minum');
+    });
+
+    test('format tanggal mengikuti bahasa', () {
+      gLang.value = AppLang.id;
+      expect(gDateLoc, 'id_ID');
+      gLang.value = AppLang.en;
+      expect(gDateLoc, 'en_US');
+      gLang.value = AppLang.zh;
+      expect(gDateLoc, 'zh_CN');
+    });
+
+    test('bahasa tersimpan di pengaturan, backup lama tanpa bahasa tetap Indonesia', () {
+      final s = AppSettings()..lang = 'zh';
+      expect(AppSettings.fromJson(s.toJson()).lang, 'zh');
+      expect(AppSettings().toJson().containsKey('lang'), isFalse);
+      expect(AppSettings.fromJson({}).lang, 'id');
+      expect(AppSettings.fromJson({'lang': 'xx'}).lang, 'id');
+      expect(langOf('en'), AppLang.en);
+      expect(langOf(null), AppLang.id);
+    });
+  });
 }
