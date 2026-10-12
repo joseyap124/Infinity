@@ -74,7 +74,7 @@ class TemplatesPage extends StatelessWidget {
                                 fontWeight: FontWeight.w900,
                                 color: t.type.color)),
                         PopupMenuButton<String>(
-                          tooltip: 'Pilihan',
+                          tooltip: tr('Pilihan'),
                           icon: Icon(Icons.more_vert_rounded, color: C.muted),
                           onSelected: (v) async {
                             if (v == 'edit') {
@@ -82,7 +82,7 @@ class TemplatesPage extends StatelessWidget {
                             } else if (v == 'hapus') {
                               final ok = await confirmDialog(context,
                                   title: 'Hapus template?',
-                                  message: 'Template "${t.title}" akan dihapus. Transaksi yang sudah dicatat tidak ikut terhapus.',
+                                  message: tr('Template "{0}" akan dihapus. Transaksi yang sudah dicatat tidak ikut terhapus.', [t.title]),
                                   confirmLabel: 'Hapus',
                                   destructive: true);
                               if (ok) store.deleteTemplate(t.id);

@@ -65,7 +65,7 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
               ),
               IconButton(
-                tooltip: 'Tutup',
+                tooltip: tr('Tutup'),
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -211,7 +211,7 @@ class PlanTab extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
           const SizedBox(height: 2),
           Text(
-              '${DateFormat('MMMM yyyy', 'id_ID').format(label)}'
+              '${DateFormat('MMMM yyyy', gDateLoc).format(label)}'
               '${span.isEmpty ? '' : ' ($span)'} · $daysLeft hari lagi',
               style: TextStyle(fontSize: 12.5, color: C.muted)),
           const SizedBox(height: 12),
@@ -423,7 +423,7 @@ class SettingsPage extends StatelessWidget {
                       'Mata uang & kurs',
                       at == null
                           ? 'Kurs bawaan'
-                          : 'Diperbarui ${DateFormat('d MMM yyyy', 'id_ID').format(at)}',
+                          : 'Diperbarui ${DateFormat('d MMM yyyy', gDateLoc).format(at)}',
                       () => _pushPage(context, CurrencyPage(store: store))),
                 ]),
               ),
@@ -514,6 +514,20 @@ class AppearancePage extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                         'Dikalikan dengan ukuran huruf HP, dibatasi supaya tampilan tetap rapi.',
+                        style: TextStyle(fontSize: 12, color: C.muted)),
+                    const SizedBox(height: 16),
+                    const SmallLabel('Bahasa'),
+                    const SizedBox(height: 8),
+                    Segmented<String>(
+                      values: const ['id', 'en', 'zh'],
+                      selected: s.lang,
+                      labelOf: (v) => langName(langOf(v)),
+                      dense: true,
+                      onChanged: (v) => store.updateSettings((x) => x.lang = v),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                        'English dan 简体中文 diterjemahkan bertahap. Yang belum diterjemahkan tetap tampil dalam bahasa Indonesia.',
                         style: TextStyle(fontSize: 12, color: C.muted)),
                     const SizedBox(height: 16),
                     const SmallLabel('Gaya ikon kategori'),

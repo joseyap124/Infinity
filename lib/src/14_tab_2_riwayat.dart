@@ -139,7 +139,7 @@ class _HistoryTabState extends State<HistoryTab> {
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
           child: Text(
-              '${results.length} hasil'
+              tr('{0} hasil', [results.length])
               '${outSum > 0 ? ' · keluar ${hide ? '••••' : money(outSum)}' : ''}'
               '${inSum > 0 ? ' · masuk ${hide ? '••••' : money(inSum)}' : ''}',
               style: TextStyle(
@@ -185,7 +185,7 @@ class _HistoryTabState extends State<HistoryTab> {
                       suffixIcon: _query.isEmpty
                           ? null
                           : IconButton(
-                              tooltip: 'Hapus pencarian',
+                              tooltip: tr('Hapus pencarian'),
                               icon: const Icon(Icons.close_rounded),
                               onPressed: () {
                                 _searchCtrl.clear();
@@ -263,7 +263,7 @@ class _HistoryTabState extends State<HistoryTab> {
       if (list.isEmpty)
         EmptyState(
             icon: Icons.receipt_long_rounded,
-            title: 'Belum ada transaksi ${_filter.label.toLowerCase()}',
+            title: tr('Belum ada transaksi {0}', [_filter.label.toLowerCase()]),
             subtitle: 'Ketuk tombol "Catat" buat mulai.')
       else
         ...groupedTxWidgets(context, store, list),
@@ -304,7 +304,7 @@ class _HistoryTabState extends State<HistoryTab> {
       return Semantics(
         button: true,
         selected: selected,
-        label: DateFormat('d MMMM', 'id_ID').format(date),
+        label: DateFormat('d MMMM', gDateLoc).format(date),
         child: GestureDetector(
           onTap: () => setState(() => _selectedDay = date),
           child: AnimatedContainer(
@@ -362,20 +362,20 @@ class _HistoryTabState extends State<HistoryTab> {
             Row(
               children: [
                 IconButton(
-                  tooltip: 'Bulan sebelumnya',
+                  tooltip: tr('Bulan sebelumnya'),
                   onPressed: () =>
                       setState(() => _calMonth = DateTime(y, m - 1)),
                   icon: const Icon(Icons.chevron_left_rounded),
                 ),
                 Expanded(
                   child: Text(
-                      DateFormat('MMMM yyyy', 'id_ID').format(_calMonth),
+                      DateFormat('MMMM yyyy', gDateLoc).format(_calMonth),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                           fontWeight: FontWeight.w900, fontSize: 16)),
                 ),
                 IconButton(
-                  tooltip: 'Bulan berikutnya',
+                  tooltip: tr('Bulan berikutnya'),
                   onPressed: () =>
                       setState(() => _calMonth = DateTime(y, m + 1)),
                   icon: const Icon(Icons.chevron_right_rounded),

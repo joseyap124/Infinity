@@ -186,11 +186,11 @@ Future<String?> pickEvent(BuildContext context, AppStore store, String? current)
 }
 
 String eventDates(TxEvent e) {
-  final df = DateFormat('d MMM yyyy', 'id_ID');
+  final df = DateFormat('d MMM yyyy', gDateLoc);
   final end = e.end;
   if (end == null) return 'Mulai ${df.format(e.start)}';
   if (dayOnly(end) == dayOnly(e.start)) return df.format(e.start);
-  return '${DateFormat('d MMM', 'id_ID').format(e.start)} – ${df.format(end)}';
+  return '${DateFormat('d MMM', gDateLoc).format(e.start)} – ${df.format(end)}';
 }
 
 class EventsPage extends StatelessWidget {
@@ -304,8 +304,8 @@ class _EventCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                   over
-                      ? 'Lewat ${money(spent - event.budget)} dari anggaran ${money(event.budget)}'
-                      : 'Sisa ${money(event.budget - spent)} dari ${money(event.budget)}',
+                      ? tr('Lewat {0} dari anggaran {1}', [money(spent - event.budget), money(event.budget)])
+                      : tr('Sisa {0} dari {1}', [money(event.budget - spent), money(event.budget)]),
                   style: TextStyle(
                       fontSize: 12, color: over ? C.redDark : C.muted)),
             ],
@@ -340,7 +340,7 @@ class EventDetailPage extends StatelessWidget {
         return Scaffold(
           appBar: pageBar(e.name, actions: [
             IconButton(
-              tooltip: 'Edit acara',
+              tooltip: tr('Edit acara'),
               icon: const Icon(Icons.edit_outlined),
               onPressed: () => showSheet<void>(
                   context, EventEditorSheet(store: store, event: e)),
@@ -495,7 +495,7 @@ class _EventEditorSheetState extends State<EventEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final df = DateFormat('d MMM yyyy', 'id_ID');
+    final df = DateFormat('d MMM yyyy', gDateLoc);
     final old = widget.event;
     return SheetFrame(
       child: Column(
@@ -517,7 +517,7 @@ class _EventEditorSheetState extends State<EventEditorSheet> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => _pickDate(end: false),
-                  child: Text('Mulai: ${df.format(_start)}'),
+                  child: Text(tr('Mulai: {0}', [df.format(_start)])),
                 ),
               ),
               const SizedBox(width: 8),
@@ -526,7 +526,7 @@ class _EventEditorSheetState extends State<EventEditorSheet> {
                   onPressed: () => _pickDate(end: true),
                   child: Text(_end == null
                       ? 'Selesai: belum'
-                      : 'Selesai: ${df.format(_end!)}'),
+                      : tr('Selesai: {0}', [df.format(_end!)])),
                 ),
               ),
             ],
@@ -580,7 +580,7 @@ class _EventEditorSheetState extends State<EventEditorSheet> {
                 final ok = await confirmDialog(context,
                     title: 'Hapus acara?',
                     message:
-                        'Acara "${old.name}" dihapus. Transaksinya tetap ada, hanya tanda acaranya yang dilepas.',
+                        tr('Acara "{0}" dihapus. Transaksinya tetap ada, hanya tanda acaranya yang dilepas.', [old.name]),
                     confirmLabel: 'Hapus',
                     destructive: true);
                 if (!ok || !context.mounted) return;

@@ -474,13 +474,13 @@ class MonthAdviceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                    'Rekap & saran ${DateFormat('MMMM', 'id_ID').format(r.month)}',
+                    tr('Rekap & saran {0}', [DateFormat('MMMM', gDateLoc).format(r.month)]),
                     style: const TextStyle(
                         fontWeight: FontWeight.w800, fontSize: 15)),
                 Text(
                     r.advice.isEmpty
                         ? 'Belum cukup data'
-                        : '${tier == null ? '' : '${tier.label} · '}$fixes perlu diperbaiki · $praise sudah bagus',
+                        : tr('{0}{1} perlu diperbaiki · {2} sudah bagus', [tier == null ? '' : '${tier.label} · ', fixes, praise]),
                     style: TextStyle(fontSize: 12, color: C.muted)),
               ],
             ),
@@ -595,7 +595,7 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
           Row(
             children: [
               IconButton(
-                tooltip: 'Bulan sebelumnya',
+                tooltip: tr('Bulan sebelumnya'),
                 onPressed: () => setState(
                     () => _month = DateTime(_month.year, _month.month - 1)),
                 icon: const Icon(Icons.chevron_left_rounded),
@@ -603,7 +603,7 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
               Expanded(
                 child: Column(
                   children: [
-                    Text(DateFormat('MMMM yyyy', 'id_ID').format(_month),
+                    Text(DateFormat('MMMM yyyy', gDateLoc).format(_month),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontWeight: FontWeight.w900, fontSize: 16)),
@@ -614,7 +614,7 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
                 ),
               ),
               IconButton(
-                tooltip: 'Bulan berikutnya',
+                tooltip: tr('Bulan berikutnya'),
                 onPressed: isNow
                     ? null
                     : () => setState(() =>
@@ -628,8 +628,8 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                   r.prevMonths > 0
-                      ? 'Bulan berjalan (hari ke-${r.daysElapsed} dari ${r.daysInMonth}): pengeluaran sejauh ini ditambah perkiraan sisa bulan dari rata-rata ${r.prevMonths} bulan sebelumnya.'
-                      : 'Bulan berjalan (hari ke-${r.daysElapsed} dari ${r.daysInMonth}): saran memakai angka sejauh ini. Perbandingan muncul setelah ada data bulan sebelumnya.',
+                      ? tr('Bulan berjalan (hari ke-{0} dari {1}): pengeluaran sejauh ini ditambah perkiraan sisa bulan dari rata-rata {2} bulan sebelumnya.', [r.daysElapsed, r.daysInMonth, r.prevMonths])
+                      : tr('Bulan berjalan (hari ke-{0} dari {1}): saran memakai angka sejauh ini. Perbandingan muncul setelah ada data bulan sebelumnya.', [r.daysElapsed, r.daysInMonth]),
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ),
@@ -658,7 +658,7 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
                                       fontSize: 18,
                                       color: _tierColor(tier))),
                               Text(
-                                  'Tingkat ${tier.rank} dari 7 · ${(r.savingRate! * 100).round()}% pemasukan ${r.savingRate! >= 0 ? 'tersisa' : 'tekor'}',
+                                  tr('Tingkat {0} dari 7 · {1}% pemasukan {2}', [tier.rank, (r.savingRate! * 100).round(), r.savingRate! >= 0 ? 'tersisa' : 'tekor']),
                                   style: TextStyle(
                                       fontSize: 12.5, color: C.muted)),
                             ],
@@ -714,12 +714,12 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
             ),
             if (r.isCurrent && r.expense > 0 && r.prevMonths > 0) ...[
               const SizedBox(height: 6),
-              Text('Perkiraan pengeluaran akhir bulan: ${m(r.projectedExpense)}',
+              Text(tr('Perkiraan pengeluaran akhir bulan: {0}', [m(r.projectedExpense)]),
                   style: TextStyle(fontSize: 12.5, color: C.muted)),
             ],
             const SizedBox(height: 16),
             if (fixes.isNotEmpty) ...[
-              Text('Yang perlu diperbaiki (${fixes.length})',
+              Text(tr('Yang perlu diperbaiki ({0})', [fixes.length]),
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 16)),
               const SizedBox(height: 8),
@@ -727,7 +727,7 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
             ],
             if (praise.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Text('Yang sudah bagus (${praise.length})',
+              Text(tr('Yang sudah bagus ({0})', [praise.length]),
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 16)),
               const SizedBox(height: 8),

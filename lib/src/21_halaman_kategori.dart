@@ -156,7 +156,7 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
     final c = widget.category!;
     final ok = await confirmDialog(context,
         title: 'Hapus kategori?',
-        message: 'Kategori "${c.name}" akan dihapus.',
+        message: tr('Kategori "{0}" akan dihapus.', [c.name]),
         confirmLabel: 'Hapus',
         destructive: true);
     if (!ok || !mounted) return;
@@ -189,7 +189,7 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
                 child: Text(
                     _editing
                         ? 'Edit Kategori'
-                        : 'Kategori ${widget.type.label} Baru',
+                        : tr('Kategori {0} Baru', [tr(widget.type.label)]),
                     style: const TextStyle(
                         fontSize: 19, fontWeight: FontWeight.w900)),
               ),

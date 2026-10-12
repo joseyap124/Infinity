@@ -421,7 +421,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ),
               IconButton(
-                tooltip: 'Tutup',
+                tooltip: tr('Tutup'),
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -463,7 +463,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
             textCapitalization: TextCapitalization.words,
             maxLength: 30,
             decoration: fieldDeco('Nama di Beranda', icon: Icons.badge_rounded)
-                .copyWith(hintText: 'Infinity', counterText: ''),
+                .copyWith(hintText: tr('Infinity'), counterText: ''),
           ),
           const SizedBox(height: 14),
           const SmallLabel('Kalimat di bawah nama'),
@@ -487,7 +487,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
               textCapitalization: TextCapitalization.sentences,
               onChanged: (_) => setState(() {}),
               decoration: fieldDeco('Kalimatmu', icon: Icons.edit_rounded)
-                  .copyWith(hintText: 'mis. Semangat nabung buat nikah 💍'),
+                  .copyWith(hintText: tr('mis. Semangat nabung buat nikah 💍')),
             ),
           ],
           const SizedBox(height: 10),
@@ -500,7 +500,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
             ),
             child: Text(
                 _mode == 'motivation'
-                    ? 'Contoh hari ini: "${greetingFor(preview)}"\nBerganti otomatis setiap hari.'
+                    ? tr('Contoh hari ini: "{0}"\nBerganti otomatis setiap hari.', [greetingFor(preview)])
                     : greetingFor(preview),
                 style: TextStyle(fontSize: 13, color: C.muted)),
           ),
@@ -579,7 +579,7 @@ class AccentPickerSheet extends StatelessWidget {
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ),
               IconButton(
-                tooltip: 'Tutup',
+                tooltip: tr('Tutup'),
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -851,7 +851,7 @@ class DashboardTab extends StatelessWidget {
                           Text(
                               hide
                                   ? 'Ketuk untuk rincian'
-                                  : 'Jatah ${money(s.perDay)}/hari · ${s.daysLeft} hari lagi${s.spentToday > 0 ? ' · keluar hari ini ${money(s.spentToday)}' : ''}',
+                                  : tr('Jatah {0}/hari · {1} hari lagi{2}', [money(s.perDay), s.daysLeft, s.spentToday > 0 ? ' · keluar hari ini ${money(s.spentToday)}' : '']),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -937,7 +937,7 @@ class DashboardTab extends StatelessWidget {
                       child: Text(
                           count == 0
                               ? 'Belum ada transaksi periode ini'
-                              : '$count transaksi periode ini',
+                              : tr('{0} transaksi periode ini', [count]),
                           style: const TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
@@ -1013,7 +1013,7 @@ class DashboardTab extends StatelessWidget {
               style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(horizontal: 8)),
-              child: Text('Semua akun (${store.accounts.length}) ›',
+              child: Text(tr('Semua akun ({0}) ›', [store.accounts.length]),
                   style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
@@ -1168,7 +1168,7 @@ class DashboardTab extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                        '${appLabelForPackage(c.pkg)} · ${DateFormat('d MMM HH:mm', 'id_ID').format(c.time)}',
+                        '${appLabelForPackage(c.pkg)} · ${DateFormat('d MMM HH:mm', gDateLoc).format(c.time)}',
                         style: TextStyle(
                             fontSize: 12,
                             color: C.muted,
@@ -1251,7 +1251,7 @@ class DashboardTab extends StatelessWidget {
                                       fontSize: 14)),
                               Text(
                                 debt > 0
-                                    ? 'Jatuh tempo ${DateFormat('d MMM', 'id_ID').format(due)} · ${days == 0 ? 'hari ini' : '$days hari lagi'}'
+                                    ? tr('Jatuh tempo {0} · {1}', [DateFormat('d MMM', gDateLoc).format(due), days == 0 ? 'hari ini' : '$days hari lagi'])
                                     : 'Tidak ada tagihan 🎉',
                                 style: TextStyle(
                                     fontSize: 12,
@@ -1289,7 +1289,7 @@ class DashboardTab extends StatelessWidget {
                           height: 8),
                       const SizedBox(height: 4),
                       Text(
-                          'Sisa limit ${money(a.creditLimit - debt, a.currency)} dari ${money(a.creditLimit, a.currency)}',
+                          tr('Sisa limit {0} dari {1}', [money(a.creditLimit - debt, a.currency), money(a.creditLimit, a.currency)]),
                           style:
                               TextStyle(fontSize: 11.5, color: C.muted)),
                     ],
@@ -1332,9 +1332,9 @@ class DashboardTab extends StatelessWidget {
     switch (s.budgetPeriod) {
       case BudgetPeriod.weekly:
         periodText =
-            '${DateFormat('d MMM', 'id_ID').format(range.start)} - ${DateFormat('d MMM yyyy', 'id_ID').format(range.end.subtract(const Duration(days: 1)))}';
+            '${DateFormat('d MMM', gDateLoc).format(range.start)} - ${DateFormat('d MMM yyyy', gDateLoc).format(range.end.subtract(const Duration(days: 1)))}';
       case BudgetPeriod.monthly:
-        periodText = DateFormat('MMMM yyyy', 'id_ID').format(now);
+        periodText = DateFormat('MMMM yyyy', gDateLoc).format(now);
       case BudgetPeriod.yearly:
         periodText = 'Tahun ${now.year}';
     }
@@ -1352,7 +1352,7 @@ class DashboardTab extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Anggaran ${s.budgetPeriod.label}',
+                    Text(tr('Anggaran {0}', [tr(s.budgetPeriod.label)]),
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w800)),
                     Text(periodText,
@@ -1413,7 +1413,7 @@ class DashboardTab extends StatelessWidget {
             const SizedBox(height: 8),
             FunProgressBar(value: ratio, color: status.color),
             const SizedBox(height: 8),
-            Text('Terpakai ${money(spent)} dari ${money(s.globalBudget)}',
+            Text(tr('Terpakai {0} dari {1}', [money(spent), money(s.globalBudget)]),
                 style: TextStyle(fontSize: 12, color: C.muted)),
           ],
           if (catRows.isNotEmpty) ...[
@@ -1495,7 +1495,7 @@ class DashboardTab extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 child: Text(
                     store.templates.length > list.length
-                        ? 'Semua (${store.templates.length})'
+                        ? tr('Semua ({0})', [store.templates.length])
                         : 'Kelola',
                     style: TextStyle(
                         fontSize: 12.5,
@@ -1611,7 +1611,7 @@ class DashboardTab extends StatelessWidget {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 13.5)),
                         Text(
-                            '${r.frequency.label} · ${DateFormat('EEE, d MMM', 'id_ID').format(r.nextDate)}',
+                            '${r.frequency.label} · ${DateFormat('EEE, d MMM', gDateLoc).format(r.nextDate)}',
                             style: TextStyle(
                                 fontSize: 12, color: C.muted)),
                       ],

@@ -421,7 +421,7 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
     if (p == null) return;
     store.applyMoneyManagerImport(p);
     setState(() => _done = true);
-    snack(context, '${p.transactions.length} transaksi diimpor ✅');
+    snack(context, tr('{0} transaksi diimpor ✅', [p.transactions.length]));
   }
 
   Widget _line(String label, String value) => Padding(
@@ -443,7 +443,7 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
   @override
   Widget build(BuildContext context) {
     final p = _plan;
-    final df = DateFormat('d MMM yyyy', 'id_ID');
+    final df = DateFormat('d MMM yyyy', gDateLoc);
     return Scaffold(
       appBar: pageBar('Import Money Manager'),
       body: ListView(
@@ -495,13 +495,13 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
                   if (p.skipped > 0) _line('Dilewati', '${p.skipped}'),
                   if (p.newAccounts.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text('Akun baru: ${p.newAccounts.map((a) => a.name).join(', ')}',
+                    Text(tr('Akun baru: {0}', [p.newAccounts.map((a) => a.name).join(', ')]),
                         style: TextStyle(fontSize: 13, color: C.carbon)),
                   ],
                   if (p.newCategories.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                        'Kategori baru: ${p.newCategories.map((c) => c.name).join(', ')}',
+                        tr('Kategori baru: {0}', [p.newCategories.map((c) => c.name).join(', ')]),
                         style: TextStyle(fontSize: 13, color: C.carbon)),
                   ],
                   const SizedBox(height: 10),
@@ -518,7 +518,7 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
                   const SizedBox(height: 12),
                   if (!_done)
                     PrimaryButton(
-                      label: 'Import ${p.transactions.length} transaksi',
+                      label: tr('Import {0} transaksi', [p.transactions.length]),
                       icon: Icons.download_done_rounded,
                       onPressed: p.transactions.isEmpty ? null : _import,
                     )

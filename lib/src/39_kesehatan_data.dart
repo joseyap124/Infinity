@@ -237,12 +237,12 @@ class DataHealthPage extends StatelessWidget {
                           Text(
                               issues.isEmpty
                                   ? 'Data sehat 👍'
-                                  : '${issues.length} hal perlu dicek',
+                                  : tr('{0} hal perlu dicek', [issues.length]),
                               style: const TextStyle(
                                   fontWeight: FontWeight.w900, fontSize: 16)),
                           Text(
-                              '${store.transactions.length} transaksi · ${store.accounts.length} akun'
-                              '${oldest == null ? '' : ' · sejak ${DateFormat('MMM yyyy', 'id_ID').format(oldest)}'}',
+                              tr('{0} transaksi · {1} akun', [store.transactions.length, store.accounts.length])
+                              '${oldest == null ? '' : ' · sejak ${DateFormat('MMM yyyy', gDateLoc).format(oldest)}'}',
                               style: TextStyle(fontSize: 12.5, color: C.muted)),
                         ],
                       ),
@@ -282,7 +282,7 @@ class DataHealthPage extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
-                                '• ${DateFormat('d MMM yyyy HH:mm', 'id_ID').format(t.date)} · ${t.title} · ${money(t.amount, store.currencyOf(t.accountId))}',
+                                '• ${DateFormat('d MMM yyyy HH:mm', gDateLoc).format(t.date)} · ${t.title} · ${money(t.amount, store.currencyOf(t.accountId))}',
                                 style: const TextStyle(fontSize: 12)),
                           ),
                         if (i.fix != null) ...[

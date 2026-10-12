@@ -87,7 +87,7 @@ class TransactionDetailSheet extends StatelessWidget {
                 ] else
                   row('Akun', store.accountName(t.accountId)),
                 row('Tanggal',
-                    DateFormat('EEEE, d MMM yyyy · HH:mm', 'id_ID')
+                    DateFormat('EEEE, d MMM yyyy · HH:mm', gDateLoc)
                         .format(t.date)),
                 if (t.recurringId != null) row('Sumber', 'Transaksi berulang'),
                 if (t.note.isNotEmpty) row('Catatan', t.note),

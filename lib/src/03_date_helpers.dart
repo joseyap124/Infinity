@@ -33,7 +33,7 @@ String dayLabel(DateTime day) {
   if (sameDay(day, DateTime(now.year, now.month, now.day - 1))) {
     return 'Kemarin';
   }
-  return DateFormat('EEEE, d MMM yyyy', 'id_ID').format(day);
+  return DateFormat('EEEE, d MMM yyyy', gDateLoc).format(day);
 }
 
 DateTime nextDueDate(int dueDay, DateTime now) {
@@ -88,5 +88,5 @@ String periodSpanText(DateTime label) {
   if (gPeriodStartDay <= 1) return '';
   final r = periodRange(label);
   final last = r.end.subtract(const Duration(days: 1));
-  return '${DateFormat('d MMM', 'id_ID').format(r.start)} - ${DateFormat('d MMM', 'id_ID').format(last)}';
+  return '${DateFormat('d MMM', gDateLoc).format(r.start)} - ${DateFormat('d MMM', gDateLoc).format(last)}';
 }

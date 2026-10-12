@@ -154,7 +154,7 @@ class _YearRecapPageState extends State<YearRecapPage> {
     String m(double v) => hide ? '••••' : money(v);
     final monthNames = [
       for (var i = 1; i <= 12; i++)
-        DateFormat('MMMM', 'id_ID').format(DateTime(_year, i))
+        DateFormat('MMMM', gDateLoc).format(DateTime(_year, i))
     ];
     int? maxMonth, minMonth;
     for (var i = 0; i < 12; i++) {

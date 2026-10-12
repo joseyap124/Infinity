@@ -277,6 +277,7 @@ class AppStore extends ChangeNotifier {
     settings.homeCards = old.homeCards;
     settings.accentIndex = old.accentIndex;
     settings.iconStyle = old.iconStyle;
+    settings.lang = old.lang;
     settings.displayName = old.displayName;
     settings.greetingMode = old.greetingMode;
     settings.greetingText = old.greetingText;
@@ -291,6 +292,7 @@ class AppStore extends ChangeNotifier {
     if (!has.containsKey('homeCards')) settings.homeCards = old.homeCards;
     if (!has.containsKey('accentIndex')) settings.accentIndex = old.accentIndex;
     if (!has.containsKey('iconStyle')) settings.iconStyle = old.iconStyle;
+    if (!has.containsKey('lang')) settings.lang = old.lang;
     if (!has.containsKey('displayName')) settings.displayName = old.displayName;
     if (!has.containsKey('greetingMode')) {
       settings.greetingMode = old.greetingMode;
@@ -1036,8 +1038,8 @@ class AppStore extends ChangeNotifier {
         add(DateTime(due.year, due.month, due.day - 3, 9),
             '💳 Tagihan ${a.name} 3 hari lagi',
             hide
-                ? 'Jatuh tempo ${DateFormat('d MMM', 'id_ID').format(due)}. Cek nominalnya di Infinity.'
-                : 'Tagihan $debt jatuh tempo ${DateFormat('d MMM', 'id_ID').format(due)}.');
+                ? 'Jatuh tempo ${DateFormat('d MMM', gDateLoc).format(due)}. Cek nominalnya di Infinity.'
+                : 'Tagihan $debt jatuh tempo ${DateFormat('d MMM', gDateLoc).format(due)}.');
         add(DateTime(due.year, due.month, due.day, 8),
             '💳 Hari ini jatuh tempo ${a.name}',
             hide
@@ -1761,7 +1763,7 @@ class AppStore extends ChangeNotifier {
     final expense = sumIDR(TxType.expense, month);
     // Angka utama: sisa aman dibelanjakan hari ini (ditandai tanggal, karena
     // widget tidak diperbarui tengah malam kalau app tidak dibuka).
-    final day = DateFormat('d MMM', 'id_ID').format(now);
+    final day = DateFormat('d MMM', gDateLoc).format(now);
     final safe = safeToSpend(now);
     final left = safe.leftToday;
     final over = left < 0;
@@ -1776,8 +1778,8 @@ class AppStore extends ChangeNotifier {
     final saldo = hide ? 'Rp ••••••' : money(netWorthIDR);
     return {
       'w_month': gPeriodStartDay > 1
-          ? DateFormat('MMM yyyy', 'id_ID').format(label)
-          : DateFormat('MMMM yyyy', 'id_ID').format(label),
+          ? DateFormat('MMM yyyy', gDateLoc).format(label)
+          : DateFormat('MMMM yyyy', gDateLoc).format(label),
       'w_safe_label': over ? 'Lewat jatah · $day' : 'Aman dibelanjakan · $day',
       // Ringkas (mis. "Rp 7,5 jt") supaya muat di widget.
       'w_safe': hide ? 'Rp ••••' : 'Rp ${compactMoney(over ? -left : left)}',

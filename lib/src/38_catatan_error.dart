@@ -123,7 +123,7 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
                 Text(
                     n == 0
                         ? 'Tidak ada error tercatat. 👍'
-                        : '$n error tercatat.',
+                        : tr('{0} error tercatat.', [n]),
                     style: const TextStyle(
                         fontWeight: FontWeight.w800, fontSize: 15)),
                 const SizedBox(height: 6),

@@ -119,7 +119,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
     }
     counts.putIfAbsent(DateTime(now.year, now.month), () => 0);
     final months = counts.keys.toList()..sort((a, b) => b.compareTo(a));
-    final fmt = DateFormat('MMMM yyyy', 'id_ID');
+    final fmt = DateFormat('MMMM yyyy', gDateLoc);
     final picked = await showSheet<DateTime>(
       context,
       SheetFrame(
@@ -137,7 +137,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                 leading: const Icon(Icons.all_inclusive_rounded),
                 title: const Text('Semua',
                     style: TextStyle(fontWeight: FontWeight.w800)),
-                trailing: Text('${ledger.length} transaksi',
+                trailing: Text(tr('{0} transaksi', [ledger.length]),
                     style: TextStyle(color: C.muted, fontSize: 12.5)),
                 selected: _all,
                 onTap: () => Navigator.pop(context, DateTime(0)),
@@ -147,7 +147,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.calendar_month_rounded),
                   title: Text(fmt.format(m)),
-                  trailing: Text('${counts[m]} transaksi',
+                  trailing: Text(tr('{0} transaksi', [counts[m]]),
                       style: TextStyle(color: C.muted, fontSize: 12.5)),
                   selected: !_all && m == _month,
                   onTap: () => Navigator.pop(context, m),
@@ -210,7 +210,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
         return Scaffold(
           appBar: pageBar(a.name, actions: [
             IconButton(
-              tooltip: 'Edit akun',
+              tooltip: tr('Edit akun'),
               icon: const Icon(Icons.edit_outlined),
               onPressed: () => showSheet<void>(
                   context, AccountEditorSheet(store: store, account: a)),
@@ -261,7 +261,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                     Row(
                       children: [
                         IconButton(
-                          tooltip: 'Bulan sebelumnya',
+                          tooltip: tr('Bulan sebelumnya'),
                           onPressed: _all ? null : () => _shift(-1),
                           icon: const Icon(Icons.chevron_left_rounded),
                         ),
@@ -277,7 +277,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                                   Text(
                                       _all
                                           ? 'Semua transaksi'
-                                          : DateFormat('MMMM yyyy', 'id_ID')
+                                          : DateFormat('MMMM yyyy', gDateLoc)
                                               .format(_month),
                                       style: const TextStyle(
                                           fontWeight: FontWeight.w800)),
@@ -290,7 +290,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                           ),
                         ),
                         IconButton(
-                          tooltip: 'Bulan berikutnya',
+                          tooltip: tr('Bulan berikutnya'),
                           onPressed:
                               (_all || isCurrent) ? null : () => _shift(1),
                           icon: const Icon(Icons.chevron_right_rounded),
@@ -323,7 +323,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                     padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
                     child: Text(
                         DateFormat(_all ? 'EEEE, d MMM yyyy' : 'EEEE, d MMM',
-                                'id_ID')
+                                gDateLoc)
                             .format(day),
                         style: TextStyle(
                             fontWeight: FontWeight.w800,
@@ -348,7 +348,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
     if (items.isEmpty) return const SizedBox.shrink();
     final proj = store.projectedMonthEnd(a.id, now);
     final hide = store.settings.hideBalance;
-    final df = DateFormat('d MMM', 'id_ID');
+    final df = DateFormat('d MMM', gDateLoc);
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: InkWell(
@@ -416,7 +416,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                    'Perkiraan akhir bulan: ${hide ? '••••' : money(proj, a.currency)} · ${items.length} jadwal',
+                    tr('Perkiraan akhir bulan: {0} · {1} jadwal', [hide ? '••••' : money(proj, a.currency), items.length]),
                     style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,

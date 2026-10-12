@@ -289,7 +289,7 @@ class _DebtsPageState extends State<DebtsPage> {
                   icon: Icon(_showSettled
                       ? Icons.expand_less_rounded
                       : Icons.expand_more_rounded),
-                  label: Text('Sudah lunas (${done.length})'),
+                  label: Text(tr('Sudah lunas ({0})', [done.length])),
                 ),
                 if (_showSettled)
                   for (final d in done) _tile(context, d, now),
@@ -360,7 +360,7 @@ class _DebtsPageState extends State<DebtsPage> {
                               ? 'Lunas'
                               : due == null
                                   ? (d.note.isNotEmpty ? d.note : 'Tanpa tenggat')
-                                  : '${late ? 'Lewat tenggat' : 'Tenggat'} ${DateFormat('d MMM yyyy', 'id_ID').format(due)}',
+                                  : '${late ? 'Lewat tenggat' : 'Tenggat'} ${DateFormat('d MMM yyyy', gDateLoc).format(due)}',
                           style: TextStyle(
                               fontSize: 12,
                               color: late ? C.redDark : C.muted,
@@ -377,7 +377,7 @@ class _DebtsPageState extends State<DebtsPage> {
                             fontWeight: FontWeight.w900,
                             color: d.settled ? C.muted : color)),
                     if (!d.settled && d.paid > 0)
-                      Text('dari ${money(d.amount)}',
+                      Text(tr('dari {0}', [money(d.amount)]),
                           style: TextStyle(fontSize: 11, color: C.muted)),
                   ],
                 ),
@@ -412,7 +412,7 @@ class DebtDetailSheet extends StatelessWidget {
         title: const Text('Hapus piutang patungan?',
             style: TextStyle(fontWeight: FontWeight.w900)),
         content: Text(
-            'Sisa $left dari ${debt.person} masih di akun Talangan Patungan. Mau diapakan?'),
+            tr('Sisa {0} dari {1} masih di akun Talangan Patungan. Mau diapakan?', [left, debt.person])),
         actionsOverflowDirection: VerticalDirection.down,
         actionsOverflowButtonSpacing: 4,
         actions: [
@@ -431,7 +431,7 @@ class DebtDetailSheet extends StatelessWidget {
             onPressed: () => Navigator.pop(ctx, 'return'),
             child: Text(payerName == null
                 ? 'Salah catat, kembalikan uangnya'
-                : 'Salah catat, kembalikan ke $payerName'),
+                : tr('Salah catat, kembalikan ke {0}', [payerName])),
           ),
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
@@ -493,14 +493,14 @@ class DebtDetailSheet extends StatelessWidget {
     if (v == null || v <= 0 || !context.mounted) return;
     if (!await _receive(context, v)) return;
     if (context.mounted) {
-      snack(context, debt.settled ? '${debt.person}: lunas 🎉' : 'Pembayaran dicatat');
+      snack(context, debt.settled ? tr('{0}: lunas 🎉', [debt.person]) : 'Pembayaran dicatat');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final color = debt.theyOwe ? C.income : C.redDark;
-    final df = DateFormat('d MMM yyyy', 'id_ID');
+    final df = DateFormat('d MMM yyyy', gDateLoc);
     return SheetFrame(
       child: ListenableBuilder(
         listenable: store,
@@ -515,7 +515,7 @@ class DebtDetailSheet extends StatelessWidget {
                           fontSize: 19, fontWeight: FontWeight.w900)),
                 ),
                 IconButton(
-                  tooltip: 'Edit',
+                  tooltip: tr('Edit'),
                   onPressed: () {
                     Navigator.pop(context);
                     showSheet<void>(context,
@@ -524,7 +524,7 @@ class DebtDetailSheet extends StatelessWidget {
                   icon: const Icon(Icons.edit_rounded),
                 ),
                 IconButton(
-                  tooltip: 'Tutup',
+                  tooltip: tr('Tutup'),
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close_rounded),
                 ),
@@ -532,8 +532,8 @@ class DebtDetailSheet extends StatelessWidget {
             ),
             Text(
                 debt.theyOwe
-                    ? 'Piutang · dipinjam ${df.format(debt.date)}'
-                    : 'Utang · dipinjam ${df.format(debt.date)}',
+                    ? tr('Piutang · dipinjam {0}', [df.format(debt.date)])
+                    : tr('Utang · dipinjam {0}', [df.format(debt.date)]),
                 style: TextStyle(color: C.muted)),
             const SizedBox(height: 12),
             Text(debt.settled ? 'Lunas' : 'Sisa',
@@ -542,10 +542,10 @@ class DebtDetailSheet extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 28, fontWeight: FontWeight.w900, color: color)),
             if (debt.paid > 0 && !debt.settled)
-              Text('Sudah dibayar ${money(debt.paid)} dari ${money(debt.amount)}',
+              Text(tr('Sudah dibayar {0} dari {1}', [money(debt.paid), money(debt.amount)]),
                   style: TextStyle(fontSize: 12.5, color: C.muted)),
             if (debt.due != null)
-              Text('Tenggat ${df.format(debt.due!)}',
+              Text(tr('Tenggat {0}', [df.format(debt.due!)]),
                   style: TextStyle(
                       fontSize: 12.5,
                       color: debt.overdue(DateTime.now()) ? C.redDark : C.muted)),
@@ -582,7 +582,7 @@ class DebtDetailSheet extends StatelessWidget {
               OutlinedButton(
                 onPressed: () async {
                   if (!await _receive(context, debt.remaining)) return;
-                  if (context.mounted) snack(context, '${debt.person}: lunas 🎉');
+                  if (context.mounted) snack(context, tr('{0}: lunas 🎉', [debt.person]));
                 },
                 style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(48),
@@ -601,7 +601,7 @@ class DebtDetailSheet extends StatelessWidget {
                 final ok = await confirmDialog(context,
                     title: 'Hapus catatan ini?',
                     message:
-                        '${debt.theyOwe ? 'Piutang' : 'Utang'} ${debt.person} ${money(debt.amount)} beserta riwayat pembayarannya akan dihapus.',
+                        tr('{0} {1} {2} beserta riwayat pembayarannya akan dihapus.', [debt.theyOwe ? 'Piutang' : 'Utang', debt.person, money(debt.amount)]),
                     confirmLabel: 'Hapus',
                     destructive: true);
                 if (!ok || !context.mounted) return;
@@ -702,7 +702,7 @@ class _DebtEditorSheetState extends State<DebtEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final df = DateFormat('d MMM yyyy', 'id_ID');
+    final df = DateFormat('d MMM yyyy', gDateLoc);
     return SheetFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -715,7 +715,7 @@ class _DebtEditorSheetState extends State<DebtEditorSheet> {
                         fontSize: 18, fontWeight: FontWeight.w900)),
               ),
               IconButton(
-                tooltip: 'Tutup',
+                tooltip: tr('Tutup'),
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -743,7 +743,7 @@ class _DebtEditorSheetState extends State<DebtEditorSheet> {
             decoration: fieldDeco('Nominal', icon: Icons.payments_rounded, prefix: 'Rp ')
                 .copyWith(
               suffixIcon: IconButton(
-                tooltip: 'Kalkulator',
+                tooltip: tr('Kalkulator'),
                 icon: Icon(Icons.calculate_rounded, color: C.accentDark),
                 onPressed: _calc,
               ),
@@ -773,7 +773,7 @@ class _DebtEditorSheetState extends State<DebtEditorSheet> {
                         placeholder: 'Opsional')),
                 if (_due != null)
                   IconButton(
-                    tooltip: 'Hapus tenggat',
+                    tooltip: tr('Hapus tenggat'),
                     visualDensity: VisualDensity.compact,
                     onPressed: () => setState(() => _due = null),
                     icon: Icon(Icons.close_rounded, size: 18, color: C.muted),
@@ -881,7 +881,7 @@ class GoalCard extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.w800)),
                     Text(
                         acc != null
-                            ? 'Ikut saldo ${acc.name}'
+                            ? tr('Ikut saldo {0}', [acc.name])
                             : 'Diisi manual',
                         style: TextStyle(fontSize: 12, color: C.muted)),
                   ],
@@ -898,11 +898,11 @@ class GoalCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text('${money(p)} dari ${money(goal.target)}',
+                child: Text(tr('{0} dari {1}', [money(p), money(goal.target)]),
                     style: TextStyle(fontSize: 12.5, color: C.carbon)),
               ),
               if (goal.deadline != null)
-                Text(DateFormat('MMM yyyy', 'id_ID').format(goal.deadline!),
+                Text(DateFormat('MMM yyyy', gDateLoc).format(goal.deadline!),
                     style: TextStyle(fontSize: 12, color: C.muted)),
             ],
           ),
@@ -910,7 +910,7 @@ class GoalCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                  'Perlu ±${money(per)} per bulan supaya tercapai tepat waktu.',
+                  tr('Perlu ±{0} per bulan supaya tercapai tepat waktu.', [money(per)]),
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ),
           if (done)
@@ -956,7 +956,7 @@ class GoalCard extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(sign > 0 ? 'Setor ke ${goal.name}' : 'Ambil dari ${goal.name}',
+        title: Text(sign > 0 ? tr('Setor ke {0}', [goal.name]) : tr('Ambil dari {0}', [goal.name]),
             style: const TextStyle(fontWeight: FontWeight.w900)),
         content: TextField(
           controller: ctrl,
@@ -1056,7 +1056,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
                         fontSize: 18, fontWeight: FontWeight.w900)),
               ),
               IconButton(
-                tooltip: 'Tutup',
+                tooltip: tr('Tutup'),
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -1067,7 +1067,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
             controller: _name,
             textCapitalization: TextCapitalization.sentences,
             decoration: fieldDeco('Nama target', icon: Icons.flag_rounded)
-                .copyWith(hintText: 'mis. Dana darurat'),
+                .copyWith(hintText: tr('mis. Dana darurat')),
           ),
           const SizedBox(height: 10),
           TextField(
@@ -1095,12 +1095,12 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
                   child: FormValue(
                       _deadline == null
                           ? null
-                          : DateFormat('d MMM yyyy', 'id_ID').format(_deadline!),
+                          : DateFormat('d MMM yyyy', gDateLoc).format(_deadline!),
                       placeholder: 'Opsional'),
                 ),
                 if (_deadline != null)
                   IconButton(
-                    tooltip: 'Hapus tenggat',
+                    tooltip: tr('Hapus tenggat'),
                     visualDensity: VisualDensity.compact,
                     onPressed: () => setState(() => _deadline = null),
                     icon: Icon(Icons.close_rounded, size: 18, color: C.muted),
@@ -1122,7 +1122,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
               ),
               for (final a in store.accounts)
                 ChoiceChip(
-                  label: Text('Saldo ${a.name}'),
+                  label: Text(tr('Saldo {0}', [a.name])),
                   selected: _accountId == a.id,
                   onSelected: (_) => setState(() => _accountId = a.id),
                 ),
@@ -1144,7 +1144,7 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
               onPressed: () async {
                 final ok = await confirmDialog(context,
                     title: 'Hapus target?',
-                    message: 'Target "${widget.goal!.name}" akan dihapus. Saldo akun tidak berubah.',
+                    message: tr('Target "{0}" akan dihapus. Saldo akun tidak berubah.', [widget.goal!.name]),
                     confirmLabel: 'Hapus',
                     destructive: true);
                 if (!ok || !context.mounted) return;

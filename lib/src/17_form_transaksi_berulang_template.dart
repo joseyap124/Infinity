@@ -611,7 +611,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 child: onRemove == null
                     ? null
                     : IconButton(
-                        tooltip: 'Hapus bagian',
+                        tooltip: tr('Hapus bagian'),
                         visualDensity: VisualDensity.compact,
                         onPressed: onRemove,
                         icon: Icon(Icons.close_rounded,
@@ -702,8 +702,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 noTotal
                     ? 'Isi Jumlah di atas dulu. Baris pertama otomatis berisi sisanya.'
                     : ok
-                        ? 'Baris pertama otomatis berisi sisanya. Total tetap ${money(_amount, _fromCur)}.'
-                        : 'Bagian lain melebihi total ${money(_amount, _fromCur)}. Kurangi salah satunya.',
+                        ? tr('Baris pertama otomatis berisi sisanya. Total tetap {0}.', [money(_amount, _fromCur)])
+                        : tr('Bagian lain melebihi total {0}. Kurangi salah satunya.', [money(_amount, _fromCur)]),
                 style: TextStyle(
                     fontSize: 12, color: ok ? C.muted : C.redDark)),
           ),
@@ -888,7 +888,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
         .inDays;
     if (diff == 0) return 'Hari ini';
     if (diff == 1) return 'Kemarin';
-    return DateFormat('d MMM yyyy', 'id_ID').format(_date);
+    return DateFormat('d MMM yyyy', gDateLoc).format(_date);
   }
 
   Widget _pill({
@@ -1000,7 +1000,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                   style: const TextStyle(fontWeight: FontWeight.w900)),
               subtitle: Text(uses == 0
                   ? 'Belum dipakai dalam 90 hari terakhir'
-                  : 'Dipakai $uses kali dalam 90 hari terakhir'),
+                  : tr('Dipakai {0} kali dalam 90 hari terakhir', [uses])),
             ),
             const Divider(height: 1),
             ListTile(
@@ -1031,7 +1031,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
         final ok = store.togglePin(id);
         if (!ok) {
           snack(context,
-              'Maksimal ${AppStore.kFrequentSlots} kategori dipin. Lepas pin satu dulu.');
+              tr('Maksimal {0} kategori dipin. Lepas pin satu dulu.', [AppStore.kFrequentSlots]));
         }
       case 'hide':
         store.hideFromFrequent(id);
@@ -1255,11 +1255,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: C.carbon),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.symmetric(vertical: 8),
-                        hintText: 'Misal "Nasi padang"',
+                        hintText: tr('Misal "Nasi padang"'),
                       ),
                     ),
                   ),
@@ -1275,12 +1275,12 @@ class _TxFormSheetState extends State<TxFormSheet> {
                       maxLines: 3,
                       textCapitalization: TextCapitalization.sentences,
                       style: TextStyle(fontSize: 14, color: C.carbon),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: InputBorder.none,
                         isDense: true,
                         counterText: '',
                         contentPadding: EdgeInsets.symmetric(vertical: 8),
-                        hintText: 'Opsional',
+                        hintText: tr('Opsional'),
                       ),
                     ),
                   ),
@@ -1446,7 +1446,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
               ),
             ),
             IconButton(
-              tooltip: 'Kalkulator',
+              tooltip: tr('Kalkulator'),
               onPressed: _openCalculator,
               icon: Icon(Icons.calculate_rounded, color: accent),
             ),
@@ -1513,7 +1513,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                   ),
                   prefixIconConstraints:
                       const BoxConstraints(minWidth: 0, minHeight: 0),
-                  helperText: 'Otomatis dari kurs, ubah kalau beda.',
+                  helperText: tr('Otomatis dari kurs, ubah kalau beda.'),
                 ),
               ),
             ),
@@ -1610,7 +1610,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                                   color: C.carbon)),
                         ),
                         IconButton(
-                          tooltip: 'Tutup',
+                          tooltip: tr('Tutup'),
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.close_rounded),
                         ),
@@ -1699,7 +1699,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                           color: C.carbon)),
                 ),
                 IconButton(
-                  tooltip: 'Tutup',
+                  tooltip: tr('Tutup'),
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(Icons.close_rounded),
                 ),
@@ -1758,7 +1758,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 accent: accent,
                 onTap: _pickDate,
                 child: FormValue(
-                    DateFormat('EEE, dd/MM/yyyy', 'id_ID').format(_date)),
+                    DateFormat('EEE, dd/MM/yyyy', gDateLoc).format(_date)),
               ),
             FormRow(
               label: 'Jumlah',
@@ -1813,7 +1813,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Kalkulator',
+                    tooltip: tr('Kalkulator'),
                     visualDensity: VisualDensity.compact,
                     onPressed: _openCalculator,
                     icon: Icon(Icons.calculate_rounded, color: accent),
@@ -1889,7 +1889,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                     ),
                     prefixIconConstraints:
                         const BoxConstraints(minWidth: 0, minHeight: 0),
-                    helperText: 'Otomatis dari kurs, ubah kalau beda.',
+                    helperText: tr('Otomatis dari kurs, ubah kalau beda.'),
                   ),
                 ),
               ),
@@ -1930,11 +1930,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: C.carbon),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.symmetric(vertical: 8),
-                  hintText: 'Opsional, misal "Nasi padang"',
+                  hintText: tr('Opsional, misal "Nasi padang"'),
                 ),
               ),
             ),
@@ -1950,12 +1950,12 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 maxLines: 3,
                 textCapitalization: TextCapitalization.sentences,
                 style: TextStyle(fontSize: 14, color: C.carbon),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   border: InputBorder.none,
                   isDense: true,
                   counterText: '',
                   contentPadding: EdgeInsets.symmetric(vertical: 8),
-                  hintText: 'Opsional',
+                  hintText: tr('Opsional'),
                 ),
               ),
             ),
@@ -2488,7 +2488,7 @@ class _CategoryPanelState extends State<CategoryPanel> {
                 children: [
                   if (open != null)
                     IconButton(
-                      tooltip: 'Kembali',
+                      tooltip: tr('Kembali'),
                       onPressed: () => setState(() => _open = null),
                       icon: const Icon(Icons.arrow_back_rounded),
                     )
@@ -2500,7 +2500,7 @@ class _CategoryPanelState extends State<CategoryPanel> {
                             fontSize: 16, fontWeight: FontWeight.w900)),
                   ),
                   IconButton(
-                    tooltip: 'Tutup',
+                    tooltip: tr('Tutup'),
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -2561,7 +2561,7 @@ class AccountPanel extends StatelessWidget {
                           fontSize: 16, fontWeight: FontWeight.w900)),
                 ),
                 IconButton(
-                  tooltip: 'Tutup',
+                  tooltip: tr('Tutup'),
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close_rounded),
                 ),

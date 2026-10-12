@@ -338,7 +338,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
       others: others,
     );
     Navigator.pop(context);
-    snack(context, 'Patungan dicatat: $n piutang 🤝');
+    snack(context, tr('Patungan dicatat: {0} piutang 🤝', [n]));
   }
 
   @override
@@ -357,7 +357,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
               ),
               IconButton(
-                tooltip: 'Tutup',
+                tooltip: tr('Tutup'),
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -429,7 +429,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
               ),
               const SizedBox(width: 8),
               IconButton.filled(
-                tooltip: 'Tambah',
+                tooltip: tr('Tambah'),
                 onPressed: _addPerson,
                 style: IconButton.styleFrom(backgroundColor: C.accentDark),
                 icon: const Icon(Icons.add_rounded, color: Colors.white),
@@ -488,7 +488,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Hapus ${o.person}',
+                            tooltip: tr('Hapus {0}', [o.person]),
                             onPressed: () => _removePerson(o.person),
                             icon: Icon(Icons.close_rounded, color: C.muted),
                           ),
@@ -524,7 +524,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
               style: TextStyle(fontWeight: FontWeight.w900, color: color)),
           if (onRemove != null)
             IconButton(
-              tooltip: 'Hapus $name',
+              tooltip: tr('Hapus {0}', [name]),
               visualDensity: VisualDensity.compact,
               onPressed: onRemove,
               icon: Icon(Icons.close_rounded, size: 18, color: C.muted),

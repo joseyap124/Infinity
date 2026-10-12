@@ -41,7 +41,7 @@ class _BackupPageState extends State<BackupPage> {
     }));
     if (!mounted) return;
     snack(context,
-        'Backup (${(json.length / 1024).toStringAsFixed(1)} KB, tanpa PIN) disalin. Tempel dalam 60 detik, setelah itu clipboard dikosongkan.');
+        tr('Backup ({0} KB, tanpa PIN) disalin. Tempel dalam 60 detik, setelah itu clipboard dikosongkan.', [(json.length / 1024).toStringAsFixed(1)]));
   }
 
   Future<void> _paste() async {
@@ -53,8 +53,8 @@ class _BackupPageState extends State<BackupPage> {
   /// Isi backup di samping data sekarang, supaya ketahuan kalau salah pilih file.
   String _compareText(String name, BackupInfo file) {
     final now = store.currentInfo();
-    final full = DateFormat('d MMM yyyy, HH.mm', 'id_ID');
-    final day = DateFormat('d MMM yyyy', 'id_ID');
+    final full = DateFormat('d MMM yyyy, HH.mm', gDateLoc);
+    final day = DateFormat('d MMM yyyy', gDateLoc);
     final b = StringBuffer('Isi $name\n');
     final at = file.exportedAt;
     if (at != null) b.writeln('Dibuat ${full.format(at)}');
@@ -83,7 +83,7 @@ class _BackupPageState extends State<BackupPage> {
     if (!store.hasData) return true;
     final name = await store.backupBeforeRestore();
     if (name != null) {
-      if (mounted) snack(context, 'Data lama disimpan dulu: $name');
+      if (mounted) snack(context, tr('Data lama disimpan dulu: {0}', [name]));
       return true;
     }
     if (!mounted) return false;
@@ -251,9 +251,9 @@ class _BackupPageState extends State<BackupPage> {
           'infinity-backup-$stamp.infb', bytes, 'application/octet-stream');
       if (name == null || !mounted) return;
       store.markDriveSaved();
-      snack(context, 'Tersimpan: $name ✅');
+      snack(context, tr('Tersimpan: {0} ✅', [name]));
     } catch (e) {
-      if (mounted) snack(context, 'Gagal menyimpan: $e');
+      if (mounted) snack(context, tr('Gagal menyimpan: {0}', [e]));
     }
   }
 
@@ -263,7 +263,7 @@ class _BackupPageState extends State<BackupPage> {
     String? pw;
     if (SecureBackup.looksEncrypted(picked.bytes)) {
       pw = await _askPassword(
-          confirm: false, title: 'Kata sandi untuk ${picked.name}');
+          confirm: false, title: tr('Kata sandi untuk {0}', [picked.name]));
       if (pw == null || !mounted) return;
     }
     final BackupInfo info;
@@ -289,7 +289,7 @@ class _BackupPageState extends State<BackupPage> {
       if (!mounted) return;
       setState(() => _error = null);
       snack(context,
-          'Data berhasil dipulihkan${n > 0 ? ' (+$n foto struk)' : ''} ✅');
+          tr('Data berhasil dipulihkan{0} ✅', [n > 0 ? ' (+$n foto struk)' : '']));
     } on FormatException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
@@ -313,7 +313,7 @@ class _BackupPageState extends State<BackupPage> {
                 const SectionTitle('Backup'),
                 const SizedBox(height: 6),
                 Text(
-                    '${store.transactions.length} transaksi, ${store.accounts.length} akun, ${store.categories.length} kategori. Data disalin sebagai teks JSON, simpan di tempat aman (catatan, email ke diri sendiri, Google Drive).',
+                    tr('{0} transaksi, {1} akun, {2} kategori. Data disalin sebagai teks JSON, simpan di tempat aman (catatan, email ke diri sendiri, Google Drive).', [store.transactions.length, store.accounts.length, store.categories.length]),
                     style: TextStyle(fontSize: 13, color: C.muted)),
                 const SizedBox(height: 12),
                 PrimaryButton(
@@ -340,7 +340,7 @@ class _BackupPageState extends State<BackupPage> {
                   subtitle: Text(
                       store.settings.lastAutoBackup == null
                           ? 'Belum pernah'
-                          : 'Terakhir: ${DateFormat('d MMM yyyy, HH.mm', 'id_ID').format(store.settings.lastAutoBackup!)}',
+                          : tr('Terakhir: {0}', [DateFormat('d MMM yyyy, HH.mm', gDateLoc).format(store.settings.lastAutoBackup!)]),
                       style: TextStyle(fontSize: 12.5, color: C.muted)),
                 ),
                 ListTile(
@@ -364,7 +364,7 @@ class _BackupPageState extends State<BackupPage> {
                   ),
                 ),
                 Text(
-                    'Disimpan di Download/Infinity dan tetap ada walau app di-uninstall. Otomatis setiap hari kalau ada perubahan. Disimpan $kKeepBackups backup terakhir; yang lebih lama dihapus otomatis. Setiap backup dicek dulu bisa dibuka sebelum disimpan. Pulihkan lewat tombol "Pulihkan dari file" di bawah.',
+                    tr('Disimpan di Download/Infinity dan tetap ada walau app di-uninstall. Otomatis setiap hari kalau ada perubahan. Disimpan {0} backup terakhir; yang lebih lama dihapus otomatis. Setiap backup dicek dulu bisa dibuka sebelum disimpan. Pulihkan lewat tombol "Pulihkan dari file" di bawah.', [kKeepBackups]),
                     style: TextStyle(fontSize: 12.5, color: C.muted)),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(

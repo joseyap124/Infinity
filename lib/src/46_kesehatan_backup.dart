@@ -154,7 +154,7 @@ class _BackupHealthCardState extends State<BackupHealthCard> {
                     Text(
                         last == null
                             ? 'Backup aman'
-                            : 'Backup aman · ${agoLabel(last, now)}',
+                            : tr('Backup aman · {0}', [agoLabel(last, now)]),
                         style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,

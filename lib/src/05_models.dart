@@ -480,6 +480,9 @@ class AppSettings {
   /// Gaya ikon kategori: 'cartoon' (bergambar) | 'classic' (ikon Material).
   String iconStyle = 'cartoon';
 
+  /// Bahasa tampilan: 'id' | 'en' | 'zh'.
+  String lang = 'id';
+
   /// Ikon kategori bawaan sudah dipindah ke ikon kartun (sekali saja).
   bool iconsV37 = false;
 
@@ -572,6 +575,7 @@ class AppSettings {
         if (spendKinds.isNotEmpty) 'spendKinds': spendKinds,
         'accentIndex': accentIndex,
         'iconStyle': iconStyle,
+        if (lang != 'id') 'lang': lang,
         if (iconsV37) 'iconsV37': true,
         if (pinnedCats.isNotEmpty) 'pinnedCats': pinnedCats,
         if (hiddenFreq.isNotEmpty) 'hiddenFreq': hiddenFreq,
@@ -647,6 +651,7 @@ class AppSettings {
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
     s.iconStyle = _s(j['iconStyle']) == 'classic' ? 'classic' : 'cartoon';
+    s.lang = const ['en', 'zh'].contains(_s(j['lang'])) ? _s(j['lang'])! : 'id';
     s.iconsV37 = j['iconsV37'] == true;
     if (j['pinnedCats'] is List) {
       s.pinnedCats = (j['pinnedCats'] as List).whereType<String>().toList();

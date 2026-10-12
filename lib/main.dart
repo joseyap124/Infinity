@@ -24,7 +24,9 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+// Text bawaan dipakai lewat m.Text; Text milik app (47_bahasa.dart) menerjemahkan isinya.
+import 'package:flutter/material.dart' as m show Text;
 import 'package:flutter/services.dart';
 import 'package:archive/archive.dart';
 import 'package:cryptography/cryptography.dart';
@@ -94,6 +96,9 @@ part 'src/43_rencana_pengaturan.dart';
 part 'src/44_golongan_pengeluaran.dart';
 part 'src/45_ikon_kartun.dart';
 part 'src/46_kesehatan_backup.dart';
+part 'src/47_bahasa.dart';
+part 'src/48_terjemahan_en.dart';
+part 'src/49_terjemahan_zh.dart';
 // WIDGET-IMPORTS-END
 
 void main() {
@@ -112,6 +117,8 @@ void main() {
     ErrorWidget.builder = friendlyErrorWidget;
     await ErrorLog.init();
     await initializeDateFormatting('id_ID', null);
+    await initializeDateFormatting('en_US', null);
+    await initializeDateFormatting('zh_CN', null);
     runApp(const InfinityApp());
   }, (error, stack) => ErrorLog.record(error, stack, source: 'zone'));
 }

@@ -74,7 +74,7 @@ class RecurringPage extends StatelessWidget {
                                         color: r.type.color)),
                                 Text(
                                     r.active
-                                        ? 'Berikutnya ${DateFormat('EEE, d MMM yyyy', 'id_ID').format(r.nextDate)}'
+                                        ? tr('Berikutnya {0}', [DateFormat('EEE, d MMM yyyy', gDateLoc).format(r.nextDate)])
                                         : 'Dijeda',
                                     style: TextStyle(
                                         fontSize: 12, color: C.muted)),
@@ -92,13 +92,13 @@ class RecurringPage extends StatelessWidget {
                                     final n = store.processRecurring();
                                     if (n > 0) {
                                       snack(context,
-                                          '$n transaksi jatuh tempo hari ini langsung dicatat');
+                                          tr('{0} transaksi jatuh tempo hari ini langsung dicatat', [n]));
                                     }
                                   }
                                 },
                               ),
                               IconButton(
-                                tooltip: 'Hapus',
+                                tooltip: tr('Hapus'),
                                 icon: Icon(Icons.delete_outline_rounded,
                                     color: C.redDark),
                                 onPressed: () async {

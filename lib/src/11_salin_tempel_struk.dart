@@ -16,7 +16,7 @@ String txShareText(AppStore store, Transaction t) {
         ? '${store.accountName(t.accountId)} → ${store.accountName(t.toAccountId)}'
         : 'Akun: ${store.accountName(t.accountId)}')
     ..writeln('Kategori: ${store.categoryLabel(t)}')
-    ..write(DateFormat('EEEE, d MMM yyyy · HH:mm', 'id_ID').format(t.date));
+    ..write(DateFormat('EEEE, d MMM yyyy · HH:mm', gDateLoc).format(t.date));
   if (t.note.isNotEmpty) b.write('\nCatatan: ${t.note}');
   return b.toString();
 }

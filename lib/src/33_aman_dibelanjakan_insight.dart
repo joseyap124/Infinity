@@ -383,8 +383,8 @@ extension InsightStore on AppStore {
     final today = dayOnly(now);
     final todayKey = DateFormat('yyyy-MM-dd').format(now);
     bool hidden(String id) => settings.dismissedInsights[id] == todayKey;
-    final df = DateFormat('d MMM', 'id_ID');
-    final tf = DateFormat('d MMM HH:mm', 'id_ID');
+    final df = DateFormat('d MMM', gDateLoc);
+    final tf = DateFormat('d MMM HH:mm', gDateLoc);
 
     // Penyimpanan gagal: paling penting, tampil paling atas.
     if (!lastSaveOk) {
@@ -403,8 +403,8 @@ extension InsightStore on AppStore {
       out.add(Insight(
         id: 'pend_full',
         kind: InsightKind.capture,
-        title: '${pendingCaptures.length} notifikasi menunggu dicek',
-        body: 'Batasnya $kMaxPendingCaptures. Kalau lewat, yang paling lama terbuang. Cek atau abaikan sebagian.',
+        title: tr('{0} notifikasi menunggu dicek', [pendingCaptures.length]),
+        body: tr('Batasnya {0}. Kalau lewat, yang paling lama terbuang. Cek atau abaikan sebagian.', [kMaxPendingCaptures]),
         icon: Icons.inbox_rounded,
         color: C.amberDark,
         action: 'Cek',
@@ -416,8 +416,8 @@ extension InsightStore on AppStore {
       out.add(Insight(
         id: 'bal_${m.accountId}',
         kind: InsightKind.balance,
-        title: 'Saldo ${acc.name} beda ${money(m.diff.abs(), acc.currency)}',
-        body: 'Menurut notifikasi (${tf.format(m.at)}) ${money(m.reported, acc.currency)}, '
+        title: tr('Saldo {0} beda {1}', [acc.name, money(m.diff.abs(), acc.currency)]),
+        body: tr('Menurut notifikasi ({0}) {1}, ', [tf.format(m.at), money(m.reported, acc.currency)])
             'di Infinity ${money(m.app, acc.currency)}. Ada transaksi yang belum dicatat?',
         icon: Icons.account_balance_wallet_rounded,
         color: C.amberDark,
@@ -441,9 +441,9 @@ extension InsightStore on AppStore {
           id: id,
           kind: InsightKind.recap,
           title:
-              'Rekap ${DateFormat('MMMM', 'id_ID').format(last)} siap ${tier?.emoji ?? '📋'}',
+              tr('Rekap {0} siap {1}', [DateFormat('MMMM', gDateLoc).format(last), tier?.emoji ?? '📋']),
           body:
-              '${tier == null ? '' : '${tier.label}. '}$fixes hal yang bisa diperbaiki bulan ini.',
+              tr('{0}{1} hal yang bisa diperbaiki bulan ini.', [tier == null ? '' : '${tier.label}. ', fixes]),
           icon: Icons.fact_check_rounded,
           color: C.accentDark,
           action: 'Lihat',
@@ -462,8 +462,8 @@ extension InsightStore on AppStore {
       out.add(Insight(
         id: id,
         kind: InsightKind.projection,
-        title: 'Saldo ${a.name} bisa minus',
-        body: 'Perkiraan akhir bulan ${money(proj, a.currency)} setelah ${items.length} tagihan/transfer berulang. Isi saldonya dulu.',
+        title: tr('Saldo {0} bisa minus', [a.name]),
+        body: tr('Perkiraan akhir bulan {0} setelah {1} tagihan/transfer berulang. Isi saldonya dulu.', [money(proj, a.currency), items.length]),
         icon: Icons.warning_amber_rounded,
         color: C.redDark,
         action: 'Lihat',
@@ -496,7 +496,7 @@ extension InsightStore on AppStore {
         title: spent >= e.budget
             ? '${e.name}: lewat anggaran'
             : '${e.name}: anggaran tinggal ${money(e.budget - spent)}',
-        body: 'Terpakai ${money(spent)} dari ${money(e.budget)} (${(spent / e.budget * 100).round()}%).',
+        body: tr('Terpakai {0} dari {1} ({2}%).', [money(spent), money(e.budget), (spent / e.budget * 100).round()]),
         icon: Icons.local_activity_rounded,
         color: spent >= e.budget ? C.redDark : C.amberDark,
         action: 'Lihat',
@@ -552,7 +552,7 @@ extension InsightStore on AppStore {
       out.add(Insight(
         id: id,
         kind: InsightKind.bill,
-        title: 'Tagihan ${a.name} ${money(-bal, a.currency)}',
+        title: tr('Tagihan {0} {1}', [a.name, money(-bal, a.currency)]),
         body: days == 0 ? 'Jatuh tempo hari ini.' : 'Jatuh tempo $days hari lagi.',
         icon: Icons.credit_card_rounded,
         color: C.redDark,
@@ -565,8 +565,8 @@ extension InsightStore on AppStore {
       out.add(Insight(
         id: id,
         kind: InsightKind.unusual,
-        title: '$name lagi tinggi',
-        body: '7 hari terakhir ${money(w)}, biasanya ±${money(avg)} per minggu (${(w / avg).toStringAsFixed(1)}×).',
+        title: tr('{0} lagi tinggi', [name]),
+        body: tr('7 hari terakhir {0}, biasanya ±{1} per minggu ({2}×).', [money(w), money(avg), (w / avg).toStringAsFixed(1)]),
         icon: Icons.trending_up_rounded,
         color: C.redDark,
       ));
@@ -575,8 +575,8 @@ extension InsightStore on AppStore {
       out.add(Insight(
         id: 'sub_${_subKey(s.title)}',
         kind: InsightKind.subscription,
-        title: 'Langganan? ${s.title}',
-        body: '±${money(s.amount)} muncul ${s.months} bulan berturut. Jadikan transaksi berulang tiap tgl ${s.day}?',
+        title: tr('Langganan? {0}', [s.title]),
+        body: tr('±{0} muncul {1} bulan berturut. Jadikan transaksi berulang tiap tgl {2}?', [money(s.amount), s.months, s.day]),
         icon: Icons.autorenew_rounded,
         color: C.accentDark,
         action: 'Jadikan berulang',
@@ -593,8 +593,8 @@ extension InsightStore on AppStore {
       out.add(Insight(
         id: id,
         kind: InsightKind.goal,
-        title: 'Target "${g.name}" tinggal $days hari',
-        body: 'Kurang ${money(g.target - goalProgress(g))}.',
+        title: tr('Target "{0}" tinggal {1} hari', [g.name, days]),
+        body: tr('Kurang {0}.', [money(g.target - goalProgress(g))]),
         icon: Icons.savings_rounded,
         color: Color(g.color),
         action: 'Lihat',
@@ -668,7 +668,7 @@ class SafeSpendCard extends StatelessWidget {
                   Text(
                       hide
                           ? 'Ketuk untuk rincian'
-                          : 'Jatah ${money(s.perDay)}/hari · ${s.daysLeft} hari lagi${s.spentToday > 0 ? ' · keluar hari ini ${money(s.spentToday)}' : ''}',
+                          : tr('Jatah {0}/hari · {1} hari lagi{2}', [money(s.perDay), s.daysLeft, s.spentToday > 0 ? ' · keluar hari ini ${money(s.spentToday)}' : '']),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 11.5, color: C.muted)),
@@ -690,7 +690,7 @@ class SafeSpendSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = store.safeToSpend(DateTime.now());
-    final df = DateFormat('d MMM', 'id_ID');
+    final df = DateFormat('d MMM', gDateLoc);
     Widget line(String label, double v, {bool bold = false}) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Row(
@@ -720,7 +720,7 @@ class SafeSpendSheet extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ),
               IconButton(
-                tooltip: 'Tutup',
+                tooltip: tr('Tutup'),
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -728,7 +728,7 @@ class SafeSpendSheet extends StatelessWidget {
           ),
           Text(
               s.fromBudget
-                  ? 'Dihitung dari anggaranmu sampai ${df.format(s.periodEnd.subtract(const Duration(days: 1)))}.'
+                  ? tr('Dihitung dari anggaranmu sampai {0}.', [df.format(s.periodEnd.subtract(const Duration(days: 1)))])
                   : 'Dihitung dari saldo e-wallet, tunai & bank sampai akhir bulan. Atur anggaran bulanan supaya angkanya lebih pas dengan rencanamu.',
               style: TextStyle(fontSize: 12.5, color: C.muted)),
           const SizedBox(height: 10),
@@ -737,7 +737,7 @@ class SafeSpendSheet extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
-                  'Tidak dihitung: ${money(s.excluded)} di akun yang ditandai "jangan hitung" (tabungan/dana darurat).',
+                  tr('Tidak dihitung: {0} di akun yang ditandai "jangan hitung" (tabungan/dana darurat).', [money(s.excluded)]),
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ),
           Divider(color: C.line),
@@ -843,7 +843,7 @@ class InsightStrip extends StatelessWidget {
         final s = i.payload;
         if (s is SubSuggestion) {
           store.acceptSubscription(s, DateTime.now());
-          snack(context, '${s.title} dijadikan transaksi berulang 🔁');
+          snack(context, tr('{0} dijadikan transaksi berulang 🔁', [s.title]));
         }
       case InsightKind.goal:
         Navigator.of(context).push(
@@ -863,9 +863,9 @@ class InsightStrip extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Samakan saldo ${acc.name}?'),
+        title: Text(tr('Samakan saldo {0}?', [acc.name])),
         content: Text(
-            'Infinity akan mencatat penyesuaian ${m.diff > 0 ? '+' : '-'}${money(m.diff.abs(), acc.currency)} '
+            tr('Infinity akan mencatat penyesuaian {0}{1} ', [m.diff > 0 ? '+' : '-', money(m.diff.abs(), acc.currency)])
             'pada waktu notifikasi, supaya saldo saat itu jadi ${money(m.reported, acc.currency)}. '
             'Kalau selisihnya karena transaksi yang lupa dicatat, lebih baik catat transaksinya saja.'),
         actions: [
@@ -880,7 +880,7 @@ class InsightStrip extends StatelessWidget {
     );
     if (ok == true) {
       store.reconcileBalance(m);
-      if (context.mounted) snack(context, 'Saldo ${acc.name} sudah disamakan');
+      if (context.mounted) snack(context, tr('Saldo {0} sudah disamakan', [acc.name]));
     }
   }
 

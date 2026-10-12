@@ -132,7 +132,7 @@ class NotificationsPage extends StatelessWidget {
                     ),
                     _switch(
                       title: 'Pengingat harian',
-                      subtitle: 'Setiap hari jam $time',
+                      subtitle: tr('Setiap hari jam {0}', [time]),
                       value: s.dailyReminder,
                       onChanged: on
                           ? (v) =>
@@ -145,7 +145,7 @@ class NotificationsPage extends StatelessWidget {
                         child: TextButton.icon(
                           onPressed: () => _pickTime(context),
                           icon: const Icon(Icons.schedule_rounded),
-                          label: Text('Ubah jam ($time)'),
+                          label: Text(tr('Ubah jam ({0})', [time])),
                         ),
                       ),
                   ],
@@ -170,7 +170,7 @@ class NotificationsPage extends StatelessWidget {
                               SizedBox(
                                 width: 92,
                                 child: Text(
-                                    DateFormat('d MMM HH:mm', 'id_ID')
+                                    DateFormat('d MMM HH:mm', gDateLoc)
                                         .format(n.when),
                                     style: TextStyle(
                                         fontSize: 12, color: C.muted)),

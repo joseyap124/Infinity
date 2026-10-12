@@ -197,6 +197,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
     gCartoon.value = store.settings.iconStyle != 'classic';
+    gLang.value = langOf(store.settings.lang);
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
     _scheduleNotifications();
@@ -240,6 +241,12 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
     gCartoon.value = store.settings.iconStyle != 'classic';
+    final lang = langOf(store.settings.lang);
+    if (gLang.value != lang) {
+      gLang.value = lang;
+      // Semua teks dibaca ulang dengan bahasa baru, tanpa menutup halaman yang terbuka.
+      WidgetsBinding.instance.addPostFrameCallback((_) => rebuildAllApp());
+    }
   }
 
   /// Pintasan tidak bergantung pada saklar pengingat: cukup setelannya aktif
@@ -283,7 +290,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
         } else {
           setState(() => _tab = 0);
           snack(context,
-              'Tercatat: ${t.title} ${money(t.amount)} dari ${store.accountName(t.accountId)}');
+              tr('Tercatat: {0} {1} dari {2}', [t.title, money(t.amount), store.accountName(t.accountId)]));
         }
       case 'qb_add':
         _openFromWidget(TxType.expense);
@@ -319,10 +326,10 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     }
     if (!mounted || quiet && auto == 0 && waiting <= 0) return;
     if (auto > 0) {
-      snack(context, '$auto transaksi tercatat otomatis dari notifikasi 🤖');
+      snack(context, tr('{0} transaksi tercatat otomatis dari notifikasi 🤖', [auto]));
     } else if (waiting > 0) {
       snack(context,
-          '$waiting transaksi dari notifikasi menunggu dicek di Beranda');
+          tr('{0} transaksi dari notifikasi menunggu dicek di Beranda', [waiting]));
     }
   }
 
@@ -404,7 +411,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
         setState(() => _locked = true);
       }
       if (created > 0 && mounted) {
-        snack(context, '$created transaksi berulang otomatis tercatat');
+        snack(context, tr('{0} transaksi berulang otomatis tercatat', [created]));
       }
     }
   }

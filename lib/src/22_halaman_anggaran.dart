@@ -52,7 +52,7 @@ class _BudgetPageState extends State<BudgetPage> {
     });
     store.setBudget(_period, parseAmount(_globalCtrl.text), per);
     Navigator.of(context).pop();
-    snack(context, 'Anggaran ${_period.label.toLowerCase()} disimpan 🎯');
+    snack(context, tr('Anggaran {0} disimpan 🎯', [_period.label.toLowerCase()]));
   }
 
   @override
@@ -119,7 +119,7 @@ class _BudgetPageState extends State<BudgetPage> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                'Total per kategori (${money(_sumCats)}) melebihi batas total (${money(global)}). Boleh disimpan, tapi cek lagi ya ⚠️',
+                tr('Total per kategori ({0}) melebihi batas total ({1}). Boleh disimpan, tapi cek lagi ya ⚠️', [money(_sumCats), money(global)]),
                 style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
@@ -190,7 +190,7 @@ class PeriodStartTile extends StatelessWidget {
         context,
         picked == 1
             ? 'Bulan keuangan kembali ke bulan kalender 📅'
-            : 'Bulan ini: ${DateFormat('MMMM', 'id_ID').format(l)} (${periodSpanText(l)}) 📅');
+            : tr('Bulan ini: {0} ({1}) 📅', [DateFormat('MMMM', gDateLoc).format(l), periodSpanText(l)]));
   }
 
   @override
@@ -206,7 +206,7 @@ class PeriodStartTile extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.w800)),
         subtitle: Text(d == 1
             ? 'Tanggal 1 (bulan kalender). Ketuk untuk pakai tanggal gajian.'
-            : 'Tanggal $d. Bulan ini: ${periodSpanText(l)}'),
+            : tr('Tanggal {0}. Bulan ini: {1}', [d, periodSpanText(l)])),
         trailing: const Icon(Icons.chevron_right_rounded),
       ),
     );

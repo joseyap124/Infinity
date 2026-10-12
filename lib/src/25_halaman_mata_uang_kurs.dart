@@ -50,7 +50,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
         e.value.text = rateToInput(kDefaultRates[e.key] ?? 1);
       }
     });
-    snack(context, 'Diisi kurs BI ${DateFormat('d MMM yyyy', 'id_ID').format(kDefaultRatesDate)}. Tekan Simpan Kurs.');
+    snack(context, tr('Diisi kurs BI {0}. Tekan Simpan Kurs.', [DateFormat('d MMM yyyy', gDateLoc).format(kDefaultRatesDate)]));
   }
 
   @override
@@ -83,7 +83,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
                 Text(
                   at == null
                       ? 'Kurs belum pernah kamu perbarui.'
-                      : 'Terakhir diperbarui ${DateFormat('d MMM yyyy', 'id_ID').format(at)} (${days == 0 ? 'hari ini' : '$days hari lalu'}).',
+                      : tr('Terakhir diperbarui {0} ({1}).', [DateFormat('d MMM yyyy', gDateLoc).format(at), days == 0 ? 'hari ini' : '$days hari lalu']),
                   style: TextStyle(fontSize: 12.5, color: C.carbon),
                 ),
               ],
@@ -94,7 +94,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
             onPressed: _fillDefaults,
             icon: const Icon(Icons.account_balance_rounded),
             label: Text(
-                'Isi kurs BI ${DateFormat('d MMM yyyy', 'id_ID').format(kDefaultRatesDate)}'),
+                tr('Isi kurs BI {0}', [DateFormat('d MMM yyyy', gDateLoc).format(kDefaultRatesDate)])),
             style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(46),
                 shape: RoundedRectangleBorder(
@@ -122,7 +122,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
                     padding: const EdgeInsets.only(left: 14, top: 4),
                     child: Text(
                       parseRate(e.value.text) > 0
-                          ? 'Terbaca: 1 ${e.key} = Rp ${rateToInput(parseRate(e.value.text))}'
+                          ? tr('Terbaca: 1 {0} = Rp {1}', [e.key, rateToInput(parseRate(e.value.text))])
                           : 'Kosong: pakai kurs bawaan',
                       style: TextStyle(fontSize: 11.5, color: C.muted),
                     ),

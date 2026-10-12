@@ -81,7 +81,7 @@ class AccountsPage extends StatelessWidget {
                 onPressed: () {
                   store.updateSettings((x) => x.defaultAccountId = a.id);
                   snack(context,
-                      '${a.name} jadi akun utama untuk transaksi baru ⭐');
+                      tr('{0} jadi akun utama untuk transaksi baru ⭐', [a.name]));
                 },
                 icon: Icon(
                     store.defaultAccountId == a.id
@@ -260,7 +260,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
             Text('${money(from, cur)}  →  ${money(to, cur)}',
                 style: TextStyle(fontWeight: FontWeight.w800, color: C.carbon)),
             Text(
-                'Selisih ${diff > 0 ? '+' : '-'}${money(diff.abs(), cur)}',
+                tr('Selisih {0}{1}', [diff > 0 ? '+' : '-', money(diff.abs(), cur)]),
                 style: TextStyle(
                     color: diff > 0 ? C.income : C.redDark,
                     fontWeight: FontWeight.w700)),
@@ -341,7 +341,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     }
     if (!mounted) return;
     Navigator.of(context).pop();
-    snack(context, _editing ? 'Akun diperbarui' : 'Akun "$name" ditambahkan');
+    snack(context, _editing ? 'Akun diperbarui' : tr('Akun "{0}" ditambahkan', [name]));
   }
 
   Future<void> _delete() async {
@@ -360,7 +360,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
         'Transaksi berulang/template yang memakai akun ini ikut terhapus.',
     ];
     final ok = await confirmDialog(context,
-        title: 'Hapus akun "${a.name}"?',
+        title: tr('Hapus akun "{0}"?', [a.name]),
         message: notes.isEmpty
             ? 'Akun kosong, aman dihapus.'
             : '${notes.join('\n\n')}\n\nTidak bisa dibatalkan. Salin backup dulu kalau ragu.',
@@ -459,7 +459,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
                         ? 'Isi kalau kartu sudah punya tagihan sebelum mulai dicatat.'
                         : 'Saldo saat akun mulai dicatat. Saldo berjalan dihitung otomatis.').copyWith(
               suffixIcon: IconButton(
-                tooltip: 'Kalkulator',
+                tooltip: tr('Kalkulator'),
                 icon: Icon(Icons.calculate_rounded, color: C.accentDark),
                 onPressed: () => _calc(_balanceCtrl, balance: true),
               ),
@@ -494,7 +494,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
                       prefix: '${currencySymbol(_currency)} ')
                   .copyWith(
                 suffixIcon: IconButton(
-                  tooltip: 'Kalkulator',
+                  tooltip: tr('Kalkulator'),
                   icon: Icon(Icons.calculate_rounded, color: C.accentDark),
                   onPressed: () => _calc(_limitCtrl),
                 ),
@@ -509,7 +509,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
                   borderRadius: BorderRadius.circular(16),
                   items: [
                     for (var d = 1; d <= 28; d++)
-                      DropdownMenuItem(value: d, child: Text('Tanggal $d')),
+                      DropdownMenuItem(value: d, child: Text(tr('Tanggal {0}', [d]))),
                   ],
                   onChanged: (v) => setState(() => _dueDay = v ?? _dueDay),
                 ),

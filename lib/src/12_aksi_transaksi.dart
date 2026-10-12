@@ -91,10 +91,10 @@ Future<bool> openTxForm(
   }
   if (t.type == TxType.expense && status == BudgetStatus.broke) {
     snack(context,
-        '${BudgetStatus.broke.message} Anggaran ${store.settings.budgetPeriod.current} hampir habis.');
+        tr('{0} Anggaran {1} hampir habis.', [tr(BudgetStatus.broke.message), tr(store.settings.budgetPeriod.current)]));
   } else {
     snack(context,
-        '${t.type.label} ${money(t.amount, store.currencyOf(t.accountId))} tercatat ✅');
+        tr('{0} {1} tercatat ✅', [tr(t.type.label), money(t.amount, store.currencyOf(t.accountId))]));
   }
   return true;
 }
@@ -156,7 +156,7 @@ Future<bool> confirmDeleteTx(
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           fontWeight: FontWeight.w800, color: C.carbon)),
-                  Text(DateFormat('d MMM yyyy · HH:mm', 'id_ID').format(t.date),
+                  Text(DateFormat('d MMM yyyy · HH:mm', gDateLoc).format(t.date),
                       style: TextStyle(fontSize: 12, color: C.muted)),
                 ],
               ),
@@ -321,7 +321,7 @@ Future<void> openRecurringForm(BuildContext context, AppStore store,
   snack(
       context,
       created > 0
-          ? 'Tersimpan. $created transaksi yang sudah jatuh tempo langsung dicatat.'
+          ? tr('Tersimpan. {0} transaksi yang sudah jatuh tempo langsung dicatat.', [created])
           : 'Transaksi berulang tersimpan 🔁');
 }
 
@@ -372,7 +372,7 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
       ? '${store.accountName(t.accountId)} → ${store.accountName(t.toAccountId)}'
       : store.accountName(t.accountId);
   final when = showDate
-      ? DateFormat('d MMM · HH:mm', 'id_ID').format(t.date)
+      ? DateFormat('d MMM · HH:mm', gDateLoc).format(t.date)
       : DateFormat('HH:mm').format(t.date);
 
   return Padding(
@@ -482,7 +482,7 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
                       Padding(
                         padding: const EdgeInsets.only(top: 3),
                         child: Text(
-                            'Saldo ${money(balanceAfter, store.currencyOf(forAccount))}',
+                            tr('Saldo {0}', [money(balanceAfter, store.currencyOf(forAccount))]),
                             style: TextStyle(fontSize: 11, color: C.muted)),
                       ),
                   ],

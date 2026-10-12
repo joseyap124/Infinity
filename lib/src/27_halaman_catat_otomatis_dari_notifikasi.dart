@@ -51,7 +51,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
         context,
         raw.isEmpty
             ? 'Belum ada notifikasi uang baru.'
-            : '$auto dicatat otomatis, ${waiting < 0 ? 0 : waiting} menunggu dicek.');
+            : tr('{0} dicatat otomatis, {1} menunggu dicek.', [auto, waiting < 0 ? 0 : waiting]));
   }
 
   Widget _step(String n, String text) => Padding(
@@ -207,7 +207,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
                   onPressed: store.clearCaptures,
                   style: TextButton.styleFrom(foregroundColor: C.redDark),
                   child: Text(
-                      'Kosongkan antrean (${store.pendingCaptures.length})'),
+                      tr('Kosongkan antrean ({0})', [store.pendingCaptures.length])),
                 ),
               ],
             ],

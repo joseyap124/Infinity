@@ -203,7 +203,7 @@ class _NetWorthPainter extends CustomPainter {
     // Label bulan (huruf pertama), bulan terakhir ditulis lengkap.
     for (var i = 0; i < points.length; i++) {
       final isLast = i == points.length - 1;
-      final text = DateFormat('MMM', 'id_ID')
+      final text = DateFormat('MMM', gDateLoc)
           .format(points[i].month);
       final tp = TextPainter(
         text: TextSpan(

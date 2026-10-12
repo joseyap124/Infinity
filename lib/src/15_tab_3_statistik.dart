@@ -53,11 +53,11 @@ class _StatsTabState extends State<StatsTab> {
     switch (_mode) {
       case BudgetPeriod.weekly:
         final last = r.end.subtract(const Duration(days: 1));
-        return '${DateFormat('d MMM', 'id_ID').format(r.start)} - ${DateFormat('d MMM yyyy', 'id_ID').format(last)}';
+        return '${DateFormat('d MMM', gDateLoc).format(r.start)} - ${DateFormat('d MMM yyyy', gDateLoc).format(last)}';
       case BudgetPeriod.monthly:
         final l = periodLabelOf(_anchor);
         final span = periodSpanText(l);
-        return '${DateFormat('MMMM yyyy', 'id_ID').format(l)}${span.isEmpty ? '' : ' ($span)'}';
+        return '${DateFormat('MMMM yyyy', gDateLoc).format(l)}${span.isEmpty ? '' : ' ($span)'}';
       case BudgetPeriod.yearly:
         return '${r.start.year}';
     }
@@ -71,7 +71,7 @@ class _StatsTabState extends State<StatsTab> {
         for (var i = 0; i < 7; i++) {
           final d = DateTime(s.year, s.month, s.day + i);
           final r = dayRange(d);
-          out.add(TrendBucket(DateFormat('E', 'id_ID').format(d),
+          out.add(TrendBucket(DateFormat('E', gDateLoc).format(d),
               store.sumIDR(TxType.income, r), store.sumIDR(TxType.expense, r)));
         }
       case BudgetPeriod.monthly:
@@ -79,14 +79,14 @@ class _StatsTabState extends State<StatsTab> {
         for (var i = 5; i >= 0; i--) {
           final d = DateTime(l.year, l.month - i);
           final r = periodRange(d);
-          out.add(TrendBucket(DateFormat('MMM', 'id_ID').format(d),
+          out.add(TrendBucket(DateFormat('MMM', gDateLoc).format(d),
               store.sumIDR(TxType.income, r), store.sumIDR(TxType.expense, r)));
         }
       case BudgetPeriod.yearly:
         for (var mo = 1; mo <= 12; mo++) {
           final d = DateTime(_anchor.year, mo, 1);
           final r = monthRange(d);
-          out.add(TrendBucket(DateFormat('MMM', 'id_ID').format(d).substring(0, 1),
+          out.add(TrendBucket(DateFormat('MMM', gDateLoc).format(d).substring(0, 1),
               store.sumIDR(TxType.income, r), store.sumIDR(TxType.expense, r)));
         }
     }
@@ -132,7 +132,7 @@ class _StatsTabState extends State<StatsTab> {
           Row(
             children: [
               IconButton(
-                  tooltip: 'Sebelumnya',
+                  tooltip: tr('Sebelumnya'),
                   onPressed: () => _shift(-1),
                   icon: const Icon(Icons.chevron_left_rounded)),
               Expanded(
@@ -142,7 +142,7 @@ class _StatsTabState extends State<StatsTab> {
                         fontWeight: FontWeight.w900, fontSize: 16)),
               ),
               IconButton(
-                  tooltip: 'Berikutnya',
+                  tooltip: tr('Berikutnya'),
                   onPressed: canNext ? () => _shift(1) : null,
                   icon: const Icon(Icons.chevron_right_rounded)),
             ],
@@ -227,7 +227,7 @@ class _StatsTabState extends State<StatsTab> {
                 if (byCat.isEmpty)
                   EmptyState(
                       icon: Icons.donut_large_rounded,
-                      title: 'Belum ada ${_type.label.toLowerCase()} di periode ini')
+                      title: tr('Belum ada {0} di periode ini', [_type.label.toLowerCase()]))
                 else ...[
                   Center(
                     child: SizedBox(
@@ -311,7 +311,7 @@ class _StatsTabState extends State<StatsTab> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Rekap tahun ${DateTime.now().year}',
+                      Text(tr('Rekap tahun {0}', [DateTime.now().year]),
                           style: const TextStyle(
                               fontWeight: FontWeight.w800, fontSize: 15)),
                       Text('Total setahun, bulan paling boros, kategori terbesar',
@@ -417,7 +417,7 @@ class _StatsTabState extends State<StatsTab> {
                   const SizedBox(height: 2),
                   Text(
                       hasChildren
-                          ? '${money(value)} · ketuk untuk rincian'
+                          ? tr('{0} · ketuk untuk rincian', [money(value)])
                           : money(value),
                       style: TextStyle(fontSize: 11, color: C.muted)),
                 ],
@@ -456,7 +456,7 @@ class _SubCategorySheet extends StatelessWidget {
               CatIcon(icon: top.iconData, art: top.art, color: top.colorValue, size: 40),
               const SizedBox(width: 12),
               Expanded(
-                child: Text('Rincian ${top.name}',
+                child: Text(tr('Rincian {0}', [top.name]),
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.w900)),
               ),
@@ -474,7 +474,7 @@ class _SubCategorySheet extends StatelessWidget {
                       Expanded(
                         child: Text(
                             e.key == top.id
-                                ? '${top.name} (umum)'
+                                ? tr('{0} (umum)', [top.name])
                                 : (store.categoryById(e.key)?.name ?? '-'),
                             style: const TextStyle(
                                 fontWeight: FontWeight.w700, fontSize: 13)),
