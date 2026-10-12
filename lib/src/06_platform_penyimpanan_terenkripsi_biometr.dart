@@ -47,6 +47,7 @@ class HomeWidgetBridge {
         await HomeWidget.saveWidgetData<String>(e.key, e.value);
       }
       await HomeWidget.updateWidget(androidName: 'InfinityWidgetProvider');
+      await HomeWidget.updateWidget(androidName: 'InfinityQuickWidgetProvider');
     } catch (_) {}
   }
 

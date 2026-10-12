@@ -1090,6 +1090,30 @@ class AppStore extends ChangeNotifier {
     return null;
   }
 
+  /// Kategori yang paling sering dipakai untuk [type] dalam 90 hari terakhir
+  /// (hanya kategori yang masih ada). Null kalau belum ada riwayat.
+  String? suggestedCategory(TxType type, {DateTime? now}) {
+    final from = (now ?? DateTime.now()).subtract(const Duration(days: 90));
+    final counts = <String, int>{};
+    for (final t in transactions) {
+      if (t.type != type || t.date.isBefore(from)) continue;
+      final id = t.categoryId;
+      if (id == null) continue;
+      final c = categoryById(id);
+      if (c == null || c.type != type) continue;
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+    String? best;
+    var bestN = 0;
+    counts.forEach((id, n) {
+      if (n > bestN) {
+        best = id;
+        bestN = n;
+      }
+    });
+    return best;
+  }
+
   String? fallbackCategory(TxType type) {
     if (type == TxType.expense) {
       final lain = categoryById('lain');
@@ -1641,30 +1665,33 @@ class AppStore extends ChangeNotifier {
     final month = currentPeriod(now);
     final income = sumIDR(TxType.income, month);
     final expense = sumIDR(TxType.expense, month);
-    // Baris bawah: sisa aman dibelanjakan hari ini (ditandai tanggal, karena
+    // Angka utama: sisa aman dibelanjakan hari ini (ditandai tanggal, karena
     // widget tidak diperbarui tengah malam kalau app tidak dibuka).
     final day = DateFormat('d MMM', 'id_ID').format(now);
     final safe = safeToSpend(now);
     final left = safe.leftToday;
-    String line = left >= 0
-        ? 'Aman $day: ${hide ? '••••' : 'Rp ${compactMoney(left)}'}'
-        : 'Lewat $day: ${hide ? '••••' : 'Rp ${compactMoney(-left)}'}';
+    final over = left < 0;
+    String budgetLine = '';
     if (s.globalBudget > 0) {
       final spent = sumIDR(TxType.expense, s.budgetPeriod.range(now));
       final remaining = s.globalBudget - spent;
       final pct = (remaining / s.globalBudget * 100).clamp(0, 100).round();
-      line = '$line · anggaran $pct%';
+      budgetLine = 'Anggaran tersisa $pct%';
     }
     final label = periodLabelOf(now);
+    final saldo = hide ? 'Rp ••••••' : money(netWorthIDR);
     return {
       'w_month': gPeriodStartDay > 1
           ? DateFormat('MMM yyyy', 'id_ID').format(label)
           : DateFormat('MMMM yyyy', 'id_ID').format(label),
-      'w_balance': hide ? 'Rp ••••••' : money(netWorthIDR),
-      // Ringkas (mis. "Rp 7,5 jt") supaya muat di widget kecil.
+      'w_safe_label': over ? 'Lewat jatah · $day' : 'Aman dibelanjakan · $day',
+      // Ringkas (mis. "Rp 7,5 jt") supaya muat di widget.
+      'w_safe': hide ? 'Rp ••••' : 'Rp ${compactMoney(over ? -left : left)}',
+      'w_balance': budgetLine.isEmpty
+          ? 'Total saldo $saldo'
+          : 'Saldo $saldo · $budgetLine',
       'w_income': hide ? 'Masuk ••••' : 'Masuk Rp ${compactMoney(income)}',
       'w_expense': hide ? 'Keluar ••••' : 'Keluar Rp ${compactMoney(expense)}',
-      'w_budget': line,
     };
   }
 

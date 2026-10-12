@@ -62,6 +62,19 @@
                 android:resource="@xml/infinity_widget_info"/>
         </receiver>
 
+        <!-- Widget kecil 2x1 -->
+        <receiver
+            android:name=".InfinityQuickWidgetProvider"
+            android:label="Infinity (kecil)"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/infinity_widget_small_info"/>
+        </receiver>
+
         <!-- Pintasan panel notifikasi muncul lagi setelah restart / update -->
         <receiver
             android:name=".QuickBarBootReceiver"

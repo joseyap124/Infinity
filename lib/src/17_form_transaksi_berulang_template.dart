@@ -140,6 +140,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
 
   String? _defaultCategory(TxType t) {
     if (t == TxType.transfer) return null;
+    final often = store.suggestedCategory(t);
+    if (often != null) return often;
     final tops = store.topCategories(t);
     return tops.isEmpty ? null : tops.first.id;
   }

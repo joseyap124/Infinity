@@ -245,6 +245,53 @@ class CatIcon extends StatelessWidget {
   }
 }
 
+/// Ikon tanpa lingkaran: gambar kartun kalau gaya Kartun aktif, kalau tidak
+/// ikon Material biasa. Kunci gambar dicari dari [art] atau [kFnArt].
+class ArtIcon extends StatelessWidget {
+  const ArtIcon(this.icon, {super.key, required this.color, this.size = 24, this.art});
+  final IconData icon;
+  final Color color;
+  final double size;
+  final String? art;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: gCartoon,
+      builder: (context, cartoon, _) {
+        final bytes = cartoon ? artBytes(art ?? kFnArt[icon.codePoint]) : null;
+        if (bytes == null) return Icon(icon, color: color, size: size);
+        return Image.memory(bytes,
+            width: size * 1.3,
+            height: size * 1.3,
+            fit: BoxFit.contain,
+            gaplessPlayback: true,
+            filterQuality: FilterQuality.medium);
+      },
+    );
+  }
+}
+
+/// Logo Infinity (pita ∞ + koin Rp). Selalu tampil, tidak ikut pilihan gaya ikon.
+class InfinityLogo extends StatelessWidget {
+  const InfinityLogo({super.key, this.size = 40});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = artBytes('logo');
+    if (bytes == null) {
+      return Icon(Icons.all_inclusive_rounded, color: C.accentDark, size: size * 0.6);
+    }
+    return Image.memory(bytes,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        gaplessPlayback: true,
+        filterQuality: FilterQuality.medium);
+  }
+}
+
 class SectionTitle extends StatelessWidget {
   const SectionTitle(this.text, {super.key, this.trailing});
   final String text;
@@ -537,11 +584,20 @@ class PrimaryButton extends StatelessWidget {
 
 class EmptyState extends StatelessWidget {
   const EmptyState(
-      {super.key, required this.icon, required this.title, this.subtitle});
+      {super.key,
+      required this.icon,
+      required this.title,
+      this.subtitle,
+      this.art,
+      this.action});
 
   final IconData icon;
   final String title;
   final String? subtitle;
+  final String? art;
+
+  /// Tombol ajakan di bawah teks (mis. "Catat transaksi pertama").
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -549,15 +605,7 @@ class EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       child: Column(
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: C.accent.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: C.accentDark, size: 30),
-          ),
+          CatIcon(icon: icon, art: art, color: C.accent, size: 72),
           const SizedBox(height: 12),
           Text(title,
               textAlign: TextAlign.center,
@@ -568,6 +616,10 @@ class EmptyState extends StatelessWidget {
             Text(subtitle!,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: C.muted, fontSize: 13)),
+          ],
+          if (action != null) ...[
+            const SizedBox(height: 14),
+            action!,
           ],
         ],
       ),

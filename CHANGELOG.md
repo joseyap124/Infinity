@@ -3,7 +3,20 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.7.1)
+## Berikutnya (v3.7.2)
+
+Perapian tampilan dan widget.
+
+### Diubah
+- **Widget baru**: kartu gelap seperti di Beranda dengan logo baru. Angka besarnya sekarang **Aman dibelanjakan hari ini** (sebelumnya total saldo), lalu Masuk dan Keluar bulan ini, total saldo, dan tombol Keluar/Masuk/Transfer. Tetap menyembunyikan angka kalau mode sembunyikan saldo aktif.
+- **Form catat**: kategori yang terpilih otomatis sekarang kategori yang paling sering kamu pakai 90 hari terakhir untuk tipe itu (bukan lagi selalu kategori paling atas). Kalau belum ada riwayat, tetap kategori paling atas.
+- **Beranda**: tombol Bills, Budget, Patungan, dan Utang ikut bergambar kartun. Saat belum ada transaksi, ada tombol "Catat transaksi pertama" (sebelumnya teksnya tertutup tombol Catat).
+- **Avatar dan panduan awal** memakai logo baru, bukan celengan atau simbol ∞ polos lagi.
+
+### Ditambah
+- **Widget kecil 2x1**: sisa aman hari ini dan satu tombol "+ Catat". Tambahkan lewat daftar widget di layar utama HP.
+
+## v3.7.1 (12 Okt 2026)
 
 ### Ditambah
 - **Ikon kartun untuk semua menu dan status**, bukan cuma kategori. Tiap tipe akun (E-Wallet, Tunai, Rekening Bank, Kartu Kredit, Investasi), transfer, utang, acara, dan target tabungan (piala saat tercapai) punya gambar sendiri. Menu Lainnya dan Pengaturan juga bergambar (gear, awan backup, petir template, perisai cek data, kutu laporan error, palet, lonceng, jam, gembok, kurs, kalender, dan lainnya), begitu pula saran bulanan, status PIN, status notifikasi, dan tombol Masuk/Keluar di Riwayat. 27 gambar baru.

@@ -315,8 +315,9 @@ class Avatar extends StatelessWidget {
               width: size, height: size,
               errorBuilder: (_, __, ___) => Icon(Icons.person_rounded,
                   color: C.accentDark, size: size * 0.6))
-          : Icon(Icons.all_inclusive_rounded,
-              color: C.accentDark, size: size * 0.6),
+          : Padding(
+              padding: EdgeInsets.all(size * 0.06),
+              child: InfinityLogo(size: size * 0.88)),
     );
   }
 }
@@ -696,11 +697,17 @@ class DashboardTab extends StatelessWidget {
                   onPressed: onSeeAll, child: const Text('Lihat semua'))),
           const SizedBox(height: 4),
           if (recent.isEmpty)
-            const AppCard(
+            AppCard(
               child: EmptyState(
-                  icon: Icons.receipt_long_rounded,
-                  title: 'Belum ada transaksi',
-                  subtitle: 'Ketuk tombol "Catat" buat mulai.'),
+                icon: Icons.receipt_long_rounded,
+                title: 'Belum ada transaksi',
+                subtitle: 'Pemasukan dan pengeluaranmu muncul di sini.',
+                action: FilledButton.icon(
+                  onPressed: () => openTxForm(context, store),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Catat transaksi pertama'),
+                ),
+              ),
             )
           else
             for (final t in recent.take(5))
@@ -1104,7 +1111,7 @@ class DashboardTab extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Icon(icon, color: color, size: 24),
+                ArtIcon(icon, color: color, size: 26),
                 const SizedBox(height: 4),
                 Text(label,
                     maxLines: 1,

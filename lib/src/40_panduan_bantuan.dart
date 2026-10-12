@@ -43,20 +43,17 @@ class _OnboardingPageState extends State<OnboardingPage> {
     required String title,
     required String body,
     List<Widget> actions = const [],
+    bool logo = false,
   }) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(22)),
-            child: Icon(icon, size: 38, color: color),
-          ),
+          if (logo)
+            const InfinityLogo(size: 104)
+          else
+            CatIcon(icon: icon, color: color, size: 96),
           const SizedBox(height: 20),
           Text(title,
               style: TextStyle(
@@ -104,6 +101,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 onPageChanged: (i) => setState(() => _index = i),
                 children: [
                   _page(
+                    logo: true,
                     icon: Icons.savings_rounded,
                     color: C.accentDark,
                     title: 'Selamat datang di Infinity',

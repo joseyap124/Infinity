@@ -1124,9 +1124,17 @@ void main() {
     test('widget menampilkan aman dibelanjakan dengan tanggal', () {
       final s = splitStore();
       final w = s.widgetData();
-      expect(w['w_budget'], anyOf(startsWith('Aman '), startsWith('Lewat ')));
+      expect(w['w_safe_label'],
+          anyOf(startsWith('Aman dibelanjakan · '), startsWith('Lewat jatah · ')));
+      expect(w['w_safe'], startsWith('Rp '));
+      expect(w['w_safe'], isNot(contains('•')));
+      expect(w['w_balance'], contains('aldo'));
       s.settings.hideBalance = true;
-      expect(s.widgetData()['w_budget'], contains('••••'));
+      final h = s.widgetData();
+      expect(h['w_safe'], contains('••••'));
+      expect(h['w_balance'], contains('••••'));
+      expect(h['w_income'], contains('••••'));
+      expect(h['w_expense'], contains('••••'));
     });
 
     test('ukuran huruf tersimpan', () {
@@ -1517,6 +1525,52 @@ void main() {
       for (final t in AccountType.values) {
         expect(artBytes(t.art), isNotNull, reason: t.name);
       }
+    });
+  });
+  group('v3.7.2 kategori yang disarankan', () {
+    final now = DateTime(2026, 10, 12, 12);
+    AppStore withDefaults() => AppStore()..clearAll();
+
+    test('belum ada riwayat: tidak ada saran', () {
+      expect(withDefaults().suggestedCategory(TxType.expense, now: now), isNull);
+    });
+
+    test('kategori yang paling sering dipakai menang', () {
+      final s = withDefaults();
+      s.accounts = [acc('a', initial: 1000)];
+      s.transactions = [
+        tx('1', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 10, 10)),
+        tx('2', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 10, 9)),
+        tx('3', TxType.expense, 10, 'a', cat: 'cafe', date: DateTime(2026, 10, 8)),
+      ];
+      expect(s.suggestedCategory(TxType.expense, now: now), 'makan');
+    });
+
+    test('transaksi lebih dari 90 hari lalu dan tipe lain diabaikan', () {
+      final s = withDefaults();
+      s.accounts = [acc('a', initial: 1000)];
+      s.transactions = [
+        tx('1', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 6, 1)),
+        tx('2', TxType.income, 10, 'a', cat: 'gaji', date: DateTime(2026, 10, 1)),
+        tx('3', TxType.expense, 10, 'a', cat: 'cafe', date: DateTime(2026, 10, 1)),
+      ];
+      expect(s.suggestedCategory(TxType.expense, now: now), 'cafe');
+      expect(s.suggestedCategory(TxType.income, now: now), 'gaji');
+    });
+
+    test('kategori yang sudah dihapus tidak disarankan', () {
+      final s = withDefaults();
+      s.accounts = [acc('a', initial: 1000)];
+      s.transactions = [
+        tx('1', TxType.expense, 10, 'a', cat: 'hilang', date: DateTime(2026, 10, 1)),
+        tx('2', TxType.expense, 10, 'a', cat: 'cafe', date: DateTime(2026, 10, 2)),
+      ];
+      expect(s.suggestedCategory(TxType.expense, now: now), 'cafe');
+    });
+
+    test('logo tersedia sebagai gambar', () {
+      expect(artBytes('logo'), isNotNull);
+      expect(kExtraArtKeys, contains('logo'));
     });
   });
 }

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Kartu gelap bergradasi, sama dengan kartu ringkasan di Beranda. Warnanya
+     tetap (tidak ikut tema HP) supaya jelas di atas wallpaper apa pun. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@color/w_bg" />
+    <gradient
+        android:type="linear"
+        android:angle="315"
+        android:startColor="#FF0E2733"
+        android:endColor="#FF153F3E" />
     <corners android:radius="24dp" />
 </shape>
