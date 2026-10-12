@@ -3,7 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.0.3)
+## Berikutnya (v5.0.4)
+
+Perbaikan pembacaan notifikasi BCA dan Mandiri.
+
+### Diperbaiki
+- **Notifikasi uang masuk dibaca sebagai pengeluaran.** Format "Pemasukan sebesar IDR 100,000.00 ..." (Catatan Finansial myBCA) dan "Dana Rp 1.000,00 masuk ke rek. ..." (Livin by Mandiri) sekarang dikenali sebagai uang masuk.
+- **Nominal salah kalau kalimat berakhir tepat setelah angka**, mis. "Rp 1.000,00." sempat terbaca 100 kali lipat. Tanda baca di ujung angka sekarang diabaikan.
+
+## v5.0.3 (13 Okt 2026)
 
 Catat otomatis bisa ditelusuri, data lebih aman saat kunci gagal dibaca, dan laporan bulanan bisa diekspor ke PDF.
 

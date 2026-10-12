@@ -51,7 +51,8 @@ final RegExp _saldoRe = RegExp(
 /// Angka gaya Indonesia dan Inggris: "1.250.000", "1.250.000,00", "25000",
 /// "25,000", "263,000.00" (email bank berbahasa Inggris).
 double? _parseIdNumber(String raw) {
-  var s = raw.trim();
+  // Tanda baca akhir kalimat ("Rp 1.000,00.") bukan bagian angka.
+  var s = raw.trim().replaceAll(RegExp(r'[.,]+$'), '');
   // Buang desimal 1-2 digit di ujung (",00" atau ".00"). Pemisah ribuan
   // selalu 3 digit, jadi "1.250" tetap 1250 dan "263,000.00" jadi 263000.
   s = s.replaceAll(RegExp(r'[.,]\d{1,2}$'), '');
@@ -164,6 +165,10 @@ ParsedReceipt parseReceipt(String text, AppStore store) {
   const incomeWords = [
     'diterima', 'dana masuk', 'transfer masuk', 'uang masuk', 'refund',
     'cashback', 'pengembalian', 'gaji',
+    // "Pemasukan sebesar IDR ..." (Catatan Finansial myBCA) dan
+    // "Dana Rp ... masuk ke rek. ..." (Livin by Mandiri).
+    'pemasukan', 'masuk ke rek', 'telah masuk', 'menerima dana',
+    'menerima transfer',
   ];
   final type = isTopUp
       ? TxType.transfer

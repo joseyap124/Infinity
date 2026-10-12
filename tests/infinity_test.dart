@@ -2743,4 +2743,63 @@ void main() {
       expect(d.transactions.map((t) => t.id), ['a', 'c', 'b']);
     });
   });
+
+  group('v5.0.4 format notifikasi BCA dan Mandiri', () {
+    AppStore setup() {
+      final s = storeWith([
+        acc('bca', initial: 2000000),
+        acc('mandiri', initial: 500000),
+      ]);
+      s.categories = [
+        TxCategory(id: 'lain', name: 'Lain lain', type: TxType.expense, icon: 'other', color: 0),
+        TxCategory(id: 'gaji', name: 'Gaji', type: TxType.income, icon: 'other', color: 0),
+      ];
+      s.settings.captureMode = 'auto';
+      return s;
+    }
+
+    test('Catatan Finansial myBCA: "Pemasukan sebesar IDR 100,000.00" = uang masuk 100000', () {
+      final p = parseReceipt('Catatan Finansial\nPemasukan sebesar IDR 100,000.00 dari A****** P****.', setup());
+      expect(p.amount, 100000);
+      expect(p.type, TxType.income);
+    });
+
+    test('pengeluaran myBCA tetap pengeluaran', () {
+      final p = parseReceipt('Pengeluaran sebesar IDR 25,000.00 di KOPI KENANGAN.', setup());
+      expect(p.amount, 25000);
+      expect(p.type, TxType.expense);
+    });
+
+    test('Livin by Mandiri: "Dana Rp 1.000,00 masuk ke rek." = uang masuk 1000', () {
+      final p = parseReceipt(
+          'Ini Dia Transaksi Terbaru Anda\nDana Rp 1.000,00 masuk ke rek. ****8509. Login ke Livin\' by Mandiri untuk cek Mutasi Transaksi.',
+          setup());
+      expect(p.amount, 1000);
+      expect(p.type, TxType.income);
+    });
+
+    test('titik di akhir kalimat tidak ikut jadi angka', () {
+      expect(parseReceipt('Saldo bertambah Rp 1.000,00.', setup()).amount, 1000);
+      expect(parseReceipt('Transfer Rp50.000.', setup()).amount, 50000);
+      expect(parseReceipt('Payment IDR 100,000.00.', setup()).amount, 100000);
+    });
+
+    test('notifikasi myBCA dicatat otomatis sebagai pemasukan ke akun BCA', () {
+      final s = setup();
+      final at = DateTime.now().subtract(const Duration(minutes: 1));
+      final n = s.ingestCaptured([
+        {
+          'pkg': 'com.bca.mybca.omni.android',
+          'title': 'Catatan Finansial',
+          'text': 'Pemasukan sebesar IDR 100,000.00 dari A****** P****.',
+          'time': at.millisecondsSinceEpoch,
+        }
+      ]);
+      expect(n, 1);
+      final t = s.transactions.single;
+      expect(t.type, TxType.income);
+      expect(t.amount, 100000);
+      expect(t.accountId, 'bca');
+    });
+  });
 }
