@@ -203,6 +203,15 @@ class _StatsTabState extends State<StatsTab> {
           if (_mode == BudgetPeriod.monthly) ...[
             const SizedBox(height: 12),
             MonthAdviceCard(store: store, month: periodLabelOf(_anchor)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () =>
+                    showMonthShareSheet(context, store, periodLabelOf(_anchor)),
+                icon: const Icon(Icons.ios_share_rounded, size: 18),
+                label: const Text('Bagikan ringkasan bulan'),
+              ),
+            ),
             // Perbandingan dengan bulan lalu (dulu di Beranda), hanya untuk
             // bulan berjalan.
             if (periodLabelOf(_anchor) == periodLabelOf(DateTime.now())) ...[

@@ -99,6 +99,8 @@ part 'src/46_kesehatan_backup.dart';
 part 'src/47_bahasa.dart';
 part 'src/48_terjemahan_en.dart';
 part 'src/49_terjemahan_zh.dart';
+part 'src/50_pilih_banyak.dart';
+part 'src/51_bagikan_ringkasan.dart';
 // WIDGET-IMPORTS-END
 
 void main() {

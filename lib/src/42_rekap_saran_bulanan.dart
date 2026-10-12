@@ -588,7 +588,13 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
         );
 
     return Scaffold(
-      appBar: pageBar('Rekap bulanan'),
+      appBar: pageBar('Rekap bulanan', actions: [
+        IconButton(
+          tooltip: tr('Bagikan ringkasan bulan'),
+          icon: const Icon(Icons.ios_share_rounded),
+          onPressed: () => showMonthShareSheet(context, store, _month),
+        ),
+      ]),
       body: ListView(
         padding: pagePad(context, 32),
         children: [

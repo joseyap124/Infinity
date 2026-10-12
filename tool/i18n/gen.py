@@ -1,5 +1,5 @@
 import sys,re,importlib
-sys.path.insert(0,'/tmp/claude-0/i18n')
+import os; sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
 mods=sys.argv[1:]
 T={}
 for m in mods:

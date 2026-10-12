@@ -3,7 +3,23 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v4.3)
+## Berikutnya (v4.4)
+
+Pilih banyak transaksi sekaligus, dan bagikan ringkasan bulan sebagai gambar.
+
+### Ditambah
+- **Pilih banyak transaksi di Riwayat**: tahan satu transaksi untuk mulai memilih, ketuk yang lain untuk menambah. Bilah di atas menunjukkan jumlah terpilih dengan tombol **Pilih semua**, **Ubah kategori**, **Ubah akun**, dan **Hapus**. Setelah mengubah atau menghapus ada tombol **Urungkan** beberapa detik. Selama memilih, geser-untuk-hapus dimatikan, dan tombol Kembali membatalkan pilihan dulu.
+- Ubah kategori hanya berlaku untuk transaksi yang jenisnya sama (semua pengeluaran atau semua pemasukan). Transfer tidak punya kategori, jadi dilewati. Transaksi yang dibagi ke beberapa kategori menjadi satu kategori.
+- Ubah akun melewati transfer dan transaksi yang mata uang akunnya beda, karena nominal tidak ikut dikonversi. Jumlah yang diubah dan dilewati ditampilkan setelahnya.
+- **Bagikan ringkasan bulan sebagai gambar**: tombol bagikan di halaman Rekap bulanan, dan "Bagikan ringkasan bulan" di Statistik (mode bulan). Gambar berisi persentase yang tersisa dari pemasukan, pemasukan dan pengeluaran, serta 5 kategori terbesar. **Sembunyikan nominal** aktif secara bawaan, jadi hanya persentase yang tampil. Dikirim lewat menu bagikan Android, atau **Simpan ke HP** (Download/Infinity). Gambar dibuat di HP, tidak ada yang diunggah.
+
+### Akan datang
+Rencana berikutnya, urutannya bisa bergeser:
+- **Bahasa tahap 2**: menerjemahkan layar yang masih tampil Indonesia (utang, target, tabungan, patungan, acara, rekap dan saran bulanan, dan lainnya).
+- **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
+- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
+
+## v4.3 (12 Okt 2026)
 
 Notifikasi bank atau e-wallet sekarang bisa langsung dijawab dari panel notifikasi.
 
@@ -16,14 +32,6 @@ Notifikasi bank atau e-wallet sekarang bisa langsung dijawab dari panel notifika
 
 ### Catatan
 - Notifikasi bertombol memakai izin notifikasi Android yang sama dengan pengingat. Kalau tidak muncul, cek izin notifikasi Infinity di pengaturan HP.
-
-### Akan datang
-Rencana berikutnya, urutannya bisa bergeser:
-- **Pilih banyak transaksi di Riwayat**: tahan satu transaksi untuk memilih beberapa, lalu ubah kategori, ubah akun, atau hapus sekaligus.
-- **Bagikan ringkasan bulan sebagai gambar**: dari Statistik atau Rekap, dengan opsi sembunyikan nominal (default aktif) dan dikirim lewat menu bagikan Android. Gambar dibuat di HP, tidak ada yang diunggah.
-- **Bahasa tahap 2**: menerjemahkan layar yang masih tampil Indonesia (utang, target, tabungan, patungan, acara, rekap dan saran bulanan, dan lainnya).
-- **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
-- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
 
 ## v4.2 (12 Okt 2026)
 

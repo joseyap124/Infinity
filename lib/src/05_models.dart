@@ -193,7 +193,8 @@ class Transaction {
       };
 
   /// Salinan dengan beberapa kolom diganti.
-  Transaction copyWith({String? categoryId, List<TxSplit>? splits}) =>
+  Transaction copyWith(
+          {String? categoryId, List<TxSplit>? splits, String? accountId}) =>
       Transaction(
         id: id,
         title: title,
@@ -201,7 +202,7 @@ class Transaction {
         toAmount: toAmount,
         type: type,
         categoryId: categoryId ?? this.categoryId,
-        accountId: accountId,
+        accountId: accountId ?? this.accountId,
         toAccountId: toAccountId,
         date: date,
         note: note,

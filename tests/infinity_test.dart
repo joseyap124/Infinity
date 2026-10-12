@@ -264,6 +264,94 @@ void main() {
     });
   });
 
+  group('v4.4 pilih banyak', () {
+    AppStore setup() {
+      final s = storeWith([
+        acc('a', initial: 1000000),
+        acc('b', initial: 500000),
+        acc('usd', initial: 100, currency: 'USD'),
+      ], [
+        tx('e1', TxType.expense, 10000, 'a', cat: 'makan'),
+        tx('e2', TxType.expense, 20000, 'a', cat: 'makan'),
+        tx('i1', TxType.income, 300000, 'a', cat: 'gaji'),
+        tx('t1', TxType.transfer, 50000, 'a', to: 'b'),
+        tx('u1', TxType.expense, 5, 'usd', cat: 'makan'),
+      ]);
+      s.categories = [
+        TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'food', color: 0),
+        TxCategory(id: 'bensin', name: 'Bensin', type: TxType.expense, icon: 'fuel', color: 0),
+        TxCategory(id: 'gaji', name: 'Gaji', type: TxType.income, icon: 'work', color: 0),
+      ];
+      return s;
+    }
+
+    Transaction byId(AppStore s, String id) =>
+        s.transactions.firstWhere((t) => t.id == id);
+
+    test('ubah kategori: hanya yang jenisnya sama, transfer dan jenis lain dilewati', () {
+      final s = setup();
+      final r = s.bulkSetCategory({'e1', 'e2', 'i1', 't1'}, 'bensin');
+      expect(r, const BulkResult(2, 2));
+      expect(byId(s, 'e1').categoryId, 'bensin');
+      expect(byId(s, 'e2').categoryId, 'bensin');
+      expect(byId(s, 'i1').categoryId, 'gaji');
+      expect(byId(s, 't1').categoryId, isNull);
+    });
+
+    test('ubah kategori menggantikan pembagian (split)', () {
+      final s = setup();
+      final i = s.transactions.indexWhere((t) => t.id == 'e1');
+      s.transactions[i] = s.transactions[i]
+          .copyWith(splits: const [TxSplit('makan', 6000), TxSplit('bensin', 4000)]);
+      s.bulkSetCategory({'e1'}, 'bensin');
+      expect(byId(s, 'e1').splits, isEmpty);
+      expect(byId(s, 'e1').categoryId, 'bensin');
+    });
+
+    test('ubah kategori ke kategori yang sama tidak dihitung berubah', () {
+      final s = setup();
+      expect(s.bulkSetCategory({'e1'}, 'makan'), const BulkResult(0, 0));
+    });
+
+    test('jenis kategori dari pilihan: transfer diabaikan', () {
+      final s = setup();
+      expect(s.categoryTypesOf({'e1', 't1'}), {TxType.expense});
+      expect(s.categoryTypesOf({'e1', 'i1'}), {TxType.expense, TxType.income});
+      expect(s.categoryTypesOf({'t1'}), isEmpty);
+    });
+
+    test('ubah akun: saldo ikut pindah; transfer dan beda mata uang dilewati', () {
+      final s = setup();
+      final r = s.bulkSetAccount({'e1', 'e2', 't1', 'u1'}, 'b');
+      expect(r, const BulkResult(2, 2));
+      expect(byId(s, 'e1').accountId, 'b');
+      expect(byId(s, 'u1').accountId, 'usd');
+      expect(byId(s, 't1').accountId, 'a');
+      expect(s.balanceOf('b'), 500000 - 30000 + 50000);
+    });
+
+    test('hapus massal dan urungkan', () {
+      final s = setup();
+      final removed = s.bulkDelete({'e1', 'e2', 'tidak-ada'});
+      expect(removed.map((t) => t.id), unorderedEquals(['e1', 'e2']));
+      expect(s.transactions.any((t) => t.id == 'e1'), false);
+      s.restoreTransactions(removed);
+      expect(s.transactions.map((t) => t.id), containsAll(['e1', 'e2']));
+      // Memulihkan dua kali tidak menggandakan.
+      s.restoreTransactions(removed);
+      expect(s.transactions.where((t) => t.id == 'e1'), hasLength(1));
+    });
+
+    test('urungkan ubah kategori mengembalikan isi semula', () {
+      final s = setup();
+      final before = s.transactionsByIds({'e1', 'e2'});
+      s.bulkSetCategory({'e1', 'e2'}, 'bensin');
+      s.restoreSnapshot(before);
+      expect(byId(s, 'e1').categoryId, 'makan');
+      expect(byId(s, 'e2').categoryId, 'makan');
+    });
+  });
+
   group('Utang & target', () {
     test('cicilan utang dan lunas', () {
       final s = storeWith([acc('a')]);

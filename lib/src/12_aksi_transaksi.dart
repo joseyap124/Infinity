@@ -348,7 +348,12 @@ Future<void> openTemplateForm(BuildContext context, AppStore store,
 /// [forAccount]: tampilkan nominal dari sisi akun itu (transfer keluar
 /// minus, transfer masuk plus). [balanceAfter]: saldo akun setelah transaksi.
 Widget txTile(BuildContext context, AppStore store, Transaction t,
-    {bool showDate = false, String? forAccount, double? balanceAfter}) {
+    {bool showDate = false,
+    String? forAccount,
+    double? balanceAfter,
+    TxSelection? sel}) {
+  final selecting = sel?.active ?? false;
+  final picked = sel?.ids.contains(t.id) ?? false;
   final cur = store.currencyOf(t.accountId);
   String amountText;
   Color amountColor;
@@ -379,7 +384,9 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
     padding: const EdgeInsets.only(bottom: 10),
     child: Dismissible(
       key: ValueKey('tx_${t.id}'),
-      direction: DismissDirection.endToStart,
+      // Saat memilih banyak, geser-untuk-hapus dimatikan supaya tidak terhapus tak sengaja.
+      direction:
+          selecting ? DismissDirection.none : DismissDirection.endToStart,
       // Harus digeser cukup jauh, lalu tetap dikonfirmasi.
       dismissThresholds: const {DismissDirection.endToStart: 0.45},
       confirmDismiss: (_) => confirmDeleteTx(context, store, t),
@@ -416,16 +423,40 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
       ),
       onDismissed: (_) => deleteWithUndo(context, store, t),
       child: Material(
-        color: C.surface,
+        color: picked ? C.accent.withValues(alpha: 0.14) : C.surface,
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () => openTxDetail(context, store, t),
+          onTap: selecting
+              ? () => sel!.toggle(t)
+              : () => openTxDetail(context, store, t),
+          onLongPress: sel == null
+              ? null
+              : () {
+                  HapticFeedback.selectionClick();
+                  sel.toggle(t);
+                },
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                CatIcon(icon: store.txIcon(t), art: store.txArt(t), color: store.txColor(t)),
+                if (selecting)
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: picked ? C.accentDark : Colors.transparent,
+                      border: Border.all(
+                          color: picked ? C.accentDark : C.line, width: 2),
+                    ),
+                    child: picked
+                        ? const Icon(Icons.check_rounded,
+                            color: Colors.white, size: 24)
+                        : null,
+                  )
+                else
+                  CatIcon(icon: store.txIcon(t), art: store.txArt(t), color: store.txColor(t)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -498,7 +529,8 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
 
 /// Daftar transaksi dikelompokkan per hari (dengan net harian dalam IDR).
 List<Widget> groupedTxWidgets(
-    BuildContext context, AppStore store, List<Transaction> list) {
+    BuildContext context, AppStore store, List<Transaction> list,
+    {TxSelection? sel}) {
   final sorted = [...list]..sort((a, b) => b.date.compareTo(a.date));
   final groups = <DateTime, List<Transaction>>{};
   for (final t in sorted) {
@@ -531,7 +563,7 @@ List<Widget> groupedTxWidgets(
       ),
     ));
     for (final t in items) {
-      widgets.add(txTile(context, store, t));
+      widgets.add(txTile(context, store, t, sel: sel));
     }
   });
   return widgets;

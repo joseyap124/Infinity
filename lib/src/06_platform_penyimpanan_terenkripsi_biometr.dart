@@ -108,6 +108,17 @@ class NativeBridge {
     }
   }
 
+  /// Buka menu bagikan Android untuk gambar PNG. False kalau gagal.
+  static Future<bool> shareImage(String name, Uint8List bytes) async {
+    try {
+      return (await _ch.invokeMethod<bool>(
+              'shareImage', {'name': name, 'bytes': bytes})) ??
+          false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Layar "Simpan sebagai" Android (bisa pilih Google Drive). Mengembalikan
   /// nama file yang disimpan, null kalau dibatalkan. Lempar kalau gagal.
   static Future<String?> saveAs(String name, Uint8List bytes, String mime) async {

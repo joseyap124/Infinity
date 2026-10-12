@@ -50,6 +50,77 @@ class _HistoryTabState extends State<HistoryTab> {
   DateTime _selectedDay = dayOnly(DateTime.now());
   final _searchFocus = FocusNode();
 
+  /// Transaksi yang dipilih (tahan satu transaksi untuk mulai memilih).
+  final Set<String> _sel = {};
+
+  /// Transaksi yang sedang tampil, untuk "Pilih semua".
+  List<Transaction> _shown = [];
+
+  TxSelection get _selection => TxSelection(_sel, _toggleSel);
+
+  void _toggleSel(Transaction t) {
+    setState(() {
+      if (!_sel.remove(t.id)) _sel.add(t.id);
+    });
+  }
+
+  void _clearSel() => setState(_sel.clear);
+
+  Future<void> _bulkCategory() async {
+    final types = store.categoryTypesOf(_sel);
+    if (types.isEmpty) {
+      snack(context, 'Transfer tidak punya kategori.');
+      return;
+    }
+    if (types.length > 1) {
+      snack(context,
+          'Pilih transaksi yang sama jenisnya: semua pengeluaran atau semua pemasukan.');
+      return;
+    }
+    final id = await showSheet<String>(
+        context,
+        BulkCategorySheet(
+            store: store, type: types.first, count: _sel.length));
+    if (id == null || !mounted) return;
+    final before = store.transactionsByIds(_sel);
+    final r = store.bulkSetCategory({..._sel}, id);
+    _clearSel();
+    if (!mounted) return;
+    bulkUndoSnack(
+        context,
+        r.skipped > 0
+            ? tr('{0} diubah, {1} dilewati (transfer atau beda jenis).', [r.changed, r.skipped])
+            : tr('{0} transaksi diubah kategorinya.', [r.changed]),
+        () => store.restoreSnapshot(before));
+  }
+
+  Future<void> _bulkAccount() async {
+    final id = await showSheet<String>(
+        context, BulkAccountSheet(store: store, count: _sel.length));
+    if (id == null || !mounted) return;
+    final before = store.transactionsByIds(_sel);
+    final r = store.bulkSetAccount({..._sel}, id);
+    _clearSel();
+    if (!mounted) return;
+    bulkUndoSnack(
+        context,
+        r.skipped > 0
+            ? tr('{0} dipindah, {1} dilewati (transfer atau beda mata uang).', [r.changed, r.skipped])
+            : tr('{0} transaksi dipindah akunnya.', [r.changed]),
+        () => store.restoreSnapshot(before));
+  }
+
+  Future<void> _bulkDelete() async {
+    final list = store.transactionsByIds(_sel);
+    if (list.isEmpty) return;
+    if (!await confirmBulkDelete(context, store, list) || !mounted) return;
+    final removed = store.bulkDelete({..._sel});
+    _clearSel();
+    if (!mounted) return;
+    bulkUndoSnack(context, tr('{0} transaksi dihapus.', [removed.length]),
+        () => store.restoreTransactions(removed));
+  }
+
   /// Filter pencarian: null = semua jenis.
   TxType? _searchType;
 
@@ -152,15 +223,23 @@ class _HistoryTabState extends State<HistoryTab> {
               subtitle:
                   'Coba kata lain: judul, catatan, kategori, akun, atau nominal. Bisa juga ">50rb" atau "<20000" untuk menyaring nominal.')
         else
-          ...groupedTxWidgets(context, store, results),
+          ...groupedTxWidgets(context, store, results, sel: _selection),
       ];
+      _shown = results;
     } else if (_view == HistoryView.list) {
       body = _listBody(context);
     } else {
       body = _calendarBody(context);
     }
 
-    return SafeArea(
+    // Buang pilihan untuk transaksi yang sudah tidak ada.
+    if (_sel.isNotEmpty) {
+      final alive = {for (final t in store.transactions) t.id};
+      _sel.removeWhere((id) => !alive.contains(id));
+    }
+    final selecting = _sel.isNotEmpty;
+
+    final content = SafeArea(
       bottom: false,
       child: CustomScrollView(
         slivers: [
@@ -220,6 +299,36 @@ class _HistoryTabState extends State<HistoryTab> {
         ],
       ),
     );
+
+    return PopScope(
+      canPop: !selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _clearSel();
+      },
+      child: Stack(
+        children: [
+          content,
+          if (selecting)
+            Positioned(
+              left: 12,
+              right: 12,
+              top: 8,
+              child: SafeArea(
+                bottom: false,
+                child: SelectionBar(
+                  count: _sel.length,
+                  onClose: _clearSel,
+                  onSelectAll: () => setState(
+                      () => _sel.addAll(_shown.map((t) => t.id))),
+                  onCategory: _bulkCategory,
+                  onAccount: _bulkAccount,
+                  onDelete: _bulkDelete,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   List<Widget> _listBody(BuildContext context) {
@@ -227,6 +336,7 @@ class _HistoryTabState extends State<HistoryTab> {
     final list = range == null
         ? store.transactions
         : store.transactions.where((t) => inRange(t.date, range)).toList();
+    _shown = list;
     var income = 0.0;
     var expense = 0.0;
     for (final t in list) {
@@ -266,7 +376,7 @@ class _HistoryTabState extends State<HistoryTab> {
             title: tr('Belum ada transaksi {0}', [tr(_filter.label).toLowerCase()]),
             subtitle: 'Ketuk tombol "Catat" buat mulai.')
       else
-        ...groupedTxWidgets(context, store, list),
+        ...groupedTxWidgets(context, store, list, sel: _selection),
     ];
   }
 
@@ -291,6 +401,7 @@ class _HistoryTabState extends State<HistoryTab> {
     final dayTx = store.transactions
         .where((t) => sameDay(t.date, _selectedDay))
         .toList();
+    _shown = dayTx;
     const weekdays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
     Widget cell(int index) {
@@ -413,7 +524,7 @@ class _HistoryTabState extends State<HistoryTab> {
             title: 'Tidak ada transaksi',
             subtitle: dayLabel(_selectedDay))
       else
-        ...groupedTxWidgets(context, store, dayTx),
+        ...groupedTxWidgets(context, store, dayTx, sel: _selection),
     ];
   }
 }

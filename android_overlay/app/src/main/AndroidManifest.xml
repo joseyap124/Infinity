@@ -58,6 +58,17 @@
             android:name=".CaptureActionReceiver"
             android:exported="false"/>
 
+        <!-- Berbagi gambar ringkasan lewat menu bagikan Android -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.jose.infinity.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
+
         <!-- Widget layar utama -->
         <receiver
             android:name=".InfinityWidgetProvider"

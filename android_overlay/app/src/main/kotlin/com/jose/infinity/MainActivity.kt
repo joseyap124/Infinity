@@ -135,6 +135,11 @@ class MainActivity : FlutterFragmentActivity() {
                         for (id in ids) CaptureAlert.cancel(this, id)
                         result.success(null)
                     }
+                    "shareImage" -> {
+                        val name = call.argument<String>("name") ?: "infinity.png"
+                        val bytes = call.argument<ByteArray>("bytes") ?: ByteArray(0)
+                        result.success(shareImage(name, bytes))
+                    }
                     "fetchDecisions" -> result.success(CaptureStore.peekDecisions(this))
                     "ackDecisions" -> {
                         val ids = call.argument<List<String>>("ids") ?: emptyList()
@@ -201,6 +206,36 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    /**
+     * Bagikan gambar PNG lewat menu bagikan Android. File ditaruh sementara di
+     * cache app dan dibagikan lewat FileProvider; Infinity tidak mengunggah apa pun.
+     */
+    private fun shareImage(name: String, bytes: ByteArray): Boolean {
+        return try {
+            if (bytes.isEmpty()) return false
+            val dir = java.io.File(cacheDir, "share")
+            dir.mkdirs()
+            // Bersihkan gambar lama (lebih dari 1 jam).
+            val cutoff = System.currentTimeMillis() - 60 * 60 * 1000
+            dir.listFiles()?.forEach { if (it.lastModified() < cutoff) it.delete() }
+            val safe = name.replace(Regex("[^A-Za-z0-9._-]"), "_")
+            val f = java.io.File(dir, safe)
+            f.writeBytes(bytes)
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                this, "$packageName.fileprovider", f
+            )
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(send, null))
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private fun saveDownload(name: String, text: String): Boolean =
