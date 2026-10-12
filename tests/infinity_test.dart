@@ -1,5 +1,7 @@
 // Tes otomatis untuk logika uang Infinity. Dijalankan CI sebelum build APK.
 import 'dart:convert';
+import 'dart:io' show zlib;
+import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/material.dart' show DateTimeRange;
@@ -2612,6 +2614,133 @@ void main() {
       expect(iconsArt('mono'), isFalse);
       expect(iconsArt('flat'), isTrue);
       expect(iconsArt('classic'), isFalse);
+    });
+  });
+
+  group('v5.0.3 log tangkapan', () {
+    AppStore setup() {
+      final s = storeWith([acc('bca', initial: 1000000)]);
+      s.categories = [
+        TxCategory(id: 'lain', name: 'Lain lain', type: TxType.expense, icon: 'other', color: 0),
+      ];
+      s.settings.captureMode = 'auto';
+      return s;
+    }
+
+    Map<String, dynamic> n(String text, DateTime at, {String title = 'myBCA'}) => {
+          'pkg': 'com.bca.mybca.omni.android',
+          'title': title,
+          'text': text,
+          'time': at.millisecondsSinceEpoch,
+        };
+
+    test('dicatat otomatis: tercatat dengan nama akun', () {
+      final s = setup();
+      s.ingestCaptured([n('Transfer berhasil sebesar Rp 50.000,00', DateTime.now())]);
+      expect(s.captureLog, hasLength(1));
+      expect(s.captureLog.single.code, 'auto');
+      expect(s.captureLog.single.outcome, CaptureOutcome.auto);
+      expect(s.captureLog.single.extra, 'BCA');
+    });
+
+    test('promo dan tanpa nominal dicatat sebagai dibuang', () {
+      final s = setup();
+      final t = DateTime.now();
+      s.ingestCaptured([
+        n('Diskon Rp 5.000 di Kedai Boboko. Nikmati potongan harga senilai Rp 5.000', t),
+        n('Selamat datang kembali di myBCA', t.add(const Duration(minutes: 5)), title: 'Halo'),
+      ]);
+      expect(s.captureLog.map((e) => e.code), ['promo', 'noamount']);
+      expect(s.captureLog.every((e) => e.outcome == CaptureOutcome.dropped), isTrue);
+      expect(s.pendingCaptures, isEmpty);
+    });
+
+    test('mode bukan auto: masuk antrean dengan alasan mode', () {
+      final s = setup();
+      s.settings.captureMode = 'ask';
+      s.ingestCaptured([n('Transfer berhasil sebesar Rp 50.000,00', DateTime.now())]);
+      expect(s.pendingCaptures, hasLength(1));
+      expect(s.captureLog.single.code, 'mode');
+      expect(s.captureLog.single.outcome, CaptureOutcome.queued);
+    });
+
+    test('mirip transaksi yang sudah ada: antrean dengan alasan dup', () {
+      final s = setup();
+      final t = DateTime.now();
+      s.ingestCaptured([n('Transfer berhasil sebesar Rp 50.000,00', t)]);
+      s.ingestCaptured([n('Transfer berhasil sebesar Rp 50.000,00 ya', t.add(const Duration(minutes: 4)))]);
+      expect(s.captureLog.map((e) => e.code), ['auto', 'dup']);
+    });
+
+    test('hanya 40 terakhir, dan alasan punya teks', () {
+      final s = setup();
+      s.settings.captureMode = 'ask';
+      final t = DateTime(2026, 10, 12, 8);
+      s.ingestCaptured([
+        for (var i = 0; i < 45; i++)
+          n('Pembayaran Rp ${(i + 1) * 1000} berhasil', t.add(Duration(minutes: i * 5))),
+      ]);
+      expect(s.captureLog, hasLength(kCaptureLogMax));
+      expect(captureReasonText(s.captureLog.last), isNotEmpty);
+      expect(s.captureLog.last.snippet, contains('45000'));
+    });
+
+    test('log ikut penyimpanan HP, tidak ikut backup, dan tidak hilang saat impor', () {
+      final s = setup();
+      s.ingestCaptured([n('Transfer berhasil sebesar Rp 50.000,00', DateTime.now())]);
+      expect(s.exportJson().contains('captureLog'), isFalse);
+      final saved = s.toJson(includeSecrets: true);
+      expect(saved['captureLog'], isA<List>());
+      final s2 = AppStore();
+      s2.importJson(jsonEncode(saved));
+      // Impor biasa mempertahankan log HP ini (kosong di sini).
+      expect(s2.captureLog, isEmpty);
+      s.importJson(s.exportJson());
+      expect(s.captureLog, hasLength(1));
+      s.clearCaptureLog();
+      expect(s.captureLog, isEmpty);
+    });
+  });
+
+  group('v5.0.3 laporan PDF', () {
+    test('buildImagePdf: struktur dan daftar offset valid', () {
+      final px = Uint8List.fromList(List.filled(2 * 2 * 3, 255));
+      final page = PdfPageImage(2, 2, Uint8List.fromList(zlib.encode(px)));
+      final bytes = buildImagePdf([page, page], title: 'Tes (a) é');
+      final txt = latin1.decode(bytes);
+      expect(txt.startsWith('%PDF-1.4'), isTrue);
+      expect(txt.trimRight().endsWith('%%EOF'), isTrue);
+      expect(txt.contains('/Count 2'), isTrue);
+      expect(txt.contains('/Title (Tes \\(a\\) )'), isTrue);
+      final sx = RegExp(r'startxref\n(\d+)').firstMatch(txt)!;
+      expect(txt.substring(int.parse(sx.group(1)!)).startsWith('xref'), isTrue);
+      final entries = RegExp(r'(\d{10}) 00000 n ').allMatches(txt).toList();
+      expect(entries, hasLength(3 + 3 * 2));
+      for (var i = 0; i < entries.length; i++) {
+        final off = int.parse(entries[i].group(1)!);
+        expect(txt.substring(off).startsWith('${i + 1} 0 obj'), isTrue, reason: 'objek ${i + 1}');
+      }
+    });
+
+    test('MonthReportData: ringkasan, kategori terurut, transaksi terurut tanggal', () {
+      final s = storeWith([acc('bca', initial: 1000000)], [
+        tx('a', TxType.income, 1000000, 'bca', date: DateTime(2026, 10, 1)),
+        tx('b', TxType.expense, 200000, 'bca', cat: 'makan', date: DateTime(2026, 10, 5)),
+        tx('c', TxType.expense, 100000, 'bca', cat: 'transport', date: DateTime(2026, 10, 3)),
+        tx('d', TxType.expense, 50000, 'bca', cat: 'makan', date: DateTime(2026, 11, 2)),
+      ]);
+      s.categories = [
+        TxCategory(id: 'makan', name: 'Makan', type: TxType.expense, icon: 'other', color: 0),
+        TxCategory(id: 'transport', name: 'Transport', type: TxType.expense, icon: 'other', color: 0),
+      ];
+      final d = MonthReportData(s, DateTime(2026, 10, 20), DateTime(2026, 11, 15));
+      expect(d.income, 1000000);
+      expect(d.expense, 300000);
+      expect(d.net, 700000);
+      expect(d.days, 31);
+      expect(d.perDay, closeTo(300000 / 31, 0.01));
+      expect(d.categories.first.value, 200000);
+      expect(d.transactions.map((t) => t.id), ['a', 'c', 'b']);
     });
   });
 }

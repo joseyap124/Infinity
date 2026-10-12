@@ -332,6 +332,9 @@ class DataFile {
   static File? _keyBak;
   static SecretKey? _alt;
 
+  /// File data ada tetapi kuncinya hilang (lihat [init]).
+  static bool keyLost = false;
+
   static Future<String?> _readKeyOnce() async {
     try {
       final k = await SecureStore.read(_keyName);
@@ -378,9 +381,18 @@ class DataFile {
         } catch (_) {}
       }
       if (k == null) {
+        if (_file!.existsSync()) {
+          // File data ada tapi kunci tidak ditemukan di mana pun. Jangan buat
+          // kunci baru (itu menimpa kunci lama dan data tidak akan terbuka
+          // lagi): biarkan, dan tampilkan layar "Data tidak bisa dibuka".
+          keyLost = true;
+          _key = null;
+          return true;
+        }
         k = base64Encode(_random(32));
         await SecureStore.write(_keyName, k);
       }
+      keyLost = false;
       _key = SecretKey(base64Decode(k));
       if (bak != k) {
         try {
@@ -405,6 +417,9 @@ class DataFile {
   /// Null kalau belum ada file. Lempar kalau file rusak / kunci salah.
   static Future<String?> read() async {
     final f = _file, key = _key;
+    if (f != null && key == null && keyLost && f.existsSync()) {
+      throw const FormatException('Kunci data tidak ditemukan');
+    }
     if (f == null || key == null || !f.existsSync()) return null;
     final b = await f.readAsBytes();
     if (b.length < 28) throw const FormatException('File data terlalu pendek');
@@ -434,6 +449,22 @@ class DataFile {
     final tmp = File('${f.path}.tmp');
     await tmp.writeAsBytes([...nonce, ...box.mac.bytes, ...box.cipherText], flush: true);
     await tmp.rename(f.path);
+  }
+
+  /// Mulai dari awal: file data yang tidak terbaca disimpan terpisah (tidak
+  /// dihapus), lalu dibuat kunci baru.
+  static Future<void> freshStart() async {
+    await quarantine();
+    final k = base64Encode(_random(32));
+    try {
+      await SecureStore.write(_keyName, k);
+    } catch (_) {}
+    try {
+      await _keyBak?.writeAsString(k, flush: true);
+    } catch (_) {}
+    _key = SecretKey(base64Decode(k));
+    _alt = null;
+    keyLost = false;
   }
 
   /// Amankan file yang tidak bisa dibaca supaya tidak tertimpa.

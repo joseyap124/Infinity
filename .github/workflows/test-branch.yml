@@ -70,6 +70,7 @@ jobs:
           cp "$RUNNER_TEMP"/*.txt "$RUNNER_TEMP/out/" 2>/dev/null || true
           cp pubspec.lock "$RUNNER_TEMP/out/pubspec.lock" 2>/dev/null || true
           cp "$RUNNER_TEMP/web.zip" "$RUNNER_TEMP/out/web.zip" 2>/dev/null || true
+          cp "${TMPDIR:-/tmp}"/infinity_report*.pdf "$RUNNER_TEMP/out/" 2>/dev/null || true
           flutter --version --machine > "$RUNNER_TEMP/out/flutter.json" 2>/dev/null || true
           echo "branch ${{ github.ref_name }} run ${{ github.run_number }} commit ${{ github.sha }} status ${{ job.status }}" > "$RUNNER_TEMP/out/info.txt"
           cd "$RUNNER_TEMP/out"

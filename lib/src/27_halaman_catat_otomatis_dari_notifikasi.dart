@@ -285,6 +285,17 @@ class _AutoCapturePageState extends State<AutoCapturePage>
                 icon: Icons.refresh_rounded,
                 onPressed: _checkNow,
               ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => CaptureLogPage(store: store))),
+                icon: const Icon(Icons.history_rounded),
+                label: Text(tr('Riwayat tangkapan ({0})', [store.captureLog.length])),
+                style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20))),
+              ),
               if (store.pendingCaptures.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 TextButton(

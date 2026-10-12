@@ -188,6 +188,21 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
 
   Future<void> _init() async {
     await store.load();
+    if (store.dataLocked) return;
+    await _afterLoad();
+  }
+
+  Future<void> _retryLoad() async {
+    await store.retryLoad();
+    if (!store.dataLocked && mounted) await _afterLoad();
+  }
+
+  Future<void> _freshStart() async {
+    await store.startFresh();
+    if (!store.dataLocked && mounted) await _afterLoad();
+  }
+
+  Future<void> _afterLoad() async {
     await Receipts.init();
     Receipts.cleanup(store.transactions);
     await Notifier.instance.init();
@@ -430,6 +445,10 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     return ListenableBuilder(
       listenable: store,
       builder: (context, _) {
+        // Data ada tapi gagal dibuka: jangan mulai kosong diam-diam.
+        if (store.dataLocked) {
+          return DataLockedScreen(onRetry: _retryLoad, onFresh: _freshStart);
+        }
         // Data belum terbaca: layar polos senada splash bawaan Android.
         if (!store.loaded) {
           return const ColoredBox(color: Color(0xFF16181D));

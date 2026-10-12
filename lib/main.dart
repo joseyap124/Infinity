@@ -110,6 +110,9 @@ part 'src/56_ritme_budget.dart';
 part 'src/57_kalender_heat.dart';
 part 'src/58_rekap_cerita.dart';
 part 'src/59_tunda_beli.dart';
+part 'src/60_log_tangkapan.dart';
+part 'src/61_data_terkunci.dart';
+part 'src/62_laporan_pdf.dart';
 // WIDGET-IMPORTS-END
 
 void main() {

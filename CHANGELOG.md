@@ -3,7 +3,18 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.0.2)
+## Berikutnya (v5.0.3)
+
+Catat otomatis bisa ditelusuri, data lebih aman saat kunci gagal dibaca, dan laporan bulanan bisa diekspor ke PDF.
+
+### Ditambah
+- **Riwayat tangkapan** (Lainnya > Catat otomatis): daftar 40 notifikasi uang terakhir yang sampai ke Infinity, tiap baris menunjukkan hasilnya (Dicatat, Antrean, atau Dibuang) beserta alasannya, misalnya akun tidak bisa ditebak, mirip transaksi yang sudah ada, atau terdeteksi promo. Gunanya menjawab "kenapa notifikasi ini tidak muncul di Beranda". Notifikasi tanpa nominal "Rp" tidak ikut tercatat di sini.
+- **Laporan PDF** (Statistik > Laporan PDF): laporan bulan terpilih berukuran A4 berisi ringkasan (pemasukan, pengeluaran, selisih, rata-rata per hari), pengeluaran per kategori, pengeluaran terbesar, dan daftar transaksi (bisa dimatikan, maksimal 600 baris). Dibuat di HP, bisa disimpan ke Download/Infinity atau dibagikan. Teks di PDF berupa gambar, jadi tidak bisa diseleksi atau dicari.
+
+### Diubah
+- **Data yang tidak bisa dibuka tidak lagi diam-diam diganti data kosong.** Kalau file data ada tetapi kuncinya gagal dibaca, Infinity menampilkan layar "Data belum bisa dibuka" dengan tombol Coba lagi, dan Mulai dari awal dan pulihkan dari backup. File lama tidak dihapus. Kunci baru juga tidak lagi dibuat selama file data masih ada.
+
+## v5.0.2 (12 Okt 2026)
 
 ### Diubah
 - **Form catat transaksi**: setelah memilih kategori, kursor langsung pindah ke kolom Catatan (keyboard terbuka) kalau catatannya masih kosong.
@@ -39,9 +50,6 @@ Rilis besar: Beranda baru dengan maskot, kartu budget dengan penanda ritme, kale
 - Kartu akun di Beranda dihapus; akun dibuka lewat baris Total saldo.
 - Daftar kategori di Statistik menampilkan 4 teratas, sisanya di balik "N kategori lainnya".
 - Widget 4x2 tidak lagi menampilkan baris Masuk/Keluar bulan ini.
-
-### Akan datang
-- **Biaya bocor** (pendeteksi langganan dan biaya kecil berulang) ditunda ke rilis setelah 5.0.
 
 ## v4.7 (12 Okt 2026)
 

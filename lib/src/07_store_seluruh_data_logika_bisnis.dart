@@ -11,8 +11,27 @@ class AppStore extends ChangeNotifier {
   bool loaded = false;
   String? loadWarning;
 
+  /// Data di HP ada tapi gagal dibuka. Tidak ada yang ditulis sampai user memilih.
+  bool dataLocked = false;
+
+  /// Dipanggil dari layar "Data tidak bisa dibuka" untuk memulai dari awal.
+  Future<void> startFresh() async {
+    await DataFile.freshStart();
+    dataLocked = false;
+    _storageOk = true;
+    await load();
+  }
+
+  /// Coba buka lagi (kegagalan baca kunci bisa sesaat).
+  Future<void> retryLoad() async {
+    dataLocked = false;
+    _storageOk = true;
+    await load();
+  }
+
   /// Notifikasi bank/e-wallet yang menunggu dicek (mode "Tanya dulu").
   List<CapturedNotif> pendingCaptures = [];
+  List<CaptureLogEntry> captureLog = [];
   List<String> _seenCaptureKeys = [];
 
   List<Account> accounts = [];
@@ -48,9 +67,13 @@ class AppStore extends ChangeNotifier {
           raw = await DataFile.read();
         }
       } catch (_) {
-        await DataFile.quarantine();
-        loadWarning =
-            'Data tersimpan tidak bisa dibaca. Salinannya sudah diamankan, aplikasi mulai dari data kosong.';
+        // Jangan mulai dari data kosong diam-diam. File dibiarkan apa adanya
+        // dan layar "Data tidak bisa dibuka" menawarkan coba lagi atau
+        // mulai dari awal lalu pulihkan dari backup.
+        dataLocked = true;
+        _storageOk = false;
+        notifyListeners();
+        return;
       }
     }
     if (raw == null && loadWarning == null) {
@@ -77,6 +100,13 @@ class AppStore extends ChangeNotifier {
         final decoded = jsonDecode(raw);
         _applyJson(Map<String, dynamic>.from(decoded as Map));
       } catch (_) {
+        if (_useFile && !fromLegacy) {
+          // File terbaca tapi isinya tidak bisa dipahami: biarkan apa adanya.
+          dataLocked = true;
+          _storageOk = false;
+          notifyListeners();
+          return;
+        }
         try {
           await SecureStore.write(
               '${_key}_rusak_${DateTime.now().millisecondsSinceEpoch}', raw);
@@ -217,6 +247,8 @@ class AppStore extends ChangeNotifier {
         if (includeSecrets)
           'pendingCaptures': pendingCaptures.map((c) => c.toJson()).toList(),
         if (includeSecrets) 'seenCaptureKeys': _seenCaptureKeys,
+        if (includeSecrets && captureLog.isNotEmpty)
+          'captureLog': captureLog.map((c) => c.toJson()).toList(),
       };
 
   /// Parse semuanya dulu, baru diganti (atomik). Lempar error kalau format salah.
@@ -252,6 +284,7 @@ class AppStore extends ChangeNotifier {
     final evs = _list(j['events']).map(TxEvent.fromJson).toList();
 
     final pend = _list(j['pendingCaptures']).map(CapturedNotif.fromJson).toList();
+    final clog = _list(j['captureLog']).map(CaptureLogEntry.fromJson).toList();
     final seen = j['seenCaptureKeys'] is List
         ? (j['seenCaptureKeys'] as List).whereType<String>().toList()
         : <String>[];
@@ -269,6 +302,7 @@ class AppStore extends ChangeNotifier {
     settings = st;
     gPeriodStartDay = st.periodStartDay;
     pendingCaptures = pend;
+    captureLog = clog;
     _seenCaptureKeys = seen;
   }
 
@@ -328,11 +362,13 @@ class AppStore extends ChangeNotifier {
     }
     final old = settings;
     final pend = pendingCaptures;
+    final clog = captureLog;
     final seen = _seenCaptureKeys;
     _applyJson(Map<String, dynamic>.from(decoded));
     _keepSecurity(old);
     _keepMissingAppearance(old, decoded['settings']);
     pendingCaptures = pend;
+    captureLog = clog;
     _seenCaptureKeys = seen;
     _migrateIcons();
     processRecurring(notify: false);
@@ -401,6 +437,7 @@ class AppStore extends ChangeNotifier {
     events = [];
     settings = AppSettings()..iconsV37 = true;
     pendingCaptures = [];
+    captureLog = [];
     _seenCaptureKeys = [];
   }
 
@@ -1747,17 +1784,22 @@ class AppStore extends ChangeNotifier {
       changed = true;
 
       final lower = '$title $text'.toLowerCase();
-      if (_promoWords.any(lower.contains)) continue;
-
       final c = CapturedNotif(
           id: newId(), pkg: pkg, title: title, text: text, time: time);
+      if (_promoWords.any(lower.contains)) {
+        logCapture(c, 'promo');
+        continue;
+      }
       final p = parseReceipt(c.fullText, this);
       final accountId = p.accountId ?? accountForPackage(pkg);
       if (accountId != null && p.balanceAfter != null) {
         _rememberReportedBalance(accountId, p.balanceAfter!, time);
       }
       final amount = p.amount;
-      if (amount == null) continue;
+      if (amount == null) {
+        logCapture(c, 'noamount');
+        continue;
+      }
       final type = p.type ?? TxType.expense;
       final categoryId = learnedCategory(p.title ?? '', type) ??
           p.categoryId ??
@@ -1789,8 +1831,22 @@ class AppStore extends ChangeNotifier {
           note: 'Otomatis dari notifikasi ${appLabelForPackage(pkg)}',
         ));
         auto++;
+        logCapture(c, 'auto', accountName(accountId));
       } else {
         pendingCaptures.add(c);
+        logCapture(
+            c,
+            settings.captureMode != 'auto'
+                ? 'mode'
+                : accountId == null
+                    ? 'noacct'
+                    : categoryId == null
+                        ? 'nocat'
+                        : looksDuplicate
+                            ? 'dup'
+                            : beforeManualBalance
+                                ? 'beforebal'
+                                : 'topup');
       }
     }
     if (_seenCaptureKeys.length > 600) {

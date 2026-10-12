@@ -206,11 +206,22 @@ class _StatsTabState extends State<StatsTab> {
             MonthAdviceCard(store: store, month: periodLabelOf(_anchor)),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () =>
-                    showMonthShareSheet(context, store, periodLabelOf(_anchor)),
-                icon: const Icon(Icons.ios_share_rounded, size: 18),
-                label: const Text('Bagikan ringkasan bulan'),
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => showMonthPdfSheet(
+                        context, store, periodLabelOf(_anchor)),
+                    icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
+                    label: const Text('Laporan PDF'),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => showMonthShareSheet(
+                        context, store, periodLabelOf(_anchor)),
+                    icon: const Icon(Icons.ios_share_rounded, size: 18),
+                    label: const Text('Bagikan ringkasan bulan'),
+                  ),
+                ],
               ),
             ),
             // Perbandingan dengan bulan lalu (dulu di Beranda), hanya untuk
