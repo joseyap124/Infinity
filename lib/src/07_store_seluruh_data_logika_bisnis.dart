@@ -20,6 +20,7 @@ class AppStore extends ChangeNotifier {
   List<Transaction> transactions = [];
   List<RecurringRule> recurring = [];
   List<Installment> installments = [];
+  List<WaitItem> waitItems = [];
   List<TxTemplate> templates = [];
   List<Debt> debts = [];
   List<Goal> goals = [];
@@ -200,6 +201,7 @@ class AppStore extends ChangeNotifier {
         'transactions': transactions.map((t) => t.toJson()).toList(),
         'recurring': recurring.map((r) => r.toJson()).toList(),
         'installments': installments.map((x) => x.toJson()).toList(),
+        if (waitItems.isNotEmpty) 'waitItems': waitItems.map((x) => x.toJson()).toList(),
         'templates': templates.map((t) => t.toJson()).toList(),
         'debts': debts.map((d) => d.toJson()).toList(),
         'goals': goals.map((g) => g.toJson()).toList(),
@@ -230,6 +232,7 @@ class AppStore extends ChangeNotifier {
         .map(Installment.fromJson)
         .where((x) => ids.contains(x.accountId))
         .toList();
+    final wts = _list(j['waitItems']).map(WaitItem.fromJson).toList();
     final tpl = _list(j['templates'])
         .map(TxTemplate.fromJson)
         .where((t) => ids.contains(t.accountId))
@@ -251,6 +254,7 @@ class AppStore extends ChangeNotifier {
     transactions = txs;
     recurring = rec;
     installments = ins;
+    waitItems = wts;
     templates = tpl;
     debts = dbt;
     goals = gls;
@@ -383,6 +387,7 @@ class AppStore extends ChangeNotifier {
     transactions = [];
     recurring = [];
     installments = [];
+    waitItems = [];
     templates = [];
     debts = [];
     goals = [];
@@ -1056,6 +1061,14 @@ class AppStore extends ChangeNotifier {
       }
     }
 
+    if (s.feature('tunda')) {
+      for (final w in waitItems.where((w) => w.waiting)) {
+        add(DateTime(w.readyAt.year, w.readyAt.month, w.readyAt.day, 9),
+            tr('⏳ Masa tunggu {0} sudah lewat', [w.name]),
+            tr('Masih mau beli? Buka Infinity untuk memutuskan.'));
+      }
+    }
+
     if (s.notifCredit) {
       for (final a in accounts.where((a) => a.type == AccountType.credit)) {
         final bal = balanceOf(a.id);
@@ -1512,7 +1525,8 @@ class AppStore extends ChangeNotifier {
       transactions.isNotEmpty ||
       goals.isNotEmpty ||
       debts.isNotEmpty ||
-      installments.isNotEmpty;
+      installments.isNotEmpty ||
+      waitItems.isNotEmpty;
 
   /// Simpan data sekarang ke Download/Infinity sebelum dipulihkan dari backup
   /// lain. Namanya khusus ("infinity-sebelum-pulih-...") supaya tidak ikut

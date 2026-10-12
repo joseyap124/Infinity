@@ -2499,4 +2499,78 @@ void main() {
       expect(storySavingNote(null), contains('Belum ada pemasukan'));
     });
   });
+  group('v5.0 tunda beli', () {
+    final now = DateTime(2026, 10, 12, 12);
+    WaitItem item(String id, double price,
+            {int days = 7, DateTime? at, String status = 'waiting', DateTime? decided}) =>
+        WaitItem(
+            id: id,
+            name: 'Barang $id',
+            price: price,
+            createdAt: at ?? DateTime(2026, 10, 9, 20),
+            waitDays: days,
+            status: status,
+            decidedAt: decided);
+
+    test('sisa hari menunggu', () {
+      final w = item('a', 100, at: DateTime(2026, 10, 9, 20)); // siap 16 Okt
+      expect(w.readyAt, DateTime(2026, 10, 16));
+      expect(w.daysLeft(now), 4);
+      expect(w.daysLeft(DateTime(2026, 10, 16, 8)), 0);
+      expect(w.daysLeft(DateTime(2026, 11, 1)), 0);
+    });
+
+    test('tersimpan lewat JSON, termasuk keputusan', () {
+      final s = storeWith([acc('a')]);
+      s.waitItems = [
+        item('a', 1200000),
+        item('b', 450000, status: 'canceled', decided: DateTime(2026, 10, 11)),
+      ];
+      final s2 = AppStore();
+      s2.importJson(s.exportJson());
+      expect(s2.waitItems, hasLength(2));
+      expect(s2.waitItems.first.waiting, isTrue);
+      expect(s2.waitItems.last.canceled, isTrue);
+      expect(s2.waitItems.last.decidedAt, DateTime(2026, 10, 11));
+      // Tanpa daftar tunggu, kuncinya tidak ditulis.
+      expect(storeWith([acc('a')]).toJson().containsKey('waitItems'), isFalse);
+    });
+
+    test('hanya tampil kalau fiturnya menyala, dan total batal bulan ini', () {
+      final s = storeWith([acc('a', initial: 5000000)]);
+      s.waitItems = [
+        item('a', 1200000),
+        item('b', 450000, status: 'canceled', decided: DateTime(2026, 10, 11)),
+        item('c', 400000, status: 'canceled', decided: DateTime(2026, 10, 3)),
+        item('d', 999000, status: 'canceled', decided: DateTime(2026, 9, 3)),
+        item('e', 777000, status: 'bought', decided: DateTime(2026, 10, 4)),
+      ];
+      expect(s.waitingItems, isEmpty); // mati secara bawaan
+      expect(s.canceledTotal(now), 850000);
+      expect(s.canceledInPeriod(now), hasLength(2));
+      s.updateSettings((x) => x.features['tunda'] = true);
+      expect(s.waitingItems.map((w) => w.id), ['a']);
+    });
+
+    test('keputusan jadi beli atau batal tersimpan', () {
+      final s = storeWith([acc('a')]);
+      s.waitItems = [item('a', 100)];
+      s.decideWait('a', 'canceled', now);
+      expect(s.waitItems.single.canceled, isTrue);
+      expect(s.waitItems.single.decidedAt, now);
+      s.deleteWait('a');
+      expect(s.waitItems, isEmpty);
+    });
+
+    test('pengingat sekali setelah masa tunggu lewat', () {
+      final s = storeWith([acc('a')]);
+      s.settings.notifEnabled = true;
+      final soon = DateTime.now().subtract(const Duration(days: 3));
+      s.waitItems = [item('a', 100, days: 7, at: soon)];
+      s.updateSettings((x) => x.features['tunda'] = true);
+      expect(s.plannedNotifications().any((n) => n.title.contains('Barang a')), isTrue);
+      s.updateSettings((x) => x.features.remove('tunda'));
+      expect(s.plannedNotifications().any((n) => n.title.contains('Barang a')), isFalse);
+    });
+  });
 }

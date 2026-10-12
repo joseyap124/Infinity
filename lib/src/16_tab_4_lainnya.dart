@@ -136,6 +136,15 @@ class MoreTab extends StatelessWidget {
                     subtitle:
                         tr('{0} aktif', [store.recurring.where((r) => r.active).length]),
                     onTap: () => _push(context, RecurringPage(store: store))),
+                if (store.feature('tunda'))
+                  _tile(context,
+                      icon: Icons.hourglass_bottom_rounded,
+                      color: C.amberDark,
+                      title: 'Tunda beli',
+                      subtitle: store.waitingItems.isEmpty
+                          ? 'Tunggu dulu sebelum membeli yang tidak mendesak'
+                          : tr('{0} menunggu', [store.waitingItems.length]),
+                      onTap: () => _push(context, WaitlistPage(store: store))),
                 if (store.feature('acara'))
                   _tile(context,
                       icon: Icons.local_activity_rounded,
