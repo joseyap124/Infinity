@@ -733,6 +733,13 @@ class _TxFormSheetState extends State<TxFormSheet> {
       _catTouched = true;
       _error = null;
     });
+    // Kategori sudah dipilih dan catatan masih kosong: langsung ke kolom
+    // catatan dengan keyboard terbuka.
+    if (_titleCtrl.text.trim().isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _titleFocus.requestFocus();
+      });
+    }
   }
 
   Future<void> _pickAccount({required bool to}) async {

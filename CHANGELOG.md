@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.0.1)
+## Berikutnya (v5.0.2)
+
+### Diubah
+- **Form catat transaksi**: setelah memilih kategori, kursor langsung pindah ke kolom Catatan (keyboard terbuka) kalau catatannya masih kosong.
+
+## v5.0.1 (12 Okt 2026)
 
 Perbaikan pengaman data: kunci enkripsi data tidak lagi hilang diam-diam.
 
