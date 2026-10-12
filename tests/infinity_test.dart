@@ -2339,6 +2339,15 @@ void main() {
       expect(AppSettings.fromJson(<String, dynamic>{'splashMode': 'aneh'}).splashMode, 'once');
     });
 
+    test('bentuk grafik kategori tersimpan', () {
+      final a = AppSettings();
+      expect(a.chartShape, 'donut');
+      expect(a.toJson().containsKey('chartShape'), isFalse);
+      a.chartShape = 'pie';
+      expect(AppSettings.fromJson(a.toJson()).chartShape, 'pie');
+      expect(AppSettings.fromJson(<String, dynamic>{'chartShape': 'aneh'}).chartShape, 'donut');
+    });
+
     test('gaya ikon: flat dan mono diterima, yang aneh jadi kartun', () {
       for (final st in ['cartoon', 'flat', 'classic', 'mono']) {
         final a = AppSettings()..iconStyle = st;

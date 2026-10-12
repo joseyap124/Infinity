@@ -729,14 +729,56 @@ class AccountPicker extends StatelessWidget {
 
 class DonutChartPainter extends CustomPainter {
   DonutChartPainter(
-      {required this.values, required this.colors, required this.progress});
+      {required this.values,
+      required this.colors,
+      required this.progress,
+      this.pie = false});
 
   final List<double> values;
   final List<Color> colors;
   final double progress;
 
+  /// Lingkaran penuh (tanpa lubang) alih-alih cincin.
+  final bool pie;
+
+  void _paintPie(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = math.min(size.width, size.height) / 2 - 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final total = values.fold(0.0, (s, v) => s + v);
+    if (total <= 0) {
+      canvas.drawCircle(center, radius, Paint()..color = C.line);
+      return;
+    }
+    var start = -math.pi / 2;
+    final full = 2 * math.pi * progress;
+    for (var i = 0; i < values.length; i++) {
+      final sweep = full * (values[i] / total);
+      if (sweep > 0) {
+        canvas.drawArc(rect, start, sweep, true, Paint()..color = colors[i]);
+        if (values.length > 1) {
+          canvas.drawArc(
+              rect,
+              start,
+              sweep,
+              true,
+              Paint()
+                ..color = C.surface
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 2
+                ..strokeJoin = StrokeJoin.round);
+        }
+      }
+      start += sweep;
+    }
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
+    if (pie) {
+      _paintPie(canvas, size);
+      return;
+    }
     const stroke = 22.0;
     final center = size.center(Offset.zero);
     final radius = math.min(size.width, size.height) / 2 - stroke / 2;
@@ -778,7 +820,9 @@ class DonutChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant DonutChartPainter old) {
-    if (old.progress != progress || old.values.length != values.length) {
+    if (old.progress != progress ||
+        old.pie != pie ||
+        old.values.length != values.length) {
       return true;
     }
     for (var i = 0; i < values.length; i++) {

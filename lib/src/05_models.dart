@@ -498,6 +498,9 @@ class AppSettings {
   /// Animasi pembuka: 'once' (sekali saja) | 'always' (tiap buka) | 'off'.
   String splashMode = 'once';
 
+  /// Bentuk grafik kategori di Statistik: 'donut' (cincin) atau 'pie' (lingkaran penuh).
+  String chartShape = 'donut';
+
   /// Gaya ikon kategori: 'cartoon' | 'flat' | 'classic' | 'mono'.
   String iconStyle = 'cartoon';
 
@@ -602,6 +605,7 @@ class AppSettings {
         'iconStyle': iconStyle,
         if (features.isNotEmpty) 'features': features,
         if (splashMode != 'once') 'splashMode': splashMode,
+        if (chartShape != 'donut') 'chartShape': chartShape,
         if (lang != 'id') 'lang': lang,
         if (iconsV37) 'iconsV37': true,
         if (pinnedCats.isNotEmpty) 'pinnedCats': pinnedCats,
@@ -690,6 +694,7 @@ class AppSettings {
     }
     final spm = _s(j['splashMode']);
     s.splashMode = (spm == 'always' || spm == 'off') ? spm! : 'once';
+    s.chartShape = _s(j['chartShape']) == 'pie' ? 'pie' : 'donut';
     s.lang = const ['en', 'zh'].contains(_s(j['lang'])) ? _s(j['lang'])! : 'id';
     s.iconsV37 = j['iconsV37'] == true;
     if (j['pinnedCats'] is List) {

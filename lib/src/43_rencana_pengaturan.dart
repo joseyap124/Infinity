@@ -627,6 +627,28 @@ class AppearancePage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SmallLabel('Bentuk grafik kategori'),
+                    const SizedBox(height: 8),
+                    Segmented<String>(
+                      values: const ['donut', 'pie'],
+                      selected: s.chartShape,
+                      labelOf: (v) => v == 'pie' ? 'Lingkaran penuh' : 'Cincin',
+                      dense: true,
+                      onChanged: (v) =>
+                          store.updateSettings((x) => x.chartShape = v),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                        'Dipakai di grafik pengeluaran per kategori di Statistik.',
+                        style: TextStyle(fontSize: 12, color: C.muted)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              AppCard(
                 onTap: () =>
                     showSheet<void>(context, AccentPickerSheet(store: store)),
                 child: Row(

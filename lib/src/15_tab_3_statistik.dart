@@ -17,6 +17,7 @@ class _StatsTabState extends State<StatsTab> {
   BudgetPeriod _mode = BudgetPeriod.monthly;
   DateTime _anchor = DateTime.now();
   TxType _type = TxType.expense;
+  bool _legendAll = false;
 
   DateTimeRange get _range => _mode.range(_anchor);
 
@@ -256,8 +257,11 @@ class _StatsTabState extends State<StatsTab> {
                                     C.muted)
                                 .toList(),
                             progress: p,
+                            pie: store.settings.chartShape == 'pie',
                           ),
-                          child: Center(
+                          child: store.settings.chartShape == 'pie'
+                              ? null
+                              : Center(
                             child: Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 32),
@@ -282,8 +286,54 @@ class _StatsTabState extends State<StatsTab> {
                       ),
                     ),
                   ),
+                  if (store.settings.chartShape == 'pie') ...[
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Text(
+                          tr('Total {0}', [money(total)]),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w900)),
+                    ),
+                  ],
                   const SizedBox(height: 12),
-                  for (final e in byCat) _legendRow(context, e.key, e.value, total, r),
+                  for (final e in (_legendAll || byCat.length <= 5
+                      ? byCat
+                      : byCat.take(4).toList()))
+                    _legendRow(context, e.key, e.value, total, r),
+                  if (byCat.length > 5)
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => setState(() => _legendAll = !_legendAll),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                  _legendAll
+                                      ? 'Ringkas'
+                                      : tr('{0} kategori lainnya · {1}%', [
+                                          byCat.length - 4,
+                                          (byCat.skip(4).fold(0.0, (a, e) => a + e.value) /
+                                                  total *
+                                                  100)
+                                              .toStringAsFixed(1)
+                                        ]),
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: C.accentDark)),
+                            ),
+                            Icon(
+                                _legendAll
+                                    ? Icons.expand_less_rounded
+                                    : Icons.expand_more_rounded,
+                                color: C.accentDark),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ],
             ),
