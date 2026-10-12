@@ -42,7 +42,7 @@ class TemplatesPage extends StatelessWidget {
                       children: [
                         CatIcon(
                             art: t.type == TxType.transfer
-                                ? null
+                                ? 'transfer'
                                 : store.categoryById(t.categoryId)?.art,
                             icon: t.type == TxType.transfer
                                 ? Icons.swap_horiz_rounded

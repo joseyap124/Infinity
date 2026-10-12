@@ -340,6 +340,7 @@ class _DebtsPageState extends State<DebtsPage> {
             Row(
               children: [
                 CatIcon(
+                    art: d.settled ? null : 'debt',
                     icon: d.settled
                         ? Icons.check_circle_rounded
                         : Icons.person_rounded,
@@ -865,6 +866,7 @@ class GoalCard extends StatelessWidget {
           Row(
             children: [
               CatIcon(
+                  art: done ? 'piala' : 'saving',
                   icon: done ? Icons.emoji_events_rounded : Icons.savings_rounded,
                   color: color,
                   size: 38),

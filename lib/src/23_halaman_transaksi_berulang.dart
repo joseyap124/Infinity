@@ -46,7 +46,7 @@ class RecurringPage extends StatelessWidget {
                         children: [
                           CatIcon(
                               art: r.type == TxType.transfer
-                                  ? null
+                                  ? 'transfer'
                                   : store.categoryById(r.categoryId)?.art,
                               icon: r.type == TxType.transfer
                                   ? Icons.swap_horiz_rounded

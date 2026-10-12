@@ -30,6 +30,15 @@ enum AccountType {
   const AccountType(this.label, this.icon);
   final String label;
   final IconData icon;
+
+  /// Kunci ikon kartun (lihat 45_ikon_kartun.dart).
+  String get art => switch (this) {
+        AccountType.ewallet => 'dompet',
+        AccountType.cash => 'cash',
+        AccountType.bank => 'bank',
+        AccountType.credit => 'card',
+        AccountType.investment => 'invest',
+      };
 }
 
 enum Frequency {

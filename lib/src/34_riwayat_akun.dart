@@ -233,7 +233,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                   children: [
                     Row(
                       children: [
-                        CatIcon(icon: a.type.icon, color: a.colorValue),
+                        CatIcon(icon: a.type.icon, art: a.type.art, color: a.colorValue),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(

@@ -532,7 +532,7 @@ class AppStore extends ChangeNotifier {
 
   /// Kunci ikon kartun transaksi (null untuk transfer).
   String? txArt(Transaction t) =>
-      t.type == TxType.transfer ? null : categoryById(t.categoryId)?.icon;
+      t.type == TxType.transfer ? 'transfer' : categoryById(t.categoryId)?.icon;
 
   IconData txIcon(Transaction t) => t.type == TxType.transfer
       ? Icons.swap_horiz_rounded

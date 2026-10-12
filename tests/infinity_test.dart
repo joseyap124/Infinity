@@ -1416,7 +1416,8 @@ void main() {
     }
 
     test('setiap kunci ikon Material punya gambar kartun, dan sebaliknya', () {
-      expect(kArtKeys.toSet(), kIcons.keys.toSet());
+      expect(kArtKeys.toSet(), {...kIcons.keys, ...kExtraArtKeys});
+      expect(kExtraArtKeys.toSet().intersection(kIcons.keys.toSet()), isEmpty);
       for (final k in kArtKeys) {
         final b = artBytes(k);
         expect(b, isNotNull, reason: k);
@@ -1496,13 +1497,19 @@ void main() {
       expect(s2.categoryById('health')!.icon, 'health');
     });
 
-    test('txArt: kategori ada kuncinya, transfer tidak', () {
+    test('txArt: kategori ada kuncinya, transfer pakai ikon transfer', () {
       final s = AppStore()..clearAll();
       s.accounts = [acc('a', initial: 100), acc('b')];
       final e = tx('e', TxType.expense, 10, 'a', cat: 'makan');
       final t = tx('t', TxType.transfer, 10, 'a', to: 'b');
       expect(s.txArt(e), 'food');
-      expect(s.txArt(t), isNull);
+      expect(s.txArt(t), 'transfer');
+    });
+
+    test('setiap tipe akun punya gambar kartun', () {
+      for (final t in AccountType.values) {
+        expect(artBytes(t.art), isNotNull, reason: t.name);
+      }
     });
   });
 }

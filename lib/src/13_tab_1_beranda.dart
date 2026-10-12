@@ -1229,6 +1229,7 @@ class DashboardTab extends StatelessWidget {
                       children: [
                         CatIcon(
                             icon: Icons.credit_card_rounded,
+                            art: 'card',
                             color: a.colorValue,
                             size: 38),
                         const SizedBox(width: 10),
@@ -1536,7 +1537,7 @@ class DashboardTab extends StatelessWidget {
               CatIcon(
                   icon: icon,
                   art: t.type == TxType.transfer
-                      ? null
+                      ? 'transfer'
                       : store.categoryById(t.categoryId)?.art,
                   color: color,
                   size: 26),
@@ -1580,7 +1581,7 @@ class DashboardTab extends StatelessWidget {
                 children: [
                   CatIcon(
                       art: r.type == TxType.transfer
-                          ? null
+                          ? 'transfer'
                           : store.categoryById(r.categoryId)?.art,
                       icon: r.type == TxType.transfer
                           ? Icons.swap_horiz_rounded

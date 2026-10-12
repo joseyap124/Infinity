@@ -267,6 +267,7 @@ class _EventCard extends StatelessWidget {
             Row(
               children: [
                 CatIcon(
+                    art: 'event',
                     icon: Icons.local_activity_rounded,
                     color: event.colorValue,
                     size: 38),

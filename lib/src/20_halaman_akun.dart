@@ -19,7 +19,7 @@ class AccountsPage extends StatelessWidget {
           onTap: () => openAccountHistory(context, store, a),
           child: Row(
             children: [
-              CatIcon(icon: a.type.icon, color: a.colorValue),
+              CatIcon(icon: a.type.icon, art: a.type.art, color: a.colorValue),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

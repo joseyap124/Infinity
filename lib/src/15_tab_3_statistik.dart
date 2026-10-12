@@ -335,7 +335,11 @@ class _StatsTabState extends State<StatsTab> {
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Row(
                       children: [
-                        CatIcon(icon: a.type.icon, color: a.colorValue, size: 34),
+                        CatIcon(
+                            icon: a.type.icon,
+                            art: a.type.art,
+                            color: a.colorValue,
+                            size: 34),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(a.name,

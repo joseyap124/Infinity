@@ -190,7 +190,11 @@ Future<String?> pickReceiveAccount(BuildContext context, AppStore store) {
           for (final a in options)
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: CatIcon(icon: a.type.icon, color: a.colorValue, size: 34),
+              leading: CatIcon(
+                  icon: a.type.icon,
+                  art: a.type.art,
+                  color: a.colorValue,
+                  size: 34),
               title: Text(a.name,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
               trailing: store.defaultAccountId == a.id
