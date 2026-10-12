@@ -142,6 +142,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
     if (t == TxType.transfer) return null;
     final often = store.suggestedCategory(t);
     if (often != null) return often;
+    // Belum ada riwayat: kotak pertama "Sering dipakai" (kategori tanpa
+    // sub-kategori), bukan kategori induk.
+    final first = store.frequentCategories(t, limit: 1);
+    if (first.isNotEmpty) return first.first;
     final tops = store.topCategories(t);
     return tops.isEmpty ? null : tops.first.id;
   }
@@ -1059,9 +1063,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
               border: sel ? Border.all(color: accent, width: 1.6) : null,
               borderRadius: BorderRadius.circular(14),
             ),
-            padding: const EdgeInsets.fromLTRB(2, 6, 2, 4),
+            padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Stack(
                   clipBehavior: Clip.none,
@@ -1107,9 +1111,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
         label: 'Semua kategori',
         excludeSemantics: true,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(2, 6, 2, 4),
+          padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               CatIcon(
                   icon: Icons.apps_rounded,
