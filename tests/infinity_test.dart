@@ -1626,8 +1626,10 @@ void main() {
       final f = freq(s, TxType.expense);
       expect(f.take(3).toList(), ['kos', 'bills', 'makan']);
       expect(s.isPinned('kos'), isTrue);
-      // Lepas pin: kembali ke urutan otomatis.
+      // Lepas pin satu: yang lain tetap di depan. Lepas semua: urutan otomatis.
       expect(s.togglePin('kos'), isTrue);
+      expect(freq(s, TxType.expense).take(2).toList(), ['bills', 'makan']);
+      expect(s.togglePin('bills'), isTrue);
       expect(freq(s, TxType.expense).first, 'makan');
     });
 
