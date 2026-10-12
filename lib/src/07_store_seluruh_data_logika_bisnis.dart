@@ -1875,41 +1875,38 @@ class AppStore extends ChangeNotifier {
     return (recorded, ignored);
   }
 
-  /// Data teks untuk widget layar utama.
+  /// Data untuk widget layar utama (v5.0): suasana maskot, cincin, jatah hari
+  /// ini, jatah per hari, dan total saldo. Nominal jadi "Rp ••••" kalau
+  /// "sembunyikan saldo" menyala.
   Map<String, String> widgetData() {
     final now = DateTime.now();
     final s = settings;
     final hide = s.hideBalance;
-    final month = currentPeriod(now);
-    final income = sumIDR(TxType.income, month);
-    final expense = sumIDR(TxType.expense, month);
     // Angka utama: sisa aman dibelanjakan hari ini (ditandai tanggal, karena
     // widget tidak diperbarui tengah malam kalau app tidak dibuka).
     final day = DateFormat('d MMM', gDateLoc).format(now);
     final safe = safeToSpend(now);
     final left = safe.leftToday;
     final over = left < 0;
-    String budgetLine = '';
-    if (s.globalBudget > 0) {
-      final spent = sumIDR(TxType.expense, s.budgetPeriod.range(now));
-      final remaining = s.globalBudget - spent;
-      final pct = (remaining / s.globalBudget * 100).clamp(0, 100).round();
-      budgetLine = tr('Anggaran tersisa {0}%', [pct]);
-    }
-    final label = periodLabelOf(now);
+    final mood = mascotMoodFor(
+        leftToday: left,
+        perDay: safe.perDay,
+        lastTx: lastTransactionDate(this, now),
+        now: now,
+        hasAccounts: accounts.isNotEmpty);
+    final ratio = safe.perDay > 0 ? left / safe.perDay : 0.0;
+    final ring = over ? 100 : (ratio * 100).clamp(0, 100).round();
     final saldo = hide ? tr('Rp ••••••') : money(netWorthIDR);
     return {
-      'w_month': gPeriodStartDay > 1
-          ? DateFormat('MMM yyyy', gDateLoc).format(label)
-          : DateFormat('MMMM yyyy', gDateLoc).format(label),
+      'w_mood': mood.name,
+      'w_ring': '$ring',
       'w_safe_label': over ? tr('Lewat jatah · {0}', [day]) : tr('Aman dibelanjakan · {0}', [day]),
       // Ringkas (mis. "Rp 7,5 jt") supaya muat di widget.
       'w_safe': hide ? tr('Rp ••••') : tr('Rp {0}', [compactMoney(over ? -left : left)]),
-      'w_balance': budgetLine.isEmpty
-          ? tr('Total saldo {0}', [saldo])
-          : tr('Saldo {0} · {1}', [saldo, budgetLine]),
-      'w_income': hide ? tr('Masuk ••••') : tr('Masuk Rp {0}', [compactMoney(income)]),
-      'w_expense': hide ? tr('Keluar ••••') : tr('Keluar Rp {0}', [compactMoney(expense)]),
+      'w_perday': hide
+          ? ''
+          : tr('{0}/hari · {1} hari lagi', [money(safe.perDay), safe.daysLeft]),
+      'w_balance': tr('Total saldo {0}', [saldo]),
       'w_btn_expense': tr('− Keluar'),
       'w_btn_income': tr('+ Masuk'),
       'w_btn_transfer': tr('⇄ Transfer'),

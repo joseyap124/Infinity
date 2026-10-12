@@ -105,6 +105,15 @@ class MascotPainter extends CustomPainter {
     c.drawPath(p, _stroke(_ink, 2.5));
   }
 
+  void _tear(Canvas c, double x) {
+    final p = Path()
+      ..moveTo(x, _y + 12)
+      ..quadraticBezierTo(x + 7, _y + 25, x, _y + 34)
+      ..quadraticBezierTo(x - 7, _y + 25, x, _y + 12);
+    c.drawPath(p, _fill(_drop));
+    c.drawPath(p, _stroke(_ink, 2.5));
+  }
+
   void _text(Canvas c, String t, Offset center, double size, Color color,
       {double opacity = 1}) {
     final tp = TextPainter(
@@ -175,14 +184,22 @@ class MascotPainter extends CustomPainter {
         _dropAt(canvas, 198, 92);
         _text(canvas, '!', const Offset(128, 48), 30, const Color(0xFFB91C2B));
       case MascotMood.over:
-        for (final x in const [94.0, 162.0]) {
-          canvas.drawCircle(Offset(x, _y), 13, _fill(Colors.white));
-          canvas.drawCircle(Offset(x, _y), 13, _stroke(_ink, 3));
-          final xs = _stroke(_ink, 4.5);
-          canvas.drawLine(Offset(x - 7, _y - 7), Offset(x + 7, _y + 7), xs);
-          canvas.drawLine(Offset(x + 7, _y - 7), Offset(x - 7, _y + 7), xs);
-        }
-        _dropAt(canvas, 128, 56);
+        // Menangis: mata "> <" dan dua aliran air mata.
+        final sad = _stroke(_ink, 5);
+        canvas.drawPath(
+            Path()
+              ..moveTo(84, _y - 9)
+              ..lineTo(100, _y)
+              ..lineTo(84, _y + 9),
+            sad);
+        canvas.drawPath(
+            Path()
+              ..moveTo(172, _y - 9)
+              ..lineTo(156, _y)
+              ..lineTo(172, _y + 9),
+            sad);
+        _tear(canvas, 92);
+        _tear(canvas, 164);
       case MascotMood.sleepy:
         for (final x in const [94.0, 162.0]) {
           _eye(canvas, x, dy: 5, rp: 5);

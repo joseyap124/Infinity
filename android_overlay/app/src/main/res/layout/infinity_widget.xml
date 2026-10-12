@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Disusun memakai bobot (weight): tombol selalu di bawah dan tidak terpotong,
-     teks di tengah menyesuaikan sisa tinggi widget. -->
+<!-- v5.0: cincin + maskot di kiri, jatah di kanan, tombol di bawah. Disusun
+     memakai bobot (weight): tombol selalu di bawah dan tidak terpotong. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/w_root"
     android:layout_width="match_parent"
@@ -14,103 +14,70 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_widget_logo" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:layout_weight="1"
-            android:maxLines="1"
-            android:text="Infinity"
-            android:textColor="#FFFFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/w_month"
+            android:id="@+id/w_ring"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:textColor="#B3FFFFFF"
-            android:textSize="10.5sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/w_safe_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:textColor="#B3FFFFFF"
-            android:textSize="10.5sp" />
-
-        <TextView
-            android:id="@+id/w_safe"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:includeFontPadding="false"
-            android:maxLines="1"
-            android:textColor="#FFFFFFFF"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:orientation="horizontal">
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/w_income"
-                android:layout_width="0dp"
+                android:id="@+id/w_safe_label"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="#B3FFFFFF"
+                android:textSize="10.5sp" />
+
+            <TextView
+                android:id="@+id/w_safe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="#FFFFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/w_perday"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
                 android:maxLines="1"
                 android:textColor="#FF6EE79A"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/w_expense"
-                android:layout_width="0dp"
+                android:id="@+id/w_balance"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginTop="2dp"
                 android:ellipsize="end"
-                android:gravity="end"
+                android:includeFontPadding="false"
                 android:maxLines="1"
-                android:textColor="#FFFF8F8F"
-                android:textSize="11sp"
-                android:textStyle="bold" />
+                android:textColor="#B3FFFFFF"
+                android:textSize="10.5sp" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/w_balance"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="#B3FFFFFF"
-            android:textSize="10.5sp" />
     </LinearLayout>
 
     <LinearLayout

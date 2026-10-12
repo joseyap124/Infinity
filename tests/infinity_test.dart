@@ -1431,8 +1431,17 @@ void main() {
       final h = s.widgetData();
       expect(h['w_safe'], contains('••••'));
       expect(h['w_balance'], contains('••••'));
-      expect(h['w_income'], contains('••••'));
-      expect(h['w_expense'], contains('••••'));
+      expect(h['w_perday'], '');
+      expect(h['w_mood'], isNotEmpty);
+    });
+
+    test('v5.0 widget: suasana maskot dan cincin', () {
+      final s = splitStore();
+      final w = s.widgetData();
+      expect(MascotMood.values.map((m) => m.name), contains(w['w_mood']));
+      final ring = int.parse(w['w_ring']!);
+      expect(ring, inInclusiveRange(0, 100));
+      expect(w['w_perday'], contains('hari lagi'));
     });
 
     test('ukuran huruf tersimpan', () {

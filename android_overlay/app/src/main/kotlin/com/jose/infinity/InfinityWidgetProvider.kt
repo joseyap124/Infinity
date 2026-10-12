@@ -9,8 +9,8 @@ import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
 /**
- * Widget 4x2: sisa aman dibelanjakan hari ini, Masuk/Keluar bulan ini, total
- * saldo, plus tombol cepat Keluar / Masuk / Transfer.
+ * Widget 4x2: cincin sisa jatah dengan maskot, jatah hari ini, total saldo,
+ * plus tombol cepat Keluar / Masuk / Transfer.
  * Data teks dikirim dari main.dart lewat home_widget (HomeWidgetBridge).
  */
 class InfinityWidgetProvider : HomeWidgetProvider() {
@@ -21,14 +21,15 @@ class InfinityWidgetProvider : HomeWidgetProvider() {
         appWidgetIds: IntArray,
         widgetData: SharedPreferences,
     ) {
+        val mood = widgetData.getString("w_mood", null) ?: "ok"
+        val ring = (widgetData.getString("w_ring", null) ?: "0").toIntOrNull() ?: 0
         appWidgetIds.forEach { widgetId ->
             val views = RemoteViews(context.packageName, R.layout.infinity_widget).apply {
-                setTextViewText(R.id.w_month, widgetData.getString("w_month", null) ?: "")
+                setImageViewBitmap(R.id.w_ring, WidgetArt.ring(context, mood, ring))
                 setTextViewText(R.id.w_safe_label, widgetData.getString("w_safe_label", null) ?: "Aman dibelanjakan")
                 setTextViewText(R.id.w_safe, widgetData.getString("w_safe", null) ?: "Buka Infinity")
+                setTextViewText(R.id.w_perday, widgetData.getString("w_perday", null) ?: "")
                 setTextViewText(R.id.w_balance, widgetData.getString("w_balance", null) ?: "")
-                setTextViewText(R.id.w_income, widgetData.getString("w_income", null) ?: "Masuk -")
-                setTextViewText(R.id.w_expense, widgetData.getString("w_expense", null) ?: "Keluar -")
 
                 setTextViewText(R.id.w_btn_expense, widgetData.getString("w_btn_expense", null) ?: "− Keluar")
                 setTextViewText(R.id.w_btn_income, widgetData.getString("w_btn_income", null) ?: "+ Masuk")
