@@ -107,6 +107,7 @@ part 'src/53_fitur.dart';
 part 'src/54_ikon_flat.dart';
 part 'src/55_maskot.dart';
 part 'src/56_ritme_budget.dart';
+part 'src/57_kalender_heat.dart';
 // WIDGET-IMPORTS-END
 
 void main() {

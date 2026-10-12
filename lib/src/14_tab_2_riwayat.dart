@@ -383,17 +383,10 @@ class _HistoryTabState extends State<HistoryTab> {
   List<Widget> _calendarBody(BuildContext context) {
     final y = _calMonth.year;
     final m = _calMonth.month;
-    final mRange = monthRange(_calMonth);
-    final inc = <int, double>{};
-    final exp = <int, double>{};
-    for (final t in store.transactions) {
-      if (!inRange(t.date, mRange)) continue;
-      if (t.type == TxType.income) {
-        inc[t.date.day] = (inc[t.date.day] ?? 0) + store.amountIDR(t);
-      } else if (t.type == TxType.expense) {
-        exp[t.date.day] = (exp[t.date.day] ?? 0) + store.amountIDR(t);
-      }
-    }
+    final cal = store.calendarMonth(_calMonth);
+    final maxExp = cal.maxExpense;
+    final hide = store.settings.hideBalance;
+    String amt(double v) => hide ? 'Rp ••••' : money(v);
     final leading = DateTime(y, m, 1).weekday - 1;
     final days = DateTime(y, m + 1, 0).day;
     final cells = ((leading + days) / 7).ceil() * 7;
@@ -404,66 +397,103 @@ class _HistoryTabState extends State<HistoryTab> {
     _shown = dayTx;
     const weekdays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
+    Widget dot(Color c) => Container(
+        width: 6,
+        height: 6,
+        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+        decoration: BoxDecoration(color: c, shape: BoxShape.circle));
+
     Widget cell(int index) {
       final dayNum = index - leading + 1;
-      if (dayNum < 1 || dayNum > days) return const SizedBox(height: 58);
+      if (dayNum < 1 || dayNum > days) return const SizedBox(height: 50);
       final date = DateTime(y, m, dayNum);
       final selected = sameDay(date, _selectedDay);
       final isToday = sameDay(date, today);
-      final i = inc[dayNum] ?? 0;
-      final e = exp[dayNum] ?? 0;
+      final i = cal.income[dayNum] ?? 0;
+      final e = cal.expense[dayNum] ?? 0;
+      final due = cal.dueDays.contains(dayNum);
+      final peak = cal.peakDay == dayNum;
+      final notes = <String>[
+        if (e > 0) tr('ada pengeluaran'),
+        if (i > 0) tr('ada uang masuk'),
+        if (due) tr('jatuh tempo'),
+        if (peak) tr('paling boros'),
+      ];
       return Semantics(
         button: true,
         selected: selected,
-        label: DateFormat('d MMMM', gDateLoc).format(date),
+        label: [DateFormat('d MMMM', gDateLoc).format(date), ...notes].join(', '),
         child: GestureDetector(
           onTap: () => setState(() => _selectedDay = date),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            height: 58,
+            height: 50,
             margin: const EdgeInsets.all(2),
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
             decoration: BoxDecoration(
-              color: selected ? C.accent.withValues(alpha: 0.12) : C.surface,
+              color: heatColor(heatLevel(e, maxExp)),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                   color: selected
                       ? C.accentDark
-                      : (isToday ? C.accent.withValues(alpha: 0.5) : C.line),
-                  width: selected ? 2 : 1),
+                      : peak
+                          ? C.carbon
+                          : (isToday ? C.accent.withValues(alpha: 0.6) : C.line),
+                  width: selected || peak ? 2 : 1),
             ),
             child: Column(
               children: [
                 Text('$dayNum',
                     style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: isToday ? FontWeight.w900 : FontWeight.w700,
+                        fontSize: 13,
+                        fontWeight: isToday || peak ? FontWeight.w900 : FontWeight.w700,
                         color: C.carbon)),
                 const Spacer(),
-                if (i > 0)
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text('+${compactMoney(i)}',
-                        style: TextStyle(
-                            fontSize: 9,
-                            color: C.income,
-                            fontWeight: FontWeight.w800)),
+                SizedBox(
+                  height: 8,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (i > 0) dot(C.income),
+                      if (due) dot(C.amberDark),
+                    ],
                   ),
-                if (e > 0)
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text('-${compactMoney(e)}',
-                        style: TextStyle(
-                            fontSize: 9,
-                            color: C.redDark,
-                            fontWeight: FontWeight.w800)),
-                  ),
+                ),
               ],
             ),
           ),
         ),
       );
     }
+
+    Widget total(String label, double v, Color c) => Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(fontSize: 12, color: C.muted)),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(amt(v),
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w900, color: c)),
+              ),
+            ],
+          ),
+        );
+
+    Widget legend(Widget mark, String text) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            mark,
+            const SizedBox(width: 4),
+            Text(text, style: TextStyle(fontSize: 11, color: C.muted)),
+          ],
+        );
+
+    final selIn = cal.income[_selectedDay.day] ?? 0;
+    final selOut = cal.expense[_selectedDay.day] ?? 0;
+    final selInMonth = _selectedDay.year == y && _selectedDay.month == m;
 
     return [
       AppCard(
@@ -493,6 +523,15 @@ class _HistoryTabState extends State<HistoryTab> {
                 ),
               ],
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+              child: Row(
+                children: [
+                  total('Uang masuk', cal.totalIn, C.income),
+                  total('Uang keluar', cal.totalOut, C.redDark),
+                ],
+              ),
+            ),
             Row(
               children: [
                 for (final w in weekdays)
@@ -514,10 +553,50 @@ class _HistoryTabState extends State<HistoryTab> {
                     Expanded(child: cell(row * 7 + col)),
                 ],
               ),
+            const SizedBox(height: 8),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 4,
+              children: [
+                legend(
+                    Row(mainAxisSize: MainAxisSize.min, children: [
+                      for (final l in [1, 3, 4])
+                        Container(
+                            width: 10,
+                            height: 10,
+                            margin: const EdgeInsets.only(right: 1),
+                            decoration: BoxDecoration(
+                                color: heatColor(l),
+                                borderRadius: BorderRadius.circular(3),
+                                border: Border.all(color: C.line, width: 0.5))),
+                    ]),
+                    'Sedikit ke banyak'),
+                legend(dot(C.income), 'Uang masuk'),
+                legend(dot(C.amberDark), 'Jatuh tempo'),
+                legend(
+                    Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: C.carbon, width: 2))),
+                    'Paling boros'),
+              ],
+            ),
           ],
         ),
       ),
       const SizedBox(height: 4),
+      if (selInMonth && (selIn > 0 || selOut > 0))
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
+          child: Text(
+              tr('{0}: masuk {1} · keluar {2}',
+                  [dayLabel(_selectedDay), amt(selIn), amt(selOut)]),
+              style: TextStyle(
+                  fontSize: 12.5, fontWeight: FontWeight.w800, color: C.carbon)),
+        ),
       if (dayTx.isEmpty)
         EmptyState(
             icon: Icons.event_available_rounded,

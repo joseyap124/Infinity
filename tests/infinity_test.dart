@@ -2376,4 +2376,63 @@ void main() {
       expect(runOutDate(remaining: 500000, spentSoFar: 0, daysElapsed: 12, today: today), isNull);
     });
   });
+  group('v5.0 kalender peta panas', () {
+    test('tingkat warna dari pengeluaran harian', () {
+      expect(heatLevel(0, 100), 0);
+      expect(heatLevel(10, 0), 0);
+      expect(heatLevel(25, 100), 1);
+      expect(heatLevel(26, 100), 2);
+      expect(heatLevel(51, 100), 3);
+      expect(heatLevel(76, 100), 4);
+      expect(heatLevel(100, 100), 4);
+    });
+
+    test('total bulan, hari paling boros, dan titik jatuh tempo', () {
+      final s = storeWith([acc('a', initial: 5000000)], [
+        tx('1', TxType.expense, 50000, 'a', date: DateTime(2026, 10, 3)),
+        tx('2', TxType.expense, 70000, 'a', date: DateTime(2026, 10, 3)),
+        tx('3', TxType.expense, 30000, 'a', date: DateTime(2026, 10, 9)),
+        tx('4', TxType.income, 1000000, 'a', date: DateTime(2026, 10, 25)),
+        tx('5', TxType.expense, 999, 'a', date: DateTime(2026, 9, 30)),
+      ]);
+      s.recurring = [
+        RecurringRule(
+            id: 'r1',
+            title: 'Internet',
+            amount: 300000,
+            type: TxType.expense,
+            accountId: 'a',
+            frequency: Frequency.monthly,
+            start: DateTime(2026, 10, 15)),
+      ];
+      s.installments = [
+        Installment(
+            id: 'i1',
+            name: 'Headset',
+            total: 300000,
+            tenor: 3,
+            dueDay: 20,
+            firstDue: DateTime(2026, 10, 20),
+            accountId: 'a'),
+      ];
+      final c = s.calendarMonth(DateTime(2026, 10, 1));
+      expect(c.totalOut, 150000);
+      expect(c.totalIn, 1000000);
+      expect(c.expense[3], 120000);
+      expect(c.peakDay, 3);
+      expect(c.income[25], 1000000);
+      expect(c.dueDays, containsAll(<int>[15, 20]));
+      expect(c.dueDays, isNot(contains(3)));
+      // Cicilan dimatikan: titiknya hilang.
+      s.updateSettings((x) => x.features['cicilan'] = false);
+      expect(s.calendarMonth(DateTime(2026, 10, 1)).dueDays, <int>{15});
+    });
+
+    test('hari paling boros tidak ditandai kalau pengeluaran hanya satu hari', () {
+      final s = storeWith([acc('a')], [
+        tx('1', TxType.expense, 50000, 'a', date: DateTime(2026, 10, 3)),
+      ]);
+      expect(s.calendarMonth(DateTime(2026, 10, 1)).peakDay, isNull);
+    });
+  });
 }
