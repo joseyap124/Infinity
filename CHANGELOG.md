@@ -5,28 +5,28 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ## Berikutnya (v4.0)
 
-Mencatat transaksi jadi satu layar.
+Mencatat transaksi jadi satu layar, plus widget baru dan perapian tampilan.
 
 ### Diubah
 - **Catat transaksi satu layar**: nominal besar di atas, kategori dipilih langsung dari kotak **Sering dipakai**, akun dan tanggal sebagai chip, lalu tombol angka bawaan app (1 sampai 9, 000, 0, hapus; tahan hapus untuk mengosongkan). Tombol Simpan menampilkan nominalnya, mis. "Simpan Rp 38.000". Tidak ada lagi keyboard sistem yang menutupi layar. Berlaku untuk Pengeluaran, Pemasukan, Transfer, dan edit transaksi.
-- **Sering dipakai**: 7 kategori + "Semua" (untuk daftar lengkap dengan sub-kategori). Urutannya otomatis dari kategori yang paling sering kamu pakai 90 hari terakhir, terpisah untuk pengeluaran dan pemasukan.
+- **Sering dipakai**: 7 kategori + "Semua" (untuk daftar lengkap dengan sub-kategori). Urutannya otomatis dari kategori yang paling sering kamu pakai 90 hari terakhir, terpisah untuk pengeluaran dan pemasukan. Kategori yang terpilih awal juga yang paling sering dipakai.
 - **Pin**: tahan sebuah kategori untuk pin ke atas (maksimal 7), lepas pin, atau sembunyikan dari Sering dipakai. Kategori yang dipin tidak bergeser. Pin ikut tersimpan di backup.
 - **Transfer**: akun asal dan tujuan dipilih lewat chip yang bisa digeser. Kalau beda mata uang, kolom "Diterima" muncul.
 - **Judul, catatan, foto struk, acara, bagi kategori, tempel struk, dan template** dipindah ke satu layar "Detail transaksi" (tombol "Catatan, struk, bagi"), supaya layar utama tetap bersih. Kolom yang tadinya "Catatan" sekarang bernama **Judul**, dan "Deskripsi" menjadi **Catatan**.
 - Transaksi berulang dan template tetap memakai form lama.
-
-## v3.7.2 (12 Okt 2026)
-
-Perapian tampilan dan widget.
-
-### Diubah
 - **Widget baru**: kartu gelap seperti di Beranda dengan logo baru. Angka besarnya sekarang **Aman dibelanjakan hari ini** (sebelumnya total saldo), lalu Masuk dan Keluar bulan ini, total saldo, dan tombol Keluar/Masuk/Transfer. Tetap menyembunyikan angka kalau mode sembunyikan saldo aktif.
-- **Form catat**: kategori yang terpilih otomatis sekarang kategori yang paling sering kamu pakai 90 hari terakhir untuk tipe itu (bukan lagi selalu kategori paling atas). Kalau belum ada riwayat, tetap kategori paling atas.
-- **Beranda**: tombol Bills, Budget, Patungan, dan Utang ikut bergambar kartun. Saat belum ada transaksi, ada tombol "Catat transaksi pertama" (sebelumnya teksnya tertutup tombol Catat).
+- **Beranda**: tombol Bills, Budget, Patungan, dan Utang ikut bergambar kartun. Saat belum ada transaksi, ada tombol "Catat transaksi pertama".
 - **Avatar dan panduan awal** memakai logo baru, bukan celengan atau simbol ∞ polos lagi.
 
 ### Ditambah
 - **Widget kecil 2x1**: sisa aman hari ini dan satu tombol "+" untuk langsung mencatat pengeluaran. Tambahkan lewat daftar widget di layar utama HP.
+
+### Akan datang
+Rencana berikutnya, urutannya bisa bergeser:
+- **Kartu kesehatan backup** di Beranda: chip kecil saat aman, dan kartu peringatan kalau belum ada salinan di luar HP atau backup sudah lama.
+- **Bahasa**: pilihan English dan 简体中文 di Pengaturan. Dikerjakan bertahap, kalimat yang belum diterjemahkan tetap tampil Indonesia.
+- **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
+- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
 
 ## v3.7.1 (12 Okt 2026)
 
