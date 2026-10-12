@@ -873,7 +873,7 @@ class InsightStrip extends StatelessWidget {
         final m = i.payload;
         if (m is DateTime) {
           Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => MonthRecapPage(store: store, month: m)));
+              builder: (_) => MonthStoryPage(store: store, month: m)));
         }
       case InsightKind.projection:
         final a = i.payload;

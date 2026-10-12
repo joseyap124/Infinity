@@ -459,7 +459,7 @@ class MonthAdviceCard extends StatelessWidget {
     final tier = r.tier;
     return AppCard(
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => MonthRecapPage(store: store, month: month))),
+          builder: (_) => MonthStoryPage(store: store, month: month))),
       child: Row(
         children: [
           Container(

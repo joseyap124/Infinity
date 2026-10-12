@@ -2443,4 +2443,60 @@ void main() {
       expect(s.calendarMonth(DateTime(2026, 10, 1)).peakDay, isNull);
     });
   });
+  group('v5.0 rekap cerita', () {
+    // Oktober 2026: 1 Okt = Kamis. Akhir pekan: 3, 4, 10, 11.
+    final now = DateTime(2026, 10, 12, 12);
+    AppStore data() => storeWith([acc('a', initial: 9000000)], [
+          tx('i1', TxType.income, 5000000, 'a', date: DateTime(2026, 10, 1)),
+          tx('e1', TxType.expense, 100000, 'a', cat: 'food', date: DateTime(2026, 10, 2)),
+          tx('e2', TxType.expense, 100000, 'a', cat: 'food', date: DateTime(2026, 10, 5)),
+          tx('e3', TxType.expense, 100000, 'a', cat: 'food', date: DateTime(2026, 10, 6)),
+          tx('e4', TxType.expense, 300000, 'a', cat: 'bag', date: DateTime(2026, 10, 3)),
+          tx('e5', TxType.expense, 300000, 'a', cat: 'bag', date: DateTime(2026, 10, 10)),
+          tx('p1', TxType.expense, 500000, 'a', cat: 'food', date: DateTime(2026, 9, 10)),
+          tx('p2', TxType.expense, 200000, 'a', cat: 'bag', date: DateTime(2026, 9, 12)),
+        ]);
+
+    test('angka dasar: tersisa, hari terboros, bulan lalu', () {
+      final s = data().monthStory(DateTime(2026, 10), now);
+      expect(s.hasData, isTrue);
+      expect(s.income, 5000000);
+      expect(s.expense, 900000);
+      expect(s.savingRate, closeTo(0.82, 1e-9));
+      expect(s.peakAmount, 300000);
+      expect(s.lastExpense, 700000);
+      expect(s.expenseChangePct, closeTo((900000 - 700000) / 700000 * 100, 1e-9));
+      expect(s.topCats, isNotEmpty);
+    });
+
+    test('akhir pekan dibanding hari kerja', () {
+      final s = data().monthStory(DateTime(2026, 10), now);
+      // Akhir pekan sampai 12 Okt: 3,4,10,11 => 600rb / 4 = 150rb per hari.
+      // Hari kerja: 1,2,5,6,7,8,9,12 => 300rb / 8 = 37,5rb per hari.
+      expect(s.weekendExtraPct, closeTo((150000 / 37500 - 1) * 100, 1e-6));
+    });
+
+    test('tanpa data atau tanpa bulan lalu', () {
+      final empty = storeWith([acc('a')]).monthStory(DateTime(2026, 10), now);
+      expect(empty.hasData, isFalse);
+      expect(empty.savingRate, isNull);
+      expect(empty.lastExpense, isNull);
+      final onlyThis = storeWith([acc('a')], [
+        tx('1', TxType.expense, 1000, 'a', date: DateTime(2026, 10, 2)),
+      ]).monthStory(DateTime(2026, 10), now);
+      expect(onlyThis.lastExpense, isNull);
+      expect(onlyThis.expenseChangePct, isNull);
+    });
+
+    test('teks pembantu', () {
+      expect(storyDelta(60.4), '▲ 60%');
+      expect(storyDelta(-8), '▼ 8%');
+      expect(storyDelta(0.2), '● sama');
+      expect(storyDelta(null), 'baru');
+      expect(storySavingNote(0.25), contains('di atas'));
+      expect(storySavingNote(0.15), contains('Sedikit lagi'));
+      expect(storySavingNote(-0.1), contains('lebih besar'));
+      expect(storySavingNote(null), contains('Belum ada pemasukan'));
+    });
+  });
 }
