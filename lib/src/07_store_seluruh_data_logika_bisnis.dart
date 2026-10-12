@@ -39,7 +39,14 @@ class AppStore extends ChangeNotifier {
     final fileOk = await DataFile.init();
     if (fileOk) {
       try {
-        raw = await DataFile.read();
+        try {
+          raw = await DataFile.read();
+        } catch (_) {
+          // Coba sekali lagi sebelum menyerah: kegagalan baca kunci bisa sesaat.
+          await Future<void>.delayed(const Duration(milliseconds: 600));
+          await DataFile.init();
+          raw = await DataFile.read();
+        }
       } catch (_) {
         await DataFile.quarantine();
         loadWarning =

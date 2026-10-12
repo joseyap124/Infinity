@@ -328,17 +328,65 @@ class DataFile {
     return List<int>.generate(n, (_) => r.nextInt(256));
   }
 
+  static const String _keyBakFile = 'infinity_key.bak';
+  static File? _keyBak;
+  static SecretKey? _alt;
+
+  static Future<String?> _readKeyOnce() async {
+    try {
+      final k = await SecureStore.read(_keyName);
+      return (k == null || k.isEmpty) ? null : k;
+    } catch (_) {
+      return null;
+    }
+  }
+
   static Future<bool> init() async {
     try {
       final d = await getApplicationSupportDirectory();
       if (!d.existsSync()) d.createSync(recursive: true);
       _file = File('${d.path}/infinity_data.bin');
-      var k = await SecureStore.read(_keyName);
-      if (k == null || k.isEmpty) {
+      _keyBak = File('${d.path}/$_keyBakFile');
+      _alt = null;
+      // Secure storage kadang gagal membaca kunci sesaat (mis. setelah app
+      // dimatikan sistem). Coba beberapa kali dulu, dan jangan langsung
+      // membuat kunci baru: kunci baru membuat data lama tidak bisa dibuka.
+      String? k;
+      for (var i = 0; i < 3 && k == null; i++) {
+        k = await _readKeyOnce();
+        if (k == null && i < 2) {
+          await Future<void>.delayed(const Duration(milliseconds: 300));
+        }
+      }
+      // Salinan kunci di folder privat app (tidak ikut backup, tidak bisa
+      // dibuka app lain). Dipakai kalau secure storage gagal.
+      String? bak;
+      try {
+        if (_keyBak!.existsSync()) {
+          final t = (await _keyBak!.readAsString()).trim();
+          if (t.isNotEmpty) bak = t;
+        }
+      } catch (_) {}
+      if (k == null && bak != null) {
+        k = bak;
+        try {
+          await SecureStore.write(_keyName, k);
+        } catch (_) {}
+      } else if (k != null && bak != null && bak != k) {
+        try {
+          _alt = SecretKey(base64Decode(bak));
+        } catch (_) {}
+      }
+      if (k == null) {
         k = base64Encode(_random(32));
         await SecureStore.write(_keyName, k);
       }
       _key = SecretKey(base64Decode(k));
+      if (bak != k) {
+        try {
+          await _keyBak!.writeAsString(k, flush: true);
+        } catch (_) {}
+      }
       return true;
     } catch (_) {
       _file = null;
@@ -347,16 +395,33 @@ class DataFile {
     }
   }
 
+  static Future<String> _decrypt(List<int> b, SecretKey key) async {
+    final clear = await AesGcm.with256bits().decrypt(
+        SecretBox(b.sublist(28), nonce: b.sublist(0, 12), mac: Mac(b.sublist(12, 28))),
+        secretKey: key);
+    return utf8.decode(clear);
+  }
+
   /// Null kalau belum ada file. Lempar kalau file rusak / kunci salah.
   static Future<String?> read() async {
     final f = _file, key = _key;
     if (f == null || key == null || !f.existsSync()) return null;
     final b = await f.readAsBytes();
     if (b.length < 28) throw const FormatException('File data terlalu pendek');
-    final clear = await AesGcm.with256bits().decrypt(
-        SecretBox(b.sublist(28), nonce: b.sublist(0, 12), mac: Mac(b.sublist(12, 28))),
-        secretKey: key);
-    return utf8.decode(clear);
+    try {
+      return await _decrypt(b, key);
+    } catch (_) {
+      // Kunci di secure storage tidak cocok: coba salinan kunci di folder app.
+      final alt = _alt;
+      if (alt == null) rethrow;
+      final r = await _decrypt(b, alt);
+      _key = alt;
+      try {
+        final enc = base64Encode(await alt.extractBytes());
+        await SecureStore.write(_keyName, enc);
+      } catch (_) {}
+      return r;
+    }
   }
 
   /// Tulis atomik: ke file sementara dulu, lalu ganti nama.

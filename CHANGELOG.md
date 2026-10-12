@@ -3,7 +3,14 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.0)
+## Berikutnya (v5.0.1)
+
+Perbaikan pengaman data: kunci enkripsi data tidak lagi hilang diam-diam.
+
+### Diperbaiki
+- **Data tiba-tiba "tidak bisa dibaca" lalu mulai kosong.** Kalau HP gagal membaca kunci enkripsi untuk sesaat, app dulu langsung membuat kunci baru sehingga data lama tidak bisa dibuka lagi. Sekarang app mencoba membaca kunci beberapa kali, memakai salinan kunci di folder privat app kalau secure storage gagal, dan mencoba membaca file data sekali lagi sebelum menyerah.
+
+## v5.0 (12 Okt 2026)
 
 Rilis besar: Beranda baru dengan maskot, kartu budget dengan penanda ritme, kalender peta panas, rekap bulanan bercerita, Tunda beli, ikon Flat dan Mono, widget baru, serta pengaturan Fitur.
 
