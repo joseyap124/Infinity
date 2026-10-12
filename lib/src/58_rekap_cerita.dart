@@ -464,7 +464,12 @@ class StoryCard extends StatelessWidget {
           children: [
             _label('Dibanding bulan lalu'),
             const SizedBox(height: 6),
-            _big(v == 0 ? 'Keluar sama' : (pct > 0 ? 'Keluar naik $v%' : 'Keluar turun $v%'),
+            _big(
+                v == 0
+                    ? tr('Keluar sama')
+                    : (pct > 0
+                        ? tr('Keluar naik {0}%', [v])
+                        : tr('Keluar turun {0}%', [v])),
                 size: 34),
             const SizedBox(height: 26),
             for (final (id, p) in s.catChanges)

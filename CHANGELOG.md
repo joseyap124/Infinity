@@ -5,18 +5,28 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 ## Berikutnya (v5.0)
 
-Rilis besar: Beranda baru dengan maskot, kartu budget baru, kalender peta panas, rekap bulanan bercerita, ikon Flat dan Mono, serta pengaturan Fitur.
+Rilis besar: Beranda baru dengan maskot, kartu budget dengan penanda ritme, kalender peta panas, rekap bulanan bercerita, Tunda beli, ikon Flat dan Mono, widget baru, serta pengaturan Fitur.
 
 ### Ditambah
 - **Beranda baru**: cincin jatah harian dengan maskot Infinity di tengahnya, total saldo (ketuk untuk daftar akun), dan 4 pintasan bulat (Tagihan, Anggaran, Patungan, Utang).
-- **Maskot 6 suasana** sesuai sisa jatah hari ini: Senang (80% ke atas), Aman (50-80%), Hati-hati (30-50%), Bahaya (di bawah 30%), Boros (lewat jatah), dan Ngantuk (3 hari tidak mencatat).
+- **Maskot 6 suasana** sesuai sisa jatah hari ini: Senang (80% ke atas), Aman (50-80%), Hati-hati (30-50%), Bahaya (di bawah 30%), Boros (lewat jatah, maskot menangis), dan Ngantuk (3 hari tidak mencatat).
+- **Kartu Budget dengan penanda ritme**: bar punya penanda putih "seharusnya sekarang", kalimat "Lebih cepat Rp... dari ritme", dan tanda per kategori (▲ Cepat, ● Pas, ▼ Hemat) sehingga statusnya terbaca tanpa bergantung warna.
+- **Perkiraan uang habis** di lembar "Dari mana angka ini?": "Dengan kecepatan sekarang, uang habis sekitar ...". Di awal periode, kalimatnya menjelaskan bahwa datanya masih sedikit.
+- **Kalender peta panas** di Riwayat: warna merah muda sesuai besar pengeluaran harian, titik hijau untuk uang masuk, titik oranye untuk jatuh tempo (tagihan berulang dan cicilan), garis tebal untuk hari paling boros, dan total Uang masuk/keluar di atas. Ketuk hari untuk melihat nominalnya.
+- **Rekap bulanan bercerita**: 5 slide (tabungan, uang masuk dan keluar, kategori terbesar, hari terboros, dibanding bulan lalu). Tiap slide bisa dibagikan sebagai gambar, nominal tersembunyi secara bawaan. Versi Lengkap tetap ada lewat tombol "Lengkap".
+- **Tunda beli** (mati bawaannya): daftar tunggu dengan masa tunggu per barang (bawaan 7 hari), "Jadi beli" membuka form transaksi terisi, "Batal beli" dihitung sebagai uang yang tidak jadi keluar bulan ini, dan satu pengingat setelah masa tunggu lewat.
 - **Pengaturan > Fitur**: nyalakan atau matikan Cicilan, Utang, Target, Patungan, Acara, dan Tunda beli. Fitur yang dimatikan disembunyikan dan tidak dihitung, datanya tetap tersimpan.
 - **Animasi pembuka** bisa dipilih: sekali saja, tiap buka, atau mati.
-- **Gaya ikon**: Flat (ilustrasi datar) dan Mono (satu warna), selain Kartun dan Klasik.
+- **Gaya ikon**: Flat (59 ikon ilustrasi datar baru) dan Mono (satu warna), selain Kartun dan Klasik.
+- **Bentuk grafik kategori** di Statistik bisa dipilih: Cincin atau Lingkaran penuh (Pengaturan > Tampilan).
+- **Widget baru**: 4x2 dengan cincin dan maskot (suasananya mengikuti jatah), widget 2x2 baru, dan widget 2x1 dengan maskot dan tombol "+". Nominal jadi "Rp ••••" saat saldo disembunyikan.
+- Terjemahan English dan 简体中文 untuk semua teks baru.
 
 ### Diubah
-- Pengingat backup di Beranda baru muncul setelah 30 hari tanpa backup (sebelumnya 7 hari). Saat aman, tidak ada kartu atau chip lagi di Beranda; statusnya tetap ada di Backup & Pulihkan.
+- Pengingat backup di Beranda baru muncul setelah 30 hari tanpa backup (sebelumnya 7 hari). Saat aman, tidak ada kartu atau chip lagi di Beranda; statusnya tetap ada di Backup & Pulihkan. Salinan di luar HP hanya diingatkan kalau pernah dibuat lalu sudah lebih dari 30 hari.
 - Kartu akun di Beranda dihapus; akun dibuka lewat baris Total saldo.
+- Daftar kategori di Statistik menampilkan 4 teratas, sisanya di balik "N kategori lainnya".
+- Widget 4x2 tidak lagi menampilkan baris Masuk/Keluar bulan ini.
 
 ### Akan datang
 - **Biaya bocor** (pendeteksi langganan dan biaya kecil berulang) ditunda ke rilis setelah 5.0.
