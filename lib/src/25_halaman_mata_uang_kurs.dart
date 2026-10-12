@@ -83,7 +83,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
                 Text(
                   at == null
                       ? 'Kurs belum pernah kamu perbarui.'
-                      : tr('Terakhir diperbarui {0} ({1}).', [DateFormat('d MMM yyyy', gDateLoc).format(at), days == 0 ? 'hari ini' : '$days hari lalu']),
+                      : tr('Terakhir diperbarui {0} ({1}).', [DateFormat('d MMM yyyy', gDateLoc).format(at), days == 0 ? tr('hari ini') : tr('{0} hari lalu', [days])]),
                   style: TextStyle(fontSize: 12.5, color: C.carbon),
                 ),
               ],

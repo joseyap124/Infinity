@@ -11,13 +11,13 @@ String txShareText(AppStore store, Transaction t) {
       t.type == TxType.expense ? '-' : (t.type == TxType.income ? '+' : '');
   final b = StringBuffer()
     ..writeln(t.title)
-    ..writeln('$sign${money(t.amount, cur)} · ${t.type.label}')
+    ..writeln('$sign${money(t.amount, cur)} · ${tr(t.type.label)}')
     ..writeln(t.type == TxType.transfer
         ? '${store.accountName(t.accountId)} → ${store.accountName(t.toAccountId)}'
-        : 'Akun: ${store.accountName(t.accountId)}')
-    ..writeln('Kategori: ${store.categoryLabel(t)}')
+        : tr('Akun: {0}', [store.accountName(t.accountId)]))
+    ..writeln(tr('Kategori: {0}', [store.categoryLabel(t)]))
     ..write(DateFormat('EEEE, d MMM yyyy · HH:mm', gDateLoc).format(t.date));
-  if (t.note.isNotEmpty) b.write('\nCatatan: ${t.note}');
+  if (t.note.isNotEmpty) b.write(tr('\nCatatan: {0}', [t.note]));
   return b.toString();
 }
 

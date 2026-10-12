@@ -1251,7 +1251,7 @@ class DashboardTab extends StatelessWidget {
                                       fontSize: 14)),
                               Text(
                                 debt > 0
-                                    ? tr('Jatuh tempo {0} · {1}', [DateFormat('d MMM', gDateLoc).format(due), days == 0 ? 'hari ini' : '$days hari lagi'])
+                                    ? tr('Jatuh tempo {0} · {1}', [DateFormat('d MMM', gDateLoc).format(due), days == 0 ? tr('hari ini') : tr('{0} hari lagi', [days])])
                                     : 'Tidak ada tagihan 🎉',
                                 style: TextStyle(
                                     fontSize: 12,

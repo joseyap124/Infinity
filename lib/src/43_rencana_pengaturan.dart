@@ -211,8 +211,11 @@ class PlanTab extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
           const SizedBox(height: 2),
           Text(
-              '${DateFormat('MMMM yyyy', gDateLoc).format(label)}'
-              '${span.isEmpty ? '' : ' ($span)'} · $daysLeft hari lagi',
+              tr('{0}{1} · {2} hari lagi', [
+                DateFormat('MMMM yyyy', gDateLoc).format(label),
+                span.isEmpty ? '' : ' ($span)',
+                daysLeft
+              ]),
               style: TextStyle(fontSize: 12.5, color: C.muted)),
           const SizedBox(height: 12),
           InsightStrip(

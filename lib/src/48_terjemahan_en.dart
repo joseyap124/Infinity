@@ -741,6 +741,21 @@ const Map<String, String> kEnStrings = {
   'Golongan pengeluaran': 'Spending groups',
   'Hanya untuk statistik. Ketuk kategori untuk mengubah golongannya. Kategori anak mengikuti induknya kalau tidak diubah sendiri.': 'For statistics only. Tap a category to change its group. Sub-categories follow their parent unless changed themselves.',
   'OK': 'OK',
+  '{0}{1} · {2} hari lagi': '{0}{1} · {2} days left',
+  '{0} hari lagi': '{0} days left',
+  'Akun: {0}': 'Account: {0}',
+  'Kategori: {0}': 'Category: {0}',
+  '\nCatatan: {0}': '\nNote: {0}',
+  's.d. hari ke-{0}': 'through day {0}',
+  's.d. tgl {0}': 'through day {0}',
+  'Pengeluaran bulan ini': 'Spending this month',
+  'Bulan lalu {0}': 'Last month {0}',
+  'Naik paling banyak': 'Biggest increases',
+  'Ekspor ke Excel': 'Export to Excel',
+  'Kolom sama seperti ekspor Money Manager, jadi bisa dibuka di Excel/Google Sheets atau diimpor ulang ke Infinity.': 'Same columns as the Money Manager export, so it opens in Excel/Google Sheets or can be imported back into Infinity.',
+  'Ekspor .xlsx': 'Export .xlsx',
+  'Excel tersimpan di Download/Infinity 📊': 'Excel saved to Download/Infinity 📊',
+  'Gagal menyimpan file Excel.': 'Could not save the Excel file.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.
