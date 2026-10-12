@@ -15,6 +15,14 @@ class NetWorthPoint {
 }
 
 extension NetWorthStore on AppStore {
+  /// Kewajiban yang belum ikut di saldo akun: sisa cicilan dan utang kamu
+  /// ke orang lain (catatan di Utang & Piutang).
+  double get pendingLiabilitiesIDR =>
+      installmentsRemaining + debtTotal(theyOwe: false);
+
+  /// Kekayaan bersih kalau kewajiban itu dikurangkan.
+  double get netWorthAfterLiabilitiesIDR => netWorthIDR - pendingLiabilitiesIDR;
+
   /// [months] titik terakhir, dari yang terlama. Bulan berjalan dihitung
   /// sampai [now]. Piutang/utang di menu Utang & Piutang tidak ikut (itu
   /// catatan, bukan akun), kecuali talangan patungan yang memang akun.
@@ -109,6 +117,18 @@ class NetWorthCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
+          if (store.pendingLiabilitiesIDR > 0 && !hide) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                  color: C.amberDark.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12)),
+              child: Text(_afterText(store),
+                  style: TextStyle(fontSize: 12, height: 1.35, color: C.carbon)),
+            ),
+            const SizedBox(height: 6),
+          ],
           Text(
               'Total saldo semua akun di akhir tiap bulan (kartu kredit dihitung minus), pakai kurs sekarang.',
               style: TextStyle(fontSize: 11, color: C.muted)),
@@ -116,6 +136,20 @@ class NetWorthCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _afterText(AppStore store) {
+  final inst = store.installmentsRemaining;
+  final owe = store.debtTotal(theyOwe: false);
+  final after = money(store.netWorthAfterLiabilitiesIDR);
+  if (inst > 0 && owe > 0) {
+    return tr('Kalau sisa cicilan {0} dan utang {1} ikut dikurangi: {2}',
+        [money(inst), money(owe), after]);
+  }
+  if (inst > 0) {
+    return tr('Kalau sisa cicilan {0} ikut dikurangi: {1}', [money(inst), after]);
+  }
+  return tr('Kalau utang {0} ikut dikurangi: {1}', [money(owe), after]);
 }
 
 class _NetWorthPainter extends CustomPainter {

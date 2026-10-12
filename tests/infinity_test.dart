@@ -2217,6 +2217,19 @@ void main() {
       expect(s3.installments, isEmpty);
     });
 
+    test('kekayaan bersih setelah kewajiban: sisa cicilan dan utang dikurangkan', () {
+      final s = storeWith([acc('a', initial: 1000000)]);
+      expect(s.pendingLiabilitiesIDR, 0);
+      s.installments = [inst(total: 300000, tenor: 3, paid: [''])];
+      s.debts = [
+        Debt(id: 'd1', person: 'Budi', theyOwe: false, amount: 50000, date: DateTime(2026, 10, 1)),
+        Debt(id: 'd2', person: 'Sari', theyOwe: true, amount: 70000, date: DateTime(2026, 10, 1)),
+      ];
+      expect(s.pendingLiabilitiesIDR, 200000 + 50000);
+      expect(s.netWorthIDR, 1000000);
+      expect(s.netWorthAfterLiabilitiesIDR, 750000);
+    });
+
     test('pengingat cicilan masuk daftar notifikasi', () {
       final s = storeWith([acc('a')]);
       s.settings.notifEnabled = true;

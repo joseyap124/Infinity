@@ -1269,6 +1269,9 @@ const Map<String, String> kEnStrings = {
   '{0} dari {1}. Buka Infinity untuk menandainya dibayar.': '{0} from {1}. Open Infinity to mark it as paid.',
   '⏰ Besok: cicilan {0}': '⏰ Tomorrow: installment {0}',
   '{0} cicilan': '{0} installments',
+  'Kalau sisa cicilan {0} dan utang {1} ikut dikurangi: {2}': 'If remaining installments of {0} and debts of {1} are deducted: {2}',
+  'Kalau sisa cicilan {0} ikut dikurangi: {1}': 'If remaining installments of {0} are deducted: {1}',
+  'Kalau utang {0} ikut dikurangi: {1}': 'If debts of {0} are deducted: {1}',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

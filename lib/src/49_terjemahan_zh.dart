@@ -1268,4 +1268,7 @@ const Map<String, String> kZhStrings = {
   '{0} dari {1}. Buka Infinity untuk menandainya dibayar.': '{0}，来自 {1}。打开 Infinity 将其标记为已付。',
   '⏰ Besok: cicilan {0}': '⏰ 明天：分期 {0}',
   '{0} cicilan': '{0} 笔分期',
+  'Kalau sisa cicilan {0} dan utang {1} ikut dikurangi: {2}': '如果扣除剩余分期 {0} 和欠款 {1}：{2}',
+  'Kalau sisa cicilan {0} ikut dikurangi: {1}': '如果扣除剩余分期 {0}：{1}',
+  'Kalau utang {0} ikut dikurangi: {1}': '如果扣除欠款 {0}：{1}',
 };

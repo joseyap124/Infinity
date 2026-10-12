@@ -3,7 +3,19 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v4.6)
+## Berikutnya (v4.7)
+
+Kartu Kekayaan Bersih menunjukkan angka setelah kewajiban.
+
+### Ditambah
+- Di kartu **Kekayaan Bersih** (Statistik) muncul satu baris tambahan kalau ada sisa cicilan atau utang kamu ke orang lain: "Kalau sisa cicilan ... ikut dikurangi: ...". Angka utama dan grafiknya tidak berubah, karena utang di Utang & Piutang memang dicatat terpisah dari saldo akun. Baris ini tidak tampil saat nominal disembunyikan.
+- Terjemahan English dan 简体中文 untuk baris itu.
+
+### Akan datang
+Rencana berikutnya, urutannya bisa bergeser:
+- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
+
+## v4.6 (12 Okt 2026)
 
 Cicilan 0%: catat barang yang kamu cicil (SPayLater, Kredivo, kartu kredit) supaya tagihannya tidak kelewat dan ikut dihitung di "Aman dibelanjakan".
 
@@ -20,11 +32,6 @@ Cicilan 0%: catat barang yang kamu cicil (SPayLater, Kredivo, kartu kredit) supa
 - Infinity tidak mengambil data dari Shopee atau aplikasi lain. Cicilan diisi manual.
 - Tanggal jatuh tempo 29 sampai 31 dipotong ke hari terakhir di bulan yang lebih pendek.
 - Mengubah "sudah dibayar berapa kali" di form edit menghitung ulang jadwal dari hari ini, tanpa membuat atau menghapus transaksi.
-
-### Akan datang
-Rencana berikutnya, urutannya bisa bergeser:
-- **Kamus kata umum** untuk menampilkan judul transaksi, catatan, dan nama akun dalam bahasa yang dipilih (hanya tampilan, data aslinya tidak diubah), kemungkinan sebagai pilihan di Pengaturan.
-- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
 
 ## v4.5 (12 Okt 2026)
 
