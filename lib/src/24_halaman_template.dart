@@ -41,6 +41,9 @@ class TemplatesPage extends StatelessWidget {
                     child: Row(
                       children: [
                         CatIcon(
+                            art: t.type == TxType.transfer
+                                ? null
+                                : store.categoryById(t.categoryId)?.art,
                             icon: t.type == TxType.transfer
                                 ? Icons.swap_horiz_rounded
                                 : (store.categoryById(t.categoryId)?.iconData ??

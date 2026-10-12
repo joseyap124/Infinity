@@ -44,7 +44,10 @@ class TransactionDetailSheet extends StatelessWidget {
         children: [
           Center(
               child: CatIcon(
-                  icon: store.txIcon(t), color: store.txColor(t), size: 64)),
+                  icon: store.txIcon(t),
+                  art: store.txArt(t),
+                  color: store.txColor(t),
+                  size: 64)),
           const SizedBox(height: 12),
           Text(t.title,
               textAlign: TextAlign.center,

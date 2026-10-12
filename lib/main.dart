@@ -92,6 +92,7 @@ part 'src/41_rekap_tahunan.dart';
 part 'src/42_rekap_saran_bulanan.dart';
 part 'src/43_rencana_pengaturan.dart';
 part 'src/44_golongan_pengeluaran.dart';
+part 'src/45_ikon_kartun.dart';
 // WIDGET-IMPORTS-END
 
 void main() {

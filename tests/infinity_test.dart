@@ -1393,4 +1393,116 @@ void main() {
       expect(periodTxCount(s, oct), 2);
     });
   });
+  group('v3.7 ikon kartun', () {
+    Map<String, dynamic> backupWithOldIcons() {
+      final s = AppStore()..clearAll();
+      final j = jsonDecode(s.exportJson()) as Map<String, dynamic>;
+      final old = {
+        'care': 'other',
+        'health': 'health',
+        'olahraga': 'bike',
+        'darurat': 'other',
+        'emergency': 'phone',
+        'donasi': 'gift',
+        'cicilan': 'bill',
+        'admin': 'bill',
+      };
+      for (final c in j['categories'] as List) {
+        final id = (c as Map)['id'];
+        if (old.containsKey(id)) c['icon'] = old[id];
+      }
+      (j['settings'] as Map).remove('iconsV37');
+      return j;
+    }
+
+    test('setiap kunci ikon Material punya gambar kartun, dan sebaliknya', () {
+      expect(kArtKeys.toSet(), kIcons.keys.toSet());
+      for (final k in kArtKeys) {
+        final b = artBytes(k);
+        expect(b, isNotNull, reason: k);
+        // tanda tangan PNG
+        expect(b!.sublist(0, 4), [0x89, 0x50, 0x4E, 0x47], reason: k);
+      }
+      expect(artBytes('tidak-ada'), isNull);
+      expect(artBytes(null), isNull);
+    });
+
+    test('instans bytes dipakai ulang supaya cache gambar kena', () {
+      expect(identical(artBytes('food'), artBytes('food')), isTrue);
+    });
+
+    test('semua kategori bawaan memakai kunci ikon yang dikenal', () {
+      final s = AppStore()..clearAll();
+      for (final c in s.categories) {
+        expect(kIcons.containsKey(c.icon), isTrue, reason: c.id);
+        expect(c.art, c.icon);
+      }
+    });
+
+    test('gaya ikon: bawaan kartun, ikut tersimpan di backup', () {
+      expect(AppSettings().iconStyle, 'cartoon');
+      final s = AppStore()..clearAll();
+      s.settings.iconStyle = 'classic';
+      final s2 = AppStore();
+      s2.importJson(s.exportJson());
+      expect(s2.settings.iconStyle, 'classic');
+      expect(AppSettings.fromJson({'iconStyle': 'aneh'}).iconStyle, 'cartoon');
+    });
+
+    test('backup lama tanpa iconStyle tidak mengubah gaya di HP ini', () {
+      final j = backupWithOldIcons();
+      (j['settings'] as Map).remove('iconStyle');
+      final s = AppStore()..clearAll();
+      s.settings.iconStyle = 'classic';
+      s.importJson(jsonEncode(j));
+      expect(s.settings.iconStyle, 'classic');
+    });
+
+    test('ikon bawaan lama dipindah ke ikon baru sekali saja', () {
+      final s = AppStore()..clearAll();
+      s.importJson(jsonEncode(backupWithOldIcons()));
+      String icon(String id) => s.categoryById(id)!.icon;
+      expect(icon('care'), 'care');
+      expect(icon('health'), 'pill');
+      expect(icon('olahraga'), 'sport');
+      expect(icon('darurat'), 'sos');
+      expect(icon('emergency'), 'sos');
+      expect(icon('donasi'), 'charity');
+      expect(icon('cicilan'), 'card');
+      expect(icon('admin'), 'bank');
+      expect(s.settings.iconsV37, isTrue);
+    });
+
+    test('ikon yang sudah diganti user tidak disentuh', () {
+      final j = backupWithOldIcons();
+      for (final c in j['categories'] as List) {
+        if ((c as Map)['id'] == 'care') c['icon'] = 'pet';
+      }
+      final s = AppStore()..clearAll();
+      s.importJson(jsonEncode(j));
+      expect(s.categoryById('care')!.icon, 'pet');
+      expect(s.categoryById('health')!.icon, 'pill');
+    });
+
+    test('setelah dipindah, ikon yang dipilih ulang user tidak dipindah lagi', () {
+      final s = AppStore()..clearAll();
+      s.importJson(jsonEncode(backupWithOldIcons()));
+      final j = jsonDecode(s.exportJson()) as Map<String, dynamic>;
+      for (final c in j['categories'] as List) {
+        if ((c as Map)['id'] == 'health') c['icon'] = 'health';
+      }
+      final s2 = AppStore();
+      s2.importJson(jsonEncode(j));
+      expect(s2.categoryById('health')!.icon, 'health');
+    });
+
+    test('txArt: kategori ada kuncinya, transfer tidak', () {
+      final s = AppStore()..clearAll();
+      s.accounts = [acc('a', initial: 100), acc('b')];
+      final e = tx('e', TxType.expense, 10, 'a', cat: 'makan');
+      final t = tx('t', TxType.transfer, 10, 'a', to: 'b');
+      expect(s.txArt(e), 'food');
+      expect(s.txArt(t), isNull);
+    });
+  });
 }

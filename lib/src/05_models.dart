@@ -85,6 +85,9 @@ class TxCategory {
   final String? parentId;
 
   IconData get iconData => iconOf(icon);
+
+  /// Kunci gambar ikon kartun (sama dengan [icon]).
+  String get art => icon;
   Color get colorValue => Color(color);
 
   Map<String, dynamic> toJson() => {
@@ -474,6 +477,12 @@ class AppSettings {
   Map<String, String> spendKinds = {};
   int accentIndex = 0;
 
+  /// Gaya ikon kategori: 'cartoon' (bergambar) | 'classic' (ikon Material).
+  String iconStyle = 'cartoon';
+
+  /// Ikon kategori bawaan sudah dipindah ke ikon kartun (sekali saja).
+  bool iconsV37 = false;
+
   /// Akun yang otomatis terpilih saat mencatat transaksi baru.
   String? defaultAccountId;
 
@@ -557,6 +566,8 @@ class AppSettings {
         'homeCards': homeCards,
         if (spendKinds.isNotEmpty) 'spendKinds': spendKinds,
         'accentIndex': accentIndex,
+        'iconStyle': iconStyle,
+        if (iconsV37) 'iconsV37': true,
         'defaultAccountId': defaultAccountId,
         'balanceSetAt': balanceSetAt,
         'dismissedSubs': dismissedSubs,
@@ -628,6 +639,8 @@ class AppSettings {
     final tm = _s(j['themeMode']);
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
+    s.iconStyle = _s(j['iconStyle']) == 'classic' ? 'classic' : 'cartoon';
+    s.iconsV37 = j['iconsV37'] == true;
     s.autoBackup = j['autoBackup'] != false;
     s.defaultAccountId = _s(j['defaultAccountId']);
     final ds = j['dismissedSubs'];

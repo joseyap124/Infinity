@@ -112,6 +112,14 @@ const Map<String, IconData> kIcons = {
   'phone': Icons.smartphone_rounded,
   'pet': Icons.pets_rounded,
   'travel': Icons.flight_rounded,
+  'saving': Icons.savings_rounded,
+  'care': Icons.spa_rounded,
+  'pill': Icons.medication_rounded,
+  'sos': Icons.emergency_rounded,
+  'charity': Icons.volunteer_activism_rounded,
+  'card': Icons.credit_card_rounded,
+  'sport': Icons.fitness_center_rounded,
+  'bank': Icons.account_balance_rounded,
   'other': Icons.category_rounded,
 };
 

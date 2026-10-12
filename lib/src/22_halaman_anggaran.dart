@@ -97,7 +97,7 @@ class _BudgetPageState extends State<BudgetPage> {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Row(
                   children: [
-                    CatIcon(icon: c.iconData, color: c.colorValue, size: 40),
+                    CatIcon(icon: c.iconData, art: c.art, color: c.colorValue, size: 40),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(

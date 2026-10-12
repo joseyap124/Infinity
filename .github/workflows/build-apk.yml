@@ -13,7 +13,7 @@ on:
       - 'tool/release_notes.py'
       - 'docs/**'
       - 'tool/mockup/**'
-      - 'tool/make_icons.py'
+      - 'tool/make_logo.py'
   workflow_dispatch:
 
 permissions:

@@ -515,6 +515,37 @@ class AppearancePage extends StatelessWidget {
                     Text(
                         'Dikalikan dengan ukuran huruf HP, dibatasi supaya tampilan tetap rapi.',
                         style: TextStyle(fontSize: 12, color: C.muted)),
+                    const SizedBox(height: 16),
+                    const SmallLabel('Gaya ikon kategori'),
+                    const SizedBox(height: 8),
+                    Segmented<String>(
+                      values: const ['cartoon', 'classic'],
+                      selected: s.iconStyle,
+                      labelOf: (v) => v == 'classic' ? 'Klasik' : 'Kartun',
+                      dense: true,
+                      onChanged: (v) =>
+                          store.updateSettings((x) => x.iconStyle = v),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        for (final k in const [
+                          'food',
+                          'coffee',
+                          'bag',
+                          'pill',
+                          'invest'
+                        ])
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: CatIcon(
+                                icon: iconOf(k),
+                                art: k,
+                                color: C.accent,
+                                size: 34),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),

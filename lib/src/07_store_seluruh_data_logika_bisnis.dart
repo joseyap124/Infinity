@@ -77,6 +77,7 @@ class AppStore extends ChangeNotifier {
             'Data tersimpan tidak bisa dibaca. Salinannya sudah diamankan, aplikasi mulai dari data kosong.';
       }
     }
+    _migrateIcons();
     processRecurring(notify: false);
     loaded = true;
     await flush();
@@ -275,6 +276,7 @@ class AppStore extends ChangeNotifier {
     settings.textScale = old.textScale;
     settings.homeCards = old.homeCards;
     settings.accentIndex = old.accentIndex;
+    settings.iconStyle = old.iconStyle;
     settings.displayName = old.displayName;
     settings.greetingMode = old.greetingMode;
     settings.greetingText = old.greetingText;
@@ -288,6 +290,7 @@ class AppStore extends ChangeNotifier {
     if (!has.containsKey('textScale')) settings.textScale = old.textScale;
     if (!has.containsKey('homeCards')) settings.homeCards = old.homeCards;
     if (!has.containsKey('accentIndex')) settings.accentIndex = old.accentIndex;
+    if (!has.containsKey('iconStyle')) settings.iconStyle = old.iconStyle;
     if (!has.containsKey('displayName')) settings.displayName = old.displayName;
     if (!has.containsKey('greetingMode')) {
       settings.greetingMode = old.greetingMode;
@@ -311,6 +314,7 @@ class AppStore extends ChangeNotifier {
     _keepMissingAppearance(old, decoded['settings']);
     pendingCaptures = pend;
     _seenCaptureKeys = seen;
+    _migrateIcons();
     processRecurring(notify: false);
     _commit();
   }
@@ -332,6 +336,37 @@ class AppStore extends ChangeNotifier {
     _commit();
   }
 
+  /// Ikon kategori bawaan v3.7: id -> (ikon lama, ikon baru). Hanya kategori
+  /// yang ikonnya masih ikon bawaan lama yang dipindah; yang sudah diganti
+  /// user tidak disentuh.
+  static const Map<String, (String, String)> _iconMoves = {
+    'care': ('other', 'care'),
+    'health': ('health', 'pill'),
+    'olahraga': ('bike', 'sport'),
+    'darurat': ('other', 'sos'),
+    'emergency': ('phone', 'sos'),
+    'donasi': ('gift', 'charity'),
+    'cicilan': ('bill', 'card'),
+    'admin': ('bill', 'bank'),
+  };
+
+  void _migrateIcons() {
+    if (settings.iconsV37) return;
+    for (var i = 0; i < categories.length; i++) {
+      final c = categories[i];
+      final m = _iconMoves[c.id];
+      if (m == null || c.icon != m.$1) continue;
+      categories[i] = TxCategory(
+          id: c.id,
+          name: c.name,
+          type: c.type,
+          icon: m.$2,
+          color: c.color,
+          parentId: c.parentId);
+    }
+    settings.iconsV37 = true;
+  }
+
   /// Data awal: 3 akun dasar bersaldo 0 + kategori bawaan, tanpa transaksi.
   void _seedEmpty() {
     accounts = _defaultAccounts(demo: false);
@@ -342,7 +377,7 @@ class AppStore extends ChangeNotifier {
     debts = [];
     goals = [];
     events = [];
-    settings = AppSettings();
+    settings = AppSettings()..iconsV37 = true;
     pendingCaptures = [];
     _seenCaptureKeys = [];
   }
@@ -397,16 +432,16 @@ class AppStore extends ChangeNotifier {
         TxCategory(id: 'kos', name: 'Kos / Asrama 🏠', type: TxType.expense, icon: 'home', color: 0xFF8D6E63, parentId: 'pokok'),
         TxCategory(id: 'keperluan', name: 'Keperluan Rumah (Galon, Gas, Sabun Cuci) 🧺', type: TxType.expense, icon: 'home', color: 0xFF546E7A, parentId: 'pokok'),
         TxCategory(id: 'sehat', name: 'Kesehatan dan Kebersihan 🏥', type: TxType.expense, icon: 'health', color: 0xFFEF5350),
-        TxCategory(id: 'health', name: 'Health (Obat, Vitamin, Medcheck) 💊', type: TxType.expense, icon: 'health', color: 0xFFEF5350, parentId: 'sehat'),
-        TxCategory(id: 'care', name: 'Personal Care (Skincare, Shampoo, Sabun, Laundry) 🛀', type: TxType.expense, icon: 'other', color: 0xFF00897B, parentId: 'sehat'),
-        TxCategory(id: 'olahraga', name: 'Olahraga 🏃', type: TxType.expense, icon: 'bike', color: 0xFF00AA13, parentId: 'sehat'),
+        TxCategory(id: 'health', name: 'Health (Obat, Vitamin, Medcheck) 💊', type: TxType.expense, icon: 'pill', color: 0xFFEF5350, parentId: 'sehat'),
+        TxCategory(id: 'care', name: 'Personal Care (Skincare, Shampoo, Sabun, Laundry) 🛀', type: TxType.expense, icon: 'care', color: 0xFF00897B, parentId: 'sehat'),
+        TxCategory(id: 'olahraga', name: 'Olahraga 🏃', type: TxType.expense, icon: 'sport', color: 0xFF00AA13, parentId: 'sehat'),
         TxCategory(id: 'edu', name: 'Education 🏫', type: TxType.expense, icon: 'school', color: 0xFF5C6BC0),
         TxCategory(id: 'legal', name: 'Legal dan Document (Permit, Passport) 🛂', type: TxType.expense, icon: 'travel', color: 0xFF546E7A, parentId: 'edu'),
         TxCategory(id: 'buku', name: 'Buku 📖', type: TxType.expense, icon: 'school', color: 0xFF5C6BC0, parentId: 'edu'),
         TxCategory(id: 'course', name: 'Course Online 📚', type: TxType.expense, icon: 'phone', color: 0xFF7C4DFF, parentId: 'edu'),
         TxCategory(id: 'sosial', name: 'Social Dan Relasi 💑', type: TxType.expense, icon: 'gift', color: 0xFFE91E63),
         TxCategory(id: 'gift_out', name: 'Gift (Hadiah, Ulang Tahun) 🎂', type: TxType.expense, icon: 'gift', color: 0xFFE91E63, parentId: 'sosial'),
-        TxCategory(id: 'donasi', name: 'Donasi 🧧', type: TxType.expense, icon: 'gift', color: 0xFFEF5350, parentId: 'sosial'),
+        TxCategory(id: 'donasi', name: 'Donasi 🧧', type: TxType.expense, icon: 'charity', color: 0xFFEF5350, parentId: 'sosial'),
         TxCategory(id: 'hiburan', name: 'Hiburan dan Gaya Hidup 🛍️', type: TxType.expense, icon: 'bag', color: 0xFFE91E63),
         TxCategory(id: 'ent', name: 'Entertainment (Subscription Film, Spotify, Game) 🎫', type: TxType.expense, icon: 'movie', color: 0xFF7C4DFF, parentId: 'hiburan'),
         TxCategory(id: 'shop', name: 'Shopping (Baju, Celana, Hobi) 🛍️', type: TxType.expense, icon: 'bag', color: 0xFFE91E63, parentId: 'hiburan'),
@@ -415,11 +450,11 @@ class AppStore extends ChangeNotifier {
         TxCategory(id: 'invest_out', name: 'Investasi 💰', type: TxType.expense, icon: 'invest', color: 0xFFFFA000),
         TxCategory(id: 'emas', name: 'Emas 🪙', type: TxType.expense, icon: 'invest', color: 0xFFFFA000, parentId: 'invest_out'),
         TxCategory(id: 'reksadana', name: 'Reksadana 💰', type: TxType.expense, icon: 'invest', color: 0xFF00897B, parentId: 'invest_out'),
-        TxCategory(id: 'cicilan', name: 'Cicilan & Utang 💳', type: TxType.expense, icon: 'bill', color: 0xFF5C6BC0),
-        TxCategory(id: 'darurat', name: 'Darurat / Lain lain 🆘', type: TxType.expense, icon: 'other', color: 0xFFEF5350),
-        TxCategory(id: 'emergency', name: 'Emergency (HP Rusak, Ganti Baterai, Ban Bocor) 🆘', type: TxType.expense, icon: 'phone', color: 0xFFEF5350, parentId: 'darurat'),
+        TxCategory(id: 'cicilan', name: 'Cicilan & Utang 💳', type: TxType.expense, icon: 'card', color: 0xFF5C6BC0),
+        TxCategory(id: 'darurat', name: 'Darurat / Lain lain 🆘', type: TxType.expense, icon: 'sos', color: 0xFFEF5350),
+        TxCategory(id: 'emergency', name: 'Emergency (HP Rusak, Ganti Baterai, Ban Bocor) 🆘', type: TxType.expense, icon: 'sos', color: 0xFFEF5350, parentId: 'darurat'),
         TxCategory(id: 'lain', name: 'Lain lain', type: TxType.expense, icon: 'other', color: 0xFF546E7A, parentId: 'darurat'),
-        TxCategory(id: 'admin', name: 'Admin Bank 🏧', type: TxType.expense, icon: 'bill', color: 0xFF546E7A),
+        TxCategory(id: 'admin', name: 'Admin Bank 🏧', type: TxType.expense, icon: 'bank', color: 0xFF546E7A),
         TxCategory(id: 'main_inc', name: 'Main Income', type: TxType.income, icon: 'salary', color: 0xFFFFA000),
         TxCategory(id: 'gaji', name: 'Gaji', type: TxType.income, icon: 'salary', color: 0xFFFFA000, parentId: 'main_inc'),
         TxCategory(id: 'uang_saku', name: 'Uang Saku', type: TxType.income, icon: 'salary', color: 0xFFFFA000, parentId: 'main_inc'),
@@ -451,6 +486,7 @@ class AppStore extends ChangeNotifier {
       TxTemplate(id: 't_ojol', title: 'Ojol ke Kantor', amount: 17000, type: TxType.expense, categoryId: 'transport', accountId: 'gopay'),
     ];
     settings = AppSettings()
+      ..iconsV37 = true
       ..budgetPeriod = BudgetPeriod.monthly
       ..globalBudget = 3000000
       ..categoryBudgets = {'pokok': 1600000, 'hiburan': 800000, 'sehat': 300000};
@@ -493,6 +529,10 @@ class AppStore extends ChangeNotifier {
       accountById(accountId)?.currency ?? 'IDR';
 
   double amountIDR(Transaction t) => toIDR(t.amount, currencyOf(t.accountId));
+
+  /// Kunci ikon kartun transaksi (null untuk transfer).
+  String? txArt(Transaction t) =>
+      t.type == TxType.transfer ? null : categoryById(t.categoryId)?.icon;
 
   IconData txIcon(Transaction t) => t.type == TxType.transfer
       ? Icons.swap_horiz_rounded

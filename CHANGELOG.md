@@ -3,7 +3,20 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.6.2)
+## Berikutnya (v3.7)
+
+Logo baru dan ikon kategori bergambar kartun.
+
+### Ditambah
+- **Ikon kategori kartun**: 26 ikon bergambar (Makan, Kopi, Belanja, Obat, Investasi, Personal Care, Darurat, Donasi, dan lainnya) menggantikan ikon polos di Beranda, Riwayat, Statistik, Anggaran, Kategori, template, dan detail transaksi. Pilihan ikon saat membuat atau mengubah kategori ikut berubah jadi gambar.
+- **Pilihan gaya ikon**: di Pengaturan, Tampilan, "Gaya ikon kategori": **Kartun** (baru, bawaan) atau **Klasik** (ikon lama). Bisa diganti kapan saja, dan ikut tersimpan di backup.
+- **8 ikon baru** untuk kategori: Tabungan, Personal Care, Obat, Darurat, Donasi, Kartu/cicilan, Olahraga, dan Bank.
+
+### Diubah
+- **Logo baru**: pita ∞ hijau-tosca dengan koin Rp di latar krem, menggantikan celengan. Dipakai di ikon app (termasuk ikon tematik Android 13+), splash bawaan, splash animasi (pita tergambar, koin jatuh, lalu nama Infinity), dan ikon di status bar.
+- Beberapa kategori bawaan memakai ikon yang lebih pas: Personal Care, Health (Obat), Olahraga, Darurat, Emergency, Donasi, Cicilan, dan Admin Bank. Hanya yang ikonnya belum pernah kamu ganti. Di gaya Klasik, kategori ini juga tampil dengan ikon Material yang baru.
+
+## v3.6.2 (12 Okt 2026)
 
 ### Diperbaiki
 - **Nominal salah dari notifikasi atau email bank berbahasa Inggris**: "IDR 263,000.00" sebelumnya terbaca Rp 26.300.000. Sekarang format Inggris ("263,000.00", "1,250,000.50") dan Indonesia ("1.250.000,00") sama-sama dibaca benar. Berlaku juga untuk teks struk yang ditempel.

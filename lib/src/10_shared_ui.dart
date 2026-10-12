@@ -191,22 +191,55 @@ class AppCard extends StatelessWidget {
 
 class CatIcon extends StatelessWidget {
   const CatIcon(
-      {super.key, required this.icon, required this.color, this.size = 44});
+      {super.key,
+      required this.icon,
+      required this.color,
+      this.size = 44,
+      this.art});
 
   final IconData icon;
   final Color color;
   final double size;
 
+  /// Kunci ikon kartun (lihat [kArtKeys]). Null = selalu pakai ikon Material,
+  /// misalnya untuk transfer dan akun.
+  final String? art;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, color: darken(color), size: size * 0.5),
+    return ValueListenableBuilder<bool>(
+      valueListenable: gCartoon,
+      builder: (context, cartoon, _) {
+        final bytes = cartoon ? artBytes(art) : null;
+        if (bytes != null) {
+          return Container(
+            width: size,
+            height: size,
+            padding: EdgeInsets.all(size * 0.08),
+            decoration: BoxDecoration(
+              // Gambar kartun punya warna sendiri: di mode gelap diberi
+              // alas terang supaya tetap jelas.
+              color: C.isDark
+                  ? const Color(0xFFF1F3F6)
+                  : color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Image.memory(bytes,
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.medium),
+          );
+        }
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: darken(color), size: size * 0.5),
+        );
+      },
     );
   }
 }

@@ -1428,7 +1428,7 @@ class DashboardTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          CatIcon(icon: cat.iconData, color: cat.colorValue, size: 34),
+          CatIcon(icon: cat.iconData, art: cat.art, color: cat.colorValue, size: 34),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -1533,14 +1533,13 @@ class DashboardTab extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.14),
-                    shape: BoxShape.circle),
-                child: Icon(icon, size: 15, color: color),
-              ),
+              CatIcon(
+                  icon: icon,
+                  art: t.type == TxType.transfer
+                      ? null
+                      : store.categoryById(t.categoryId)?.art,
+                  color: color,
+                  size: 26),
               const SizedBox(width: 7),
               Flexible(
                 child: Text(t.title,
@@ -1580,6 +1579,9 @@ class DashboardTab extends StatelessWidget {
               child: Row(
                 children: [
                   CatIcon(
+                      art: r.type == TxType.transfer
+                          ? null
+                          : store.categoryById(r.categoryId)?.art,
                       icon: r.type == TxType.transfer
                           ? Icons.swap_horiz_rounded
                           : (store.categoryById(r.categoryId)?.iconData ??

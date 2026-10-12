@@ -83,7 +83,7 @@ class CategoriesPage extends StatelessWidget {
                 child: Icon(Icons.subdirectory_arrow_right_rounded,
                     color: C.muted, size: 18),
               ),
-            CatIcon(icon: c.iconData, color: c.colorValue, size: 36),
+            CatIcon(icon: c.iconData, art: c.art, color: c.colorValue, size: 36),
             const SizedBox(width: 12),
             Expanded(
               child: Text(c.name,
@@ -183,7 +183,7 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
         children: [
           Row(
             children: [
-              CatIcon(icon: iconOf(_icon), color: Color(_color), size: 44),
+              CatIcon(icon: iconOf(_icon), art: _icon, color: Color(_color), size: 44),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -251,10 +251,23 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
                                 : C.line,
                             width: e.key == _icon ? 2 : 1),
                       ),
-                      child: Icon(e.value,
-                          color: e.key == _icon
-                              ? darken(Color(_color))
-                              : C.muted),
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: gCartoon,
+                        builder: (context, cartoon, _) {
+                          final bytes = cartoon ? artBytes(e.key) : null;
+                          if (bytes != null) {
+                            return Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: Image.memory(bytes,
+                                  fit: BoxFit.contain, gaplessPlayback: true),
+                            );
+                          }
+                          return Icon(e.value,
+                              color: e.key == _icon
+                                  ? darken(Color(_color))
+                                  : C.muted);
+                        },
+                      ),
                     ),
                   ),
                 ),

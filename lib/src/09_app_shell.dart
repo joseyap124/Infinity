@@ -196,6 +196,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     }
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
+    gCartoon.value = store.settings.iconStyle != 'classic';
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
     _scheduleNotifications();
@@ -238,6 +239,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   void _syncTheme() {
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
+    gCartoon.value = store.settings.iconStyle != 'classic';
   }
 
   /// Pintasan tidak bergantung pada saklar pengingat: cukup setelannya aktif
@@ -510,9 +512,9 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   }
 }
 
-/// Splash animasi: koin jatuh masuk ke celengan, celengan memantul, lalu
-/// tulisan Infinity muncul. Gambarnya sama dengan ikon app (lihat
-/// tool/make_icons.py) supaya menyambung dari splash bawaan Android.
+/// Splash animasi: pita ∞ tergambar, koin Rp jatuh ke ujung kanan dan
+/// memantul, lalu tulisan Infinity muncul. Gambarnya sama dengan ikon app
+/// (lihat tool/make_logo.py) supaya menyambung dari splash bawaan Android.
 class AnimatedSplash extends StatefulWidget {
   const AnimatedSplash({super.key, required this.onDone});
   final VoidCallback onDone;
@@ -529,7 +531,7 @@ class _AnimatedSplashState extends State<AnimatedSplash>
   void initState() {
     super.initState();
     _c = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1700))
+        vsync: this, duration: const Duration(milliseconds: 1800))
       ..addStatusListener((s) {
         if (s == AnimationStatus.completed) widget.onDone();
       });
@@ -553,30 +555,30 @@ class _AnimatedSplashState extends State<AnimatedSplash>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF16181D),
+      backgroundColor: const Color(0xFFFFF3CC),
       body: Center(
         child: AnimatedBuilder(
           animation: _c,
           builder: (context, _) {
             final t = _c.value;
             final textIn = Curves.easeOut
-                .transform(((t - 0.68) / 0.25).clamp(0.0, 1.0));
+                .transform(((t - 0.7) / 0.25).clamp(0.0, 1.0));
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  width: 180,
-                  height: 180,
-                  child: CustomPaint(painter: _PiggyPainter(t)),
+                  width: 220,
+                  height: 220,
+                  child: CustomPaint(painter: _LogoPainter(t)),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Opacity(
                   opacity: textIn,
                   child: Transform.translate(
                     offset: Offset(0, 10 * (1 - textIn)),
                     child: const Text('Infinity',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFF1F1B3A),
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5)),
@@ -591,112 +593,177 @@ class _AnimatedSplashState extends State<AnimatedSplash>
   }
 }
 
-class _PiggyPainter extends CustomPainter {
-  _PiggyPainter(this.t);
+/// Logo pita ∞ + koin Rp pada kanvas 256x256 (sama dengan tool/make_logo.py).
+class _LogoPainter extends CustomPainter {
+  _LogoPainter(this.t);
   final double t;
 
-  static const pink = Color(0xFFFF8FB1);
-  static const pinkD = Color(0xFFE25E8A);
-  static const dark = Color(0xFF281E28);
-  static const gold = Color(0xFFFFC83D);
-  static const goldD = Color(0xFFD69614);
+  static const ink = Color(0xFF1F1B3A);
+
+  static Path _ribbonPath() => Path()
+    ..moveTo(60, 128)
+    ..cubicTo(60, 72, 104, 72, 128, 128)
+    ..cubicTo(152, 184, 196, 184, 196, 128)
+    ..cubicTo(196, 72, 152, 72, 128, 128)
+    ..cubicTo(104, 184, 60, 184, 60, 128)
+    ..close();
+
+  // Dua potongan yang digambar ulang di atas titik silang (efek anyaman).
+  static Path _weavePath() => Path()
+    ..moveTo(151.46, 94.13)
+    ..cubicTo(143.01, 101.03, 134.72, 112.32, 128, 128)
+    ..cubicTo(121.28, 143.68, 112.99, 154.97, 104.54, 161.87);
 
   double _seg(double a, double b) => ((t - a) / (b - a)).clamp(0.0, 1.0);
 
+  void _stroke(Canvas canvas, Path path, Paint base, double w, Shader? shader,
+      Color color, StrokeCap cap) {
+    canvas.drawPath(
+        path,
+        base
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = w
+          ..strokeCap = cap
+          ..strokeJoin = StrokeJoin.round
+          ..shader = shader
+          ..color = color);
+  }
+
+  void _spark(Canvas canvas, double x, double y, double r, Paint p) {
+    final q = r * 0.26;
+    canvas.drawPath(
+        Path()
+          ..moveTo(x, y - r)
+          ..lineTo(x + q, y - q)
+          ..lineTo(x + r, y)
+          ..lineTo(x + q, y + q)
+          ..lineTo(x, y + r)
+          ..lineTo(x - q, y + q)
+          ..lineTo(x - r, y)
+          ..lineTo(x - q, y - q)
+          ..close(),
+        p);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
-    // Kanvas ikon 108x108, ditampilkan area 18..90 seperti ikon PNG.
-    final k = size.width / 72;
     canvas.save();
-    canvas.scale(k);
-    canvas.translate(-18, -18);
+    canvas.scale(size.width / 256);
 
-    final appear = Curves.easeOutBack.transform(_seg(0.0, 0.18));
-    final fall = Curves.easeIn.transform(_seg(0.16, 0.56));
-    final bounce = _seg(0.56, 0.74);
-    final squash = 1 - 0.07 * math.sin(bounce * math.pi);
+    final draw = Curves.easeInOut.transform(_seg(0.0, 0.42));
+    final drop = _seg(0.34, 0.62);
+    final settle = _seg(0.62, 0.82);
     final p = Paint()..isAntiAlias = true;
+    final grad = const LinearGradient(
+      colors: [Color(0xFF0FB5A6), Color(0xFF4CC96A), Color(0xFF9BDB2D)],
+      stops: [0, 0.55, 1],
+    ).createShader(const Rect.fromLTRB(60, 0, 196, 1));
 
-    // Koin: jatuh dari atas ke celah, makin pipih (masuk ke celah), terpotong
-    // di garis celah supaya terlihat masuk.
-    if (t < 0.6) {
-      final cy = -14 + (45.4 - -14) * fall;
-      final flat = 1 - 0.75 * Curves.easeIn.transform(_seg(0.42, 0.56));
+    // Pita: tergambar mengikuti garis, lalu utuh dengan anyaman di silangan.
+    final full = _ribbonPath();
+    Path part = full;
+    if (draw < 1) {
+      part = Path();
+      for (final m in full.computeMetrics()) {
+        part.addPath(m.extractPath(0, m.length * draw), Offset.zero);
+      }
+    }
+    if (draw > 0) {
+      final cap = draw < 1 ? StrokeCap.round : StrokeCap.butt;
+      // bayangan lembut
       canvas.save();
-      canvas.clipRect(const Rect.fromLTRB(0, -40, 108, 45.4));
-      canvas.translate(54, cy);
-      canvas.scale(flat, 1);
-      canvas.drawCircle(Offset.zero, 6.5, p..color = gold);
-      canvas.drawCircle(Offset.zero, 6.5 * 0.62, p..color = goldD);
-      canvas.drawCircle(Offset.zero, 6.5 * 0.45, p..color = gold);
+      canvas.translate(0, 6);
+      _stroke(canvas, part, Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5), 33, null,
+          ink.withValues(alpha: 0.22), StrokeCap.round);
+      canvas.restore();
+      _stroke(canvas, part, Paint()..isAntiAlias = true, 33, null, ink,
+          StrokeCap.round);
+      _stroke(canvas, part, Paint()..isAntiAlias = true, 23, grad, ink, cap);
+      if (draw >= 1) {
+        final w = _weavePath();
+        _stroke(canvas, w, Paint()..isAntiAlias = true, 33, null, ink, StrokeCap.butt);
+        _stroke(canvas, w, Paint()..isAntiAlias = true, 23, grad, ink, StrokeCap.butt);
+      }
+    }
+
+    // Koin jatuh dari atas ke ujung kanan pita, memantul sedikit.
+    if (drop > 0) {
+      final fall = Curves.easeIn.transform(drop);
+      var cy = -50 + (128 + 50) * fall;
+      if (drop >= 1) {
+        cy = 128 - 16 * math.sin(settle * math.pi) * (1 - settle);
+      }
+      const cx = 196.0, r = 33.0;
+      final fadeIn = (drop * 4).clamp(0.0, 1.0);
+      canvas.save();
+      canvas.translate(0, cy - 128);
+      canvas.drawCircle(
+          const Offset(cx, 134),
+          r,
+          Paint()
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5)
+            ..color = ink.withValues(alpha: 0.22 * fadeIn));
+      canvas.drawCircle(
+          const Offset(cx, 128),
+          r,
+          p
+            ..shader = const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFFE766), Color(0xFFF5A81C)],
+            ).createShader(Rect.fromCircle(center: const Offset(cx, 128), radius: r))
+            ..style = PaintingStyle.fill);
+      canvas.drawCircle(
+          const Offset(cx, 128),
+          r,
+          Paint()
+            ..isAntiAlias = true
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 6
+            ..color = ink);
+      canvas.drawCircle(
+          const Offset(cx, 128),
+          r * 0.72,
+          Paint()
+            ..isAntiAlias = true
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3.6
+            ..color = const Color(0xFFE39A10));
+      final tp = TextPainter(
+        text: TextSpan(
+            text: 'Rp',
+            style: TextStyle(
+                fontSize: r * 0.82,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF9A5B05))),
+        textDirection: ui.TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(cx - tp.width / 2, 128 - tp.height / 2));
+      canvas.drawPath(
+          Path()
+            ..moveTo(cx - r * 0.55, 128 - r * 0.28)
+            ..quadraticBezierTo(cx - r * 0.43, 128 - r * 0.78, cx + r * 0.07, 128 - r * 0.74),
+          Paint()
+            ..isAntiAlias = true
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round
+            ..strokeWidth = 5
+            ..color = Colors.white.withValues(alpha: 0.85));
       canvas.restore();
     }
 
-    // Celengan (muncul membesar, lalu memantul saat koin masuk).
-    canvas.save();
-    canvas.translate(54, 81);
-    canvas.scale(appear, appear * squash);
-    canvas.translate(-54, -81);
-
-    final tail = Paint()
-      ..isAntiAlias = true
-      ..color = pinkD
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(
-        const Rect.fromLTRB(27.5, 50, 33.5, 57.5), math.pi / 2, math.pi * 1.5, false, tail);
-    p.color = pinkD;
-    for (final l in const [
-      Rect.fromLTRB(40, 70, 47, 81),
-      Rect.fromLTRB(59, 70, 66, 81),
-    ]) {
-      canvas.drawRRect(RRect.fromRectAndRadius(l, const Radius.circular(2.5)), p);
-    }
-    canvas.drawPath(
-        Path()
-          ..moveTo(61, 48)
-          ..lineTo(64.5, 38.5)
-          ..lineTo(71, 48.5)
-          ..close(),
-        p);
-    canvas.drawOval(Rect.fromCenter(center: const Offset(54, 60), width: 44, height: 32),
-        p..color = pink);
-    canvas.drawOval(Rect.fromCenter(center: const Offset(77, 60), width: 12, height: 14),
-        p..color = pinkD);
-    p.color = dark;
-    canvas.drawCircle(const Offset(75.6, 58.2), 1.1, p);
-    canvas.drawCircle(const Offset(75.6, 61.8), 1.1, p);
-    // Mata berkedip sesaat setelah koin masuk.
-    final blink = bounce > 0.3 && bounce < 0.7 ? 0.25 : 1.0;
-    canvas.drawOval(
-        Rect.fromCenter(center: const Offset(67, 54), width: 4.4, height: 4.4 * blink), p);
-    canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            const Rect.fromLTRB(47, 44.2, 61, 46.6), const Radius.circular(1.2)),
-        p);
-    canvas.restore();
-
-    // Kilau kecil di atas celah saat koin masuk.
-    if (bounce > 0 && bounce < 1) {
-      final a = math.sin(bounce * math.pi);
-      final sp = Paint()
+    // Kilau kecil muncul setelah koin mendarat.
+    final sp = Curves.easeOutBack.transform(_seg(0.66, 0.86));
+    if (sp > 0) {
+      final wp = Paint()
         ..isAntiAlias = true
-        ..color = gold.withValues(alpha: a)
-        ..strokeWidth = 1.4
-        ..strokeCap = StrokeCap.round;
-      for (var i = 0; i < 5; i++) {
-        final ang = -math.pi / 2 + (i - 2) * 0.5;
-        final r1 = 5 + 3 * bounce, r2 = 9 + 5 * bounce;
-        canvas.drawLine(
-            Offset(54 + r1 * math.cos(ang), 42 + r1 * math.sin(ang)),
-            Offset(54 + r2 * math.cos(ang), 42 + r2 * math.sin(ang)),
-            sp);
-      }
+        ..color = Colors.white;
+      _spark(canvas, 214, 78, 8 * sp, wp);
+      _spark(canvas, 52, 190, 5 * sp, wp);
     }
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_PiggyPainter old) => old.t != t;
+  bool shouldRepaint(_LogoPainter old) => old.t != t;
 }

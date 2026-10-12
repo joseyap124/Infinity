@@ -144,7 +144,7 @@ Future<bool> confirmDeleteTx(
         ),
         child: Row(
           children: [
-            CatIcon(icon: store.txIcon(t), color: store.txColor(t), size: 38),
+            CatIcon(icon: store.txIcon(t), art: store.txArt(t), color: store.txColor(t), size: 38),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -425,7 +425,7 @@ Widget txTile(BuildContext context, AppStore store, Transaction t,
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                CatIcon(icon: store.txIcon(t), color: store.txColor(t)),
+                CatIcon(icon: store.txIcon(t), art: store.txArt(t), color: store.txColor(t)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

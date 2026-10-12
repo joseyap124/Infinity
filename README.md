@@ -189,7 +189,7 @@ tool/pubspec.lock                 kunci semua dependensi
 tool/ci_setup.sh                  siapkan proyek Flutter (dipakai semua workflow)
 tool/check_apk.py                 cek library native rata 16 KB
 tool/setup_android.py             pasang android_overlay ke proyek hasil flutter create
-tool/make_icons.py                gambar ikon celengan (vector adaptif + PNG)
+tool/make_logo.py                 gambar logo pita ∞ + koin Rp (PNG ikon, splash, monokrom)
 tool/mockup/                      generator gambar mockup di README
 docs/                             ikon & mockup untuk README
 .github/workflows/build-apk.yml   build APK + rilis + simpan log kegagalan

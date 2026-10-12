@@ -384,6 +384,7 @@ class _StatsTabState extends State<StatsTab> {
           children: [
             CatIcon(
                 icon: cat?.iconData ?? Icons.help_outline_rounded,
+                art: cat?.art,
                 color: color,
                 size: 34),
             const SizedBox(width: 10),
@@ -448,7 +449,7 @@ class _SubCategorySheet extends StatelessWidget {
         children: [
           Row(
             children: [
-              CatIcon(icon: top.iconData, color: top.colorValue, size: 40),
+              CatIcon(icon: top.iconData, art: top.art, color: top.colorValue, size: 40),
               const SizedBox(width: 12),
               Expanded(
                 child: Text('Rincian ${top.name}',

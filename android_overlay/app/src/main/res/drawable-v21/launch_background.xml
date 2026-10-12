@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Splash bawaan (sebelum Flutter siap): latar gelap + celengan, menyambung
+<!-- Splash bawaan (sebelum Flutter siap): latar krem + logo pita dan koin, menyambung
      ke splash animasi di dalam app. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/ic_bg" />
@@ -7,5 +7,5 @@
         android:width="180dp"
         android:height="180dp"
         android:gravity="center"
-        android:drawable="@drawable/ic_launcher_foreground" />
+        android:drawable="@drawable/ic_splash_logo" />
 </layer-list>
