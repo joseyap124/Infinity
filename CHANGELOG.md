@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v4.0)
+## v4.0 (12 Okt 2026)
 
 Mencatat transaksi jadi satu layar, plus widget baru dan perapian tampilan.
 
@@ -21,10 +21,17 @@ Mencatat transaksi jadi satu layar, plus widget baru dan perapian tampilan.
 ### Ditambah
 - **Widget kecil 2x1**: sisa aman hari ini dan satu tombol "+" untuk langsung mencatat pengeluaran. Tambahkan lewat daftar widget di layar utama HP.
 
+## Berikutnya (v4.1)
+
 ### Akan datang
 Rencana berikutnya, urutannya bisa bergeser:
 - **Kartu kesehatan backup** di Beranda: chip kecil saat aman, dan kartu peringatan kalau belum ada salinan di luar HP atau backup sudah lama.
 - **Bahasa**: pilihan English dan 简体中文 di Pengaturan. Dikerjakan bertahap, kalimat yang belum diterjemahkan tetap tampil Indonesia.
+- **Notifikasi dengan tombol**: saat notifikasi bank atau e-wallet terdeteksi (mis. SeaBank Rp 15.000), Infinity memunculkan notifikasi dengan tombol Keluar, Masuk, dan Abaikan. Ada tiga mode: mati, tanya dulu, dan otomatis.
+- **Pintasan ikon**: tahan ikon Infinity di layar utama untuk langsung Catat pengeluaran, Catat pemasukan, atau Transfer.
+- **Ubin Quick Settings "Catat"**: ketuk dari panel atas HP untuk membuka layar catat tanpa membuka app dulu.
+- **Pilih banyak transaksi di Riwayat**: tahan satu transaksi untuk memilih beberapa, lalu ubah kategori, ubah akun, atau hapus sekaligus.
+- **Bagikan ringkasan bulan sebagai gambar**: dari Statistik atau Rekap, dengan opsi sembunyikan nominal (default aktif) dan dikirim lewat menu bagikan Android. Gambar dibuat di HP, tidak ada yang diunggah.
 - **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
 - **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
 
