@@ -148,7 +148,7 @@ const Map<String, String> kZhStrings = {
   'Sisa limit {0} dari {1}': '额度剩余 {0} / {1}',
   'Bayar tagihan': '还款',
   'Tahun {0}': '{0} 年',
-  'Anggaran {0}': '预算 {0}',
+  'Anggaran {0}': '{0}预算',
   'Belum ada batas anggaran. Ketuk kartu ini untuk pasang rem 🛑': '还没有预算上限。点按此卡片来设置 🛑',
   'Sisa kuota': '剩余额度',
   'Terpakai {0} dari {1}': '已用 {0} / {1}',

@@ -149,7 +149,7 @@ const Map<String, String> kEnStrings = {
   'Sisa limit {0} dari {1}': 'Limit left {0} of {1}',
   'Bayar tagihan': 'Pay bill',
   'Tahun {0}': 'Year {0}',
-  'Anggaran {0}': 'Budget {0}',
+  'Anggaran {0}': '{0} budget',
   'Belum ada batas anggaran. Ketuk kartu ini untuk pasang rem 🛑': 'No budget limit yet. Tap this card to set one 🛑',
   'Sisa kuota': 'Remaining',
   'Terpakai {0} dari {1}': 'Used {0} of {1}',
