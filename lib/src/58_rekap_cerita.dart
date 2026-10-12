@@ -507,7 +507,7 @@ class StoryCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                    tr('Rekap {0}', [DateFormat('MMMM yyyy', gDateLoc).format(story.month)]),
+                    tr('Rekap bulan {0}', [DateFormat('MMMM yyyy', gDateLoc).format(story.month)]),
                     style: TextStyle(
                         color: _soft, fontSize: 13, fontWeight: FontWeight.w800)),
               ),

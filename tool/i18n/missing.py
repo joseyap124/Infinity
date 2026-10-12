@@ -1,5 +1,5 @@
 import sys,glob,json,importlib
-sys.path.insert(0,'/tmp/claude-0/i18n')
+import os; sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
 from keys import cands
 have=set()
 for m in ['tr1','tr2','tr3','tr4']+sys.argv[2:]:
