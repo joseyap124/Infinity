@@ -30,6 +30,10 @@ class InfinityWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.w_income, widgetData.getString("w_income", null) ?: "Masuk -")
                 setTextViewText(R.id.w_expense, widgetData.getString("w_expense", null) ?: "Keluar -")
 
+                setTextViewText(R.id.w_btn_expense, widgetData.getString("w_btn_expense", null) ?: "− Keluar")
+                setTextViewText(R.id.w_btn_income, widgetData.getString("w_btn_income", null) ?: "+ Masuk")
+                setTextViewText(R.id.w_btn_transfer, widgetData.getString("w_btn_transfer", null) ?: "⇄ Transfer")
+
                 setOnClickPendingIntent(R.id.w_root, launch(context, "infinity://open"))
                 setOnClickPendingIntent(R.id.w_btn_expense, launch(context, "infinity://add?type=expense"))
                 setOnClickPendingIntent(R.id.w_btn_income, launch(context, "infinity://add?type=income"))

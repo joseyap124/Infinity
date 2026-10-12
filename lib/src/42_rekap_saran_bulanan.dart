@@ -178,8 +178,8 @@ extension MonthRecapStore on AppStore {
     if (income <= 0) {
       if (proj > 0 && !isCurrent) {
         out.add(MonthAdvice(AdviceLevel.info, Icons.help_outline_rounded,
-            'Belum ada pemasukan tercatat',
-            'Catat gaji atau pemasukan lain bulan ini supaya porsi tabungan bisa dihitung.'));
+            tr('Belum ada pemasukan tercatat'),
+            tr('Catat gaji atau pemasukan lain bulan ini supaya porsi tabungan bisa dihitung.')));
       }
       return;
     }
@@ -188,8 +188,8 @@ extension MonthRecapStore on AppStore {
     final t = savingTier(rate);
     final pct = (rate * 100).round();
     final when = projected
-        ? 'Perkiraan akhir bulan'
-        : (isCurrent ? 'Sejauh ini' : 'Bulan ini');
+        ? tr('Perkiraan akhir bulan')
+        : (isCurrent ? tr('Sejauh ini') : tr('Bulan ini'));
     final ideal = niceRound(income * 0.8);
     final cut = niceRound(proj - income * 0.8);
     String body;
@@ -198,31 +198,35 @@ extension MonthRecapStore on AppStore {
       case 1:
       case 2:
         icon = Icons.trending_down_rounded;
-        body = '$when keluar ${money(proj)}, masuk ${money(income)}. Selisih ${money(-net)} diambil dari tabungan. '
-            'Bulan depan target maksimal ${money(income)}, idealnya ${money(ideal)} supaya bisa menabung 20%.';
+        body = '${tr('{0} keluar {1}, masuk {2}. Selisih {3} diambil dari tabungan.', [when, money(proj), money(income), money(-net)])} '
+            '${tr('Bulan depan target maksimal {0}, idealnya {1} supaya bisa menabung 20%.', [money(income), money(ideal)])}';
       case 3:
         icon = Icons.savings_outlined;
-        body = 'Baru $pct% pemasukan yang tersisa. Target sehat minimal 20% (aturan 50/30/20): kurangi sekitar ${money(cut)} per bulan, '
-            'atau langsung sisihkan di awal bulan sebelum terpakai.';
+        body = '${tr('Baru {0}% pemasukan yang tersisa. Target sehat minimal 20% (aturan 50/30/20): kurangi sekitar {1} per bulan,', [pct, money(cut)])} '
+            '${tr('atau langsung sisihkan di awal bulan sebelum terpakai.')}';
       case 4:
         icon = Icons.savings_rounded;
-        body = 'Sudah $pct%, sedikit lagi ke 20%. Kurangi sekitar ${money(cut)}, atau pindahkan ${money(niceRound(income * 0.2))} ke tabungan tepat setelah gajian.';
+        body = tr('Sudah {0}%, sedikit lagi ke 20%. Kurangi sekitar {1}, atau pindahkan {2} ke tabungan tepat setelah gajian.', [pct, money(cut), money(niceRound(income * 0.2))]);
       case 5:
         icon = Icons.thumb_up_alt_rounded;
-        body = 'Di atas target 20%. Pindahkan ${money(niceRound(net))} ke tabungan/target sekarang sebelum terpakai.';
+        body = tr('Di atas target 20%. Pindahkan {0} ke tabungan/target sekarang sebelum terpakai.', [money(niceRound(net))]);
       case 6:
         icon = Icons.celebration_rounded;
-        body = 'Jauh di atas rata-rata orang. Sebagian (mis. ${money(niceRound(net / 2))}) bisa ke dana darurat atau target jangka panjang.';
+        body = tr('Jauh di atas rata-rata orang. Sebagian (mis. {0}) bisa ke dana darurat atau target jangka panjang.', [money(niceRound(net / 2))]);
       default:
         icon = Icons.emoji_events_rounded;
-        body = 'Lebih dari separuh pemasukan berhasil disimpan. Pertahankan, dan pastikan tabungannya punya tujuan (dana darurat, target, investasi).';
+        body = tr('Lebih dari separuh pemasukan berhasil disimpan. Pertahankan, dan pastikan tabungannya punya tujuan (dana darurat, target, investasi).');
     }
     out.add(MonthAdvice(
         t.level,
         icon,
         rate < 0
-            ? '${t.label}: tekor ${money(-net)}'
-            : '${t.label} · ${projected ? 'perkiraan ' : (isCurrent ? 'sejauh ini ' : '')}$pct% pemasukan ditabung',
+            ? tr('{0}: tekor {1}', [tr(t.label), money(-net)])
+            : (projected
+                ? tr('{0} · perkiraan {1}% pemasukan ditabung', [tr(t.label), pct])
+                : (isCurrent
+                    ? tr('{0} · sejauh ini {1}% pemasukan ditabung', [tr(t.label), pct])
+                    : tr('{0} · {1}% pemasukan ditabung', [tr(t.label), pct]))),
         body));
   }
 
@@ -231,19 +235,19 @@ extension MonthRecapStore on AppStore {
     if (n == 0 || avg <= 0) return;
     final change = proj / avg - 1;
     final diff = proj - avg;
-    final pre = isCurrent ? 'Perkiraan akhir bulan' : 'Bulan ini';
+    final pre = isCurrent ? tr('Perkiraan akhir bulan') : tr('Bulan ini');
     if (change >= 0.20 && diff >= 200000) {
       out.add(MonthAdvice(
           AdviceLevel.warn,
           Icons.trending_up_rounded,
-          'Pengeluaran naik ${(change * 100).round()}% dari biasanya',
-          '$pre ${money(proj)}, rata-rata $n bulan sebelumnya ${money(avg)}. Lihat kategori yang naik di bawah.'));
+          tr('Pengeluaran naik {0}% dari biasanya', [(change * 100).round()]),
+          tr('{0} {1}, rata-rata {2} bulan sebelumnya {3}. Lihat kategori yang naik di bawah.', [pre, money(proj), n, money(avg)])));
     } else if (change <= -0.10 && -diff >= 100000) {
       out.add(MonthAdvice(
           AdviceLevel.good,
           Icons.trending_down_rounded,
-          'Pengeluaran turun ${(-change * 100).round()}% dari biasanya 👏',
-          'Hemat sekitar ${money(-diff)} dibanding rata-rata $n bulan sebelumnya.'));
+          tr('Pengeluaran turun {0}% dari biasanya 👏', [(-change * 100).round()]),
+          tr('Hemat sekitar {0} dibanding rata-rata {1} bulan sebelumnya.', [money(-diff), n])));
     }
   }
 
@@ -268,16 +272,16 @@ extension MonthRecapStore on AppStore {
           AdviceLevel.warn,
           Icons.category_rounded,
           a == 0
-              ? '${_catName(k)} ${money(c)} (biasanya tidak ada)'
-              : '${_catName(k)} naik ${((c / a - 1) * 100).round()}% (${money(c)}, biasanya ${money(a)})',
-          '${a > 0 ? 'Pasang anggaran kategori ${_catName(k)} sekitar ${money(niceRound(a))} di menu Anggaran.' : 'Kalau ini pengeluaran sekali saja, tidak apa; kalau rutin, masukkan ke anggaran.'}${tip.isEmpty ? '' : ' $tip'}'));
+              ? tr('{0} {1} (biasanya tidak ada)', [_catName(k), money(c)])
+              : tr('{0} naik {1}% ({2}, biasanya {3})', [_catName(k), ((c / a - 1) * 100).round(), money(c), money(a)]),
+          '${a > 0 ? tr('Pasang anggaran kategori {0} sekitar {1} di menu Anggaran.', [_catName(k), money(niceRound(a))]) : tr('Kalau ini pengeluaran sekali saja, tidak apa; kalau rutin, masukkan ke anggaran.')}${tip.isEmpty ? '' : ' ${tr(tip)}'}'));
     }
     for (final (k, c, a) in downs.take(1)) {
       out.add(MonthAdvice(
           AdviceLevel.good,
           Icons.check_circle_rounded,
-          '${_catName(k)} turun ${((1 - c / a) * 100).round()}% 👍',
-          '${money(c)} dibanding biasanya ${money(a)}. Pertahankan.'));
+          tr('{0} turun {1}% 👍', [_catName(k), ((1 - c / a) * 100).round()]),
+          tr('{0} dibanding biasanya {1}. Pertahankan.', [money(c), money(a)])));
     }
   }
 
@@ -316,8 +320,8 @@ extension MonthRecapStore on AppStore {
       out.add(MonthAdvice(
           AdviceLevel.warn,
           Icons.local_cafe_rounded,
-          'Jajan kecil $count kali, total ${money(total)}',
-          'Transaksi di bawah Rp50 rb (${(total / expense * 100).round()}% pengeluaran). Kalau dikurangi setengahnya, hemat sekitar ${money(niceRound(total / 2))}.'));
+          tr('Jajan kecil {0} kali, total {1}', [count, money(total)]),
+          tr('Transaksi di bawah Rp50 rb ({0}% pengeluaran). Kalau dikurangi setengahnya, hemat sekitar {1}.', [(total / expense * 100).round(), money(niceRound(total / 2))])));
     }
   }
 
@@ -331,21 +335,23 @@ extension MonthRecapStore on AppStore {
         out.add(MonthAdvice(
             AdviceLevel.bad,
             Icons.track_changes_rounded,
-            '${isCurrent ? 'Anggaran bisa jebol' : 'Anggaran jebol'} ${money(used - b)}',
-            '${isCurrent ? 'Perkiraan' : 'Terpakai'} ${money(used)} dari ${money(b)}. Kurangi kategori yang naik, atau sesuaikan anggaran supaya realistis.'));
+            isCurrent
+                ? tr('Anggaran bisa jebol {0}', [money(used - b)])
+                : tr('Anggaran jebol {0}', [money(used - b)]),
+            tr('{0} {1} dari {2}. Kurangi kategori yang naik, atau sesuaikan anggaran supaya realistis.', [isCurrent ? tr('Perkiraan') : tr('Terpakai'), money(used), money(b)])));
       } else if (!isCurrent) {
         out.add(MonthAdvice(
             AdviceLevel.good,
             Icons.verified_rounded,
-            'Anggaran terjaga, sisa ${money(b - used)} 👍',
-            'Pindahkan sisanya ke tabungan supaya tidak terpakai bulan depan.'));
+            tr('Anggaran terjaga, sisa {0} 👍', [money(b - used)]),
+            tr('Pindahkan sisanya ke tabungan supaya tidak terpakai bulan depan.')));
       }
     } else if (n > 0 && avgExp > 0) {
       out.add(MonthAdvice(
           AdviceLevel.info,
           Icons.track_changes_rounded,
-          'Belum ada anggaran bulanan',
-          'Dari $n bulan terakhir, anggaran yang realistis sekitar ${money(niceRound(avgExp))}. Pasang di Anggaran supaya "Aman dibelanjakan" ikut menjaga.'));
+          tr('Belum ada anggaran bulanan'),
+          tr('Dari {0} bulan terakhir, anggaran yang realistis sekitar {1}. Pasang di Anggaran supaya "Aman dibelanjakan" ikut menjaga.', [n, money(niceRound(avgExp))])));
     }
   }
 
@@ -368,17 +374,17 @@ extension MonthRecapStore on AppStore {
       out.add(MonthAdvice(
           months < 1 ? AdviceLevel.bad : AdviceLevel.warn,
           Icons.shield_rounded,
-          'Dana darurat baru $m1 bulan pengeluaran',
-          'Saldo kas, bank & tabungan ${money(liquid)}. Target aman 3–6 bulan: ${money(target3)}–${money(niceRound(monthlyExp * 6))}. '
-              'Sisihkan sekitar ${money(perMonth)} per bulan di awal bulan (mis. lewat Target Tabungan) supaya tercapai dalam setahun.'));
+          tr('Dana darurat baru {0} bulan pengeluaran', [m1]),
+          '${tr('Saldo kas, bank & tabungan {0}. Target aman 3–6 bulan: {1}–{2}.', [money(liquid), money(target3), money(niceRound(monthlyExp * 6))])} '
+              '${tr('Sisihkan sekitar {0} per bulan di awal bulan (mis. lewat Target Tabungan) supaya tercapai dalam setahun.', [money(perMonth)])}'));
     } else if (months >= 6) {
       out.add(MonthAdvice(AdviceLevel.good, Icons.shield_rounded,
-          'Dana darurat aman ($m1 bulan) 💪',
-          'Lebih dari 6 bulan pengeluaran. Kelebihannya bisa dipertimbangkan untuk tujuan lain.'));
+          tr('Dana darurat aman ({0} bulan) 💪', [m1]),
+          tr('Lebih dari 6 bulan pengeluaran. Kelebihannya bisa dipertimbangkan untuk tujuan lain.')));
     } else {
       out.add(MonthAdvice(AdviceLevel.good, Icons.shield_rounded,
-          'Dana darurat cukup ($m1 bulan)',
-          'Sudah di zona aman 3–6 bulan. Naikkan pelan-pelan ke 6 bulan.'));
+          tr('Dana darurat cukup ({0} bulan)', [m1]),
+          tr('Sudah di zona aman 3–6 bulan. Naikkan pelan-pelan ke 6 bulan.')));
     }
   }
 
@@ -403,10 +409,10 @@ extension MonthRecapStore on AppStore {
     out.add(MonthAdvice(
         p > 30 ? AdviceLevel.warn : AdviceLevel.info,
         Icons.autorenew_rounded,
-        'Tagihan & langganan rutin ${money(monthly)}/bulan ($p% pemasukan)',
+        tr('Tagihan & langganan rutin {0}/bulan ({1}% pemasukan)', [money(monthly), p]),
         p > 30
-            ? 'Cukup berat. Cek langganan atau tagihan yang bisa diturunkan atau dihentikan.'
-            : 'Masih wajar. Sesekali cek langganan yang jarang dipakai.'));
+            ? tr('Cukup berat. Cek langganan atau tagihan yang bisa diturunkan atau dihentikan.')
+            : tr('Masih wajar. Sesekali cek langganan yang jarang dipakai.')));
   }
 
   void _debtAdvice(List<MonthAdvice> out, DateTime now) {
@@ -420,8 +426,8 @@ extension MonthRecapStore on AppStore {
       out.add(MonthAdvice(
           AdviceLevel.info,
           Icons.handshake_rounded,
-          'Piutang belum kembali ${money(total)} ($names)',
-          'Ada yang sudah lebih dari 2 minggu. Waktunya ditagih.'));
+          tr('Piutang belum kembali {0} ({1})', [money(total), names]),
+          tr('Ada yang sudah lebih dari 2 minggu. Waktunya ditagih.')));
     }
     final end = currentPeriod(now).end;
     final due = debts.where((d) {
@@ -433,8 +439,8 @@ extension MonthRecapStore on AppStore {
       out.add(MonthAdvice(
           AdviceLevel.warn,
           Icons.event_busy_rounded,
-          'Utang jatuh tempo bulan ini ${money(total)}',
-          'Siapkan dananya dulu sebelum belanja lain.'));
+          tr('Utang jatuh tempo bulan ini {0}', [money(total)]),
+          tr('Siapkan dananya dulu sebelum belanja lain.')));
     }
   }
 }
@@ -664,7 +670,7 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
                                       fontSize: 18,
                                       color: _tierColor(tier))),
                               Text(
-                                  tr('Tingkat {0} dari 7 · {1}% pemasukan {2}', [tier.rank, (r.savingRate! * 100).round(), r.savingRate! >= 0 ? 'tersisa' : 'tekor']),
+                                  tr('Tingkat {0} dari 7 · {1}% pemasukan {2}', [tier.rank, (r.savingRate! * 100).round(), r.savingRate! >= 0 ? tr('tersisa') : tr('tekor')]),
                                   style: TextStyle(
                                       fontSize: 12.5, color: C.muted)),
                             ],
@@ -712,8 +718,8 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
                 const SizedBox(width: 10),
                 stat(
                     r.prevMonths > 0
-                        ? 'Rata-rata ${r.prevMonths} bln'
-                        : 'Rata-rata',
+                        ? tr('Rata-rata {0} bln', [r.prevMonths])
+                        : tr('Rata-rata'),
                     r.prevMonths > 0 ? m(r.avgExpense) : '-',
                     C.blueDark),
               ],

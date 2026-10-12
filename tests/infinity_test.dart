@@ -1091,6 +1091,23 @@ void main() {
       expect(titles, contains('Makan turun 31%'));
       expect(r.advice.where((a) => a.isPraise).length, greaterThanOrEqualTo(2));
     });
+
+    test('v4.5: saran bulanan ikut bahasa yang dipilih', () {
+      addTearDown(() => gLang.value = AppLang.id);
+      gLang.value = AppLang.en;
+      final s = scenario(income: 5500000, makan: 3000000);
+      final r = s.monthRecap(DateTime(2026, 10), DateTime(2026, 11, 3));
+      final titles = r.advice.map((a) => a.title).join(' | ');
+      final bodies = r.advice.map((a) => a.body).join(' | ');
+      expect(titles, contains('short by'));
+      expect(titles, contains('Spending is up 38% from usual'));
+      expect(titles, contains('No monthly budget yet'));
+      expect(titles, isNot(contains('Pengeluaran')));
+      expect(bodies, isNot(contains('Sisihkan')));
+      gLang.value = AppLang.zh;
+      final z = s.monthRecap(DateTime(2026, 10), DateTime(2026, 11, 3));
+      expect(z.advice.map((a) => a.title).join(' | '), contains('支出比平时增加了 38%'));
+    });
   });
 
   group('v3.1', () {
@@ -1380,6 +1397,16 @@ void main() {
       final t = s.transactions.firstWhere((t) => t.id == 'sp');
       expect(t.splits.any((x) => x.categoryId == 'pulsa'), isFalse);
       expect(t.splits.length, 3);
+    });
+
+    test('v4.5: tombol widget ikut bahasa', () {
+      addTearDown(() => gLang.value = AppLang.id);
+      final s = splitStore();
+      expect(s.widgetData()['w_btn_expense'], '− Keluar');
+      gLang.value = AppLang.en;
+      expect(s.widgetData()['w_btn_income'], '+ In');
+      gLang.value = AppLang.zh;
+      expect(s.widgetData()['w_btn_transfer'], '⇄ 转账');
     });
 
     test('widget menampilkan aman dibelanjakan dengan tanggal', () {

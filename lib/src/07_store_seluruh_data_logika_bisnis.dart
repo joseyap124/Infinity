@@ -1864,6 +1864,9 @@ class AppStore extends ChangeNotifier {
           : tr('Saldo {0} · {1}', [saldo, budgetLine]),
       'w_income': hide ? tr('Masuk ••••') : tr('Masuk Rp {0}', [compactMoney(income)]),
       'w_expense': hide ? tr('Keluar ••••') : tr('Keluar Rp {0}', [compactMoney(expense)]),
+      'w_btn_expense': tr('− Keluar'),
+      'w_btn_income': tr('+ Masuk'),
+      'w_btn_transfer': tr('⇄ Transfer'),
     };
   }
 

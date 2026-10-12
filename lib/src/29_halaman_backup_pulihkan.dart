@@ -420,7 +420,7 @@ class _BackupPageState extends State<BackupPage> {
                 for (var i = 0; i < kMoveSteps.length; i++)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text('${i + 1}. ${kMoveSteps[i]}',
+                    child: Text('${i + 1}. ${tr(kMoveSteps[i])}',
                         style: TextStyle(fontSize: 12.5, color: C.muted, height: 1.35)),
                   ),
               ],

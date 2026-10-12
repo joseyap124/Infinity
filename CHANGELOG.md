@@ -3,7 +3,28 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v4.4)
+## Berikutnya (v4.5)
+
+Bahasa tahap 2: hampir semua layar sekarang ikut pilihan bahasa.
+
+### Ditambah
+- **Terjemahan English dan 简体中文 untuk layar yang tadinya masih Indonesia**: Utang & Piutang, Target tabungan, Patungan, Acara, Riwayat akun, Kekayaan bersih, Rekap tahunan, Rekap & saran bulanan, Transaksi berulang, Template, Mata uang & kurs, Notifikasi, PIN dan keamanan, Import Money Manager, Cek kesehatan data, Laporan error, dan Panduan.
+- **Saran bulanan** (rekap, tingkat tabungan, dana darurat, anggaran, kategori yang naik) ikut bahasa yang dipilih, termasuk kalimat yang disusun dari angka.
+- Tombol di widget layar utama (Keluar, Masuk, Transfer) ikut bahasa. Widget diperbarui saat bahasa diganti.
+
+### Diubah
+- Teks yang kamu ketik sendiri (judul transaksi, catatan, nama akun, nama kategori yang kamu buat, nama orang di utang dan patungan) tetap apa adanya dan tidak diterjemahkan.
+
+### Catatan
+- Kalimat dengan angka jamak ("1 hari lagi") di English belum membedakan tunggal dan jamak.
+- Teks yang tidak ada di kamus tetap tampil dalam bahasa Indonesia, bukan kosong atau rusak.
+
+### Akan datang
+Rencana berikutnya, urutannya bisa bergeser:
+- **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
+- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
+
+## v4.4 (12 Okt 2026)
 
 Pilih banyak transaksi sekaligus, dan bagikan ringkasan bulan sebagai gambar.
 
@@ -12,12 +33,6 @@ Pilih banyak transaksi sekaligus, dan bagikan ringkasan bulan sebagai gambar.
 - Ubah kategori hanya berlaku untuk transaksi yang jenisnya sama (semua pengeluaran atau semua pemasukan). Transfer tidak punya kategori, jadi dilewati. Transaksi yang dibagi ke beberapa kategori menjadi satu kategori.
 - Ubah akun melewati transfer dan transaksi yang mata uang akunnya beda, karena nominal tidak ikut dikonversi. Jumlah yang diubah dan dilewati ditampilkan setelahnya.
 - **Bagikan ringkasan bulan sebagai gambar**: tombol bagikan di halaman Rekap bulanan, dan "Bagikan ringkasan bulan" di Statistik (mode bulan). Gambar berisi persentase yang tersisa dari pemasukan, pemasukan dan pengeluaran, serta 5 kategori terbesar. **Sembunyikan nominal** aktif secara bawaan, jadi hanya persentase yang tampil. Dikirim lewat menu bagikan Android, atau **Simpan ke HP** (Download/Infinity). Gambar dibuat di HP, tidak ada yang diunggah.
-
-### Akan datang
-Rencana berikutnya, urutannya bisa bergeser:
-- **Bahasa tahap 2**: menerjemahkan layar yang masih tampil Indonesia (utang, target, tabungan, patungan, acara, rekap dan saran bulanan, dan lainnya).
-- **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
-- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
 
 ## v4.3 (12 Okt 2026)
 

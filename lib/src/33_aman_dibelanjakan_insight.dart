@@ -911,7 +911,7 @@ class InsightStrip extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 6),
-          child: Text('$title (${list.length})',
+          child: Text('${tr(title)} (${list.length})',
               style: TextStyle(fontWeight: FontWeight.w800, color: C.carbon)),
         ),
         SizedBox(
