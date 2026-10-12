@@ -69,8 +69,16 @@ extension BackupHealthStore on AppStore {
     final newTx =
         local == null ? transactions.length : transactions.where((t) => t.date.isAfter(local)).length;
     // Backup di HP lama dan datanya berubah: paling mendesak.
-    final localAge = local == null ? null : now.difference(local).inDays;
-    if (!upToDate && (local == null || localAge! >= kBackupStaleDays)) {
+    // Belum pernah backup: umur dihitung dari transaksi tertua, jadi data
+    // yang baru dicatat beberapa hari tidak langsung ditagih.
+    DateTime? since = local;
+    if (since == null) {
+      for (final t in transactions) {
+        if (since == null || t.date.isBefore(since)) since = t.date;
+      }
+    }
+    final localAge = since == null ? 0 : now.difference(since).inDays;
+    if (!upToDate && localAge >= kBackupStaleDays) {
       return BackupStatus(
           level: BackupLevel.stale,
           lastLocal: local,

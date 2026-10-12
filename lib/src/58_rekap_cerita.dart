@@ -508,8 +508,15 @@ class StoryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              MascotView(mood: MascotMood.happy, size: 34),
-              const SizedBox(width: 8),
+              Container(
+                width: 38,
+                height: 38,
+                decoration: const BoxDecoration(
+                    color: Colors.white, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: MascotView(mood: MascotMood.happy, size: 30),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                     tr('Rekap bulan {0}', [DateFormat('MMMM yyyy', gDateLoc).format(story.month)]),

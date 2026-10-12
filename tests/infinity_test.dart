@@ -1206,6 +1206,13 @@ void main() {
       expect(s.backupStatus(now).level, BackupLevel.stale);
       expect(s.backupStatus(now).newTx, 12);
 
+      // Belum pernah backup tapi datanya baru 10 hari: belum ditagih.
+      final fresh = storeWith([acc('bca', initial: 100000)], [
+        for (var i = 0; i < 12; i++)
+          tx('f$i', TxType.expense, 1000, 'bca', date: now.subtract(Duration(days: 10 - (i ~/ 2)))),
+      ]);
+      expect(fresh.backupStatus(now).level, BackupLevel.ok);
+
       // Backup di HP baru dan isinya sama, belum pernah ada salinan di luar HP:
       // tidak ditagih.
       s.updateSettings((x) {
