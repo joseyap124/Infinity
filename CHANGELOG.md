@@ -14,7 +14,7 @@ Perapian tampilan dan widget.
 - **Avatar dan panduan awal** memakai logo baru, bukan celengan atau simbol ∞ polos lagi.
 
 ### Ditambah
-- **Widget kecil 2x1**: sisa aman hari ini dan satu tombol "+ Catat". Tambahkan lewat daftar widget di layar utama HP.
+- **Widget kecil 2x1**: sisa aman hari ini dan satu tombol "+" untuk langsung mencatat pengeluaran. Tambahkan lewat daftar widget di layar utama HP.
 
 ## v3.7.1 (12 Okt 2026)
 
