@@ -2582,4 +2582,29 @@ void main() {
       expect(s.plannedNotifications().any((n) => n.title.contains('Barang a')), isFalse);
     });
   });
+  group('v5.0 ikon Flat', () {
+    test('semua ikon Flat punya padanan Kartun dan berupa PNG', () {
+      final kartun = <String>{...kArtKeys, ...kExtraArtKeys};
+      expect(kFlatB64.length, greaterThanOrEqualTo(55));
+      for (final e in kFlatB64.entries) {
+        expect(kartun, contains(e.key), reason: e.key);
+        final b = base64Decode(e.value);
+        expect(b.sublist(0, 4), [0x89, 0x50, 0x4E, 0x47], reason: e.key);
+      }
+    });
+
+    test('gaya Flat memakai gambar Flat, gaya lain tidak', () {
+      addTearDown(() => gIconStyle.value = 'cartoon');
+      gIconStyle.value = 'cartoon';
+      final k = artBytes('food');
+      gIconStyle.value = 'flat';
+      final f = artBytes('food');
+      expect(f, isNotNull);
+      expect(f, isNot(equals(k)));
+      gIconStyle.value = 'mono';
+      expect(iconsArt('mono'), isFalse);
+      expect(iconsArt('flat'), isTrue);
+      expect(iconsArt('classic'), isFalse);
+    });
+  });
 }
