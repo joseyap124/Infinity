@@ -201,8 +201,8 @@ class CatIcon extends StatelessWidget {
   final Color color;
   final double size;
 
-  /// Kunci ikon kartun (lihat [kArtKeys]). Null = selalu pakai ikon Material,
-  /// misalnya untuk transfer dan akun.
+  /// Kunci ikon kartun (lihat [kArtKeys]). Kalau kosong, dicari dari ikon
+  /// Material-nya lewat [kFnArt]; ikon yang tidak ada di sana tetap Material.
   final String? art;
 
   @override
@@ -210,7 +210,8 @@ class CatIcon extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: gCartoon,
       builder: (context, cartoon, _) {
-        final bytes = cartoon ? artBytes(art) : null;
+        final bytes =
+            cartoon ? artBytes(art ?? kFnArt[icon.codePoint]) : null;
         if (bytes != null) {
           return Container(
             width: size,

@@ -6,7 +6,8 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya (v3.7.1)
 
 ### Ditambah
-- **Ikon kartun untuk akun, transfer, utang, acara, dan target tabungan**: tiap tipe akun (E-Wallet, Tunai, Rekening Bank, Kartu Kredit, Investasi) punya gambar sendiri di daftar akun, riwayat akun, Statistik, dan Patungan. Transfer antar akun, utang/piutang, acara, target tabungan (piala saat tercapai), dan tagihan kartu kredit di Beranda juga bergambar. Mengikuti pilihan "Gaya ikon kategori" di Pengaturan, jadi di gaya Klasik semuanya tetap ikon lama.
+- **Ikon kartun untuk semua menu dan status**, bukan cuma kategori. Tiap tipe akun (E-Wallet, Tunai, Rekening Bank, Kartu Kredit, Investasi), transfer, utang, acara, dan target tabungan (piala saat tercapai) punya gambar sendiri. Menu Lainnya dan Pengaturan juga bergambar (gear, awan backup, petir template, perisai cek data, kutu laporan error, palet, lonceng, jam, gembok, kurs, kalender, dan lainnya), begitu pula saran bulanan, status PIN, status notifikasi, dan tombol Masuk/Keluar di Riwayat. 27 gambar baru.
+- Semua ini mengikuti pilihan "Gaya ikon kategori" di Pengaturan, Tampilan. Di gaya Klasik semuanya tetap ikon lama.
 
 ## v3.7 (12 Okt 2026)
 

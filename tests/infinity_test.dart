@@ -1428,6 +1428,13 @@ void main() {
       expect(artBytes(null), isNull);
     });
 
+    test('setiap ikon Material di kFnArt mengarah ke gambar yang ada', () {
+      expect(kFnArt, isNotEmpty);
+      for (final e in kFnArt.entries) {
+        expect(artBytes(e.value), isNotNull, reason: e.value);
+      }
+    });
+
     test('instans bytes dipakai ulang supaya cache gambar kena', () {
       expect(identical(artBytes('food'), artBytes('food')), isTrue);
     });
