@@ -80,7 +80,7 @@ String tr(String id, [List<Object?> args = const []]) {
           for (var g = m.groupCount; g >= 1; g--) {
             t = t.replaceAll('\$$g', tr(m.group(g) ?? ''));
           }
-          found = t;
+          found = lang == AppLang.en ? _enSingular(t) : t;
           break;
         }
       }
@@ -93,7 +93,35 @@ String tr(String id, [List<Object?> args = const []]) {
     final a = args[i];
     s = s.replaceAll('{$i}', '$a');
   }
+  if (lang == AppLang.en) s = _enSingular(s);
   return s;
+}
+
+const Map<String, String> _enPlurals = {
+  'days': 'day',
+  'months': 'month',
+  'weeks': 'week',
+  'years': 'year',
+  'hours': 'hour',
+  'seconds': 'second',
+  'transactions': 'transaction',
+  'reminders': 'reminder',
+  'errors': 'error',
+  'things': 'thing',
+  'receivables': 'receivable',
+  'notifications': 'notification',
+  'installments': 'installment',
+  'tries': 'try',
+  'accounts': 'account',
+  'templates': 'template',
+  'events': 'event',
+};
+final RegExp _enOne = RegExp(r'(^|[^\d.,])1 (' + _enPlurals.keys.join('|') + r')\b');
+
+/// English: "1 days" menjadi "1 day" untuk daftar kata benda yang dipakai di kamus.
+String _enSingular(String s) {
+  if (!s.contains('1 ')) return s;
+  return s.replaceAllMapped(_enOne, (m) => '${m[1]}1 ${_enPlurals[m[2]] ?? m[2]}');
 }
 
 /// Bangun ulang semua layar yang sedang terbuka (dipanggil saat bahasa diganti),

@@ -16,7 +16,7 @@ Bahasa tahap 2: hampir semua layar sekarang ikut pilihan bahasa.
 - Teks yang kamu ketik sendiri (judul transaksi, catatan, nama akun, nama kategori yang kamu buat, nama orang di utang dan patungan) tetap apa adanya dan tidak diterjemahkan.
 
 ### Catatan
-- Kalimat dengan angka jamak ("1 hari lagi") di English belum membedakan tunggal dan jamak.
+- English membedakan tunggal dan jamak untuk kata yang umum ("1 day", "2 days", "1 transaction"). Bahasa lain tidak punya bentuk jamak.
 - Teks yang tidak ada di kamus tetap tampil dalam bahasa Indonesia, bukan kosong atau rusak.
 
 ### Akan datang

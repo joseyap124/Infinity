@@ -2071,6 +2071,20 @@ void main() {
       expect(gDateLoc, 'zh_CN');
     });
 
+    test('v4.5: English tidak menulis "1 days" atau "11 days" salah', () {
+      gLang.value = AppLang.en;
+      expect(tr('Ubah kategori {0} transaksi', [1]), 'Change category of 1 transaction');
+      expect(tr('Ubah kategori {0} transaksi', [2]), 'Change category of 2 transactions');
+      expect(tr('Ubah kategori {0} transaksi', [11]), 'Change category of 11 transactions');
+      expect(tr('Ubah kategori {0} transaksi', [21]), 'Change category of 21 transactions');
+      expect(tr('{0} hari lalu', [1]), '1 day ago');
+      expect(tr('{0} hari lalu', [3]), '3 days ago');
+      expect(tr('Rata-rata {0} bln', [1]), 'Average of 1 mo');
+      expect(tr('1 transaksi'), '1 transaction');
+      gLang.value = AppLang.zh;
+      expect(tr('{0} hari lalu', [1]), contains('天前'));
+    });
+
     test('bahasa tersimpan di pengaturan, backup lama tanpa bahasa tetap Indonesia', () {
       final s = AppSettings()..lang = 'zh';
       expect(AppSettings.fromJson(s.toJson()).lang, 'zh');

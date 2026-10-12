@@ -171,7 +171,7 @@ extension MonthRecapStore on AppStore {
     );
   }
 
-  String _catName(String id) => categoryById(id)?.name ?? 'Tanpa kategori';
+  String _catName(String id) => tr(categoryById(id)?.name ?? 'Tanpa kategori');
 
   void _savingAdvice(List<MonthAdvice> out, double income, double proj,
       bool isCurrent, bool projected) {
