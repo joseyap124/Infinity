@@ -114,7 +114,7 @@ class MascotPainter extends CustomPainter {
               color: color.withValues(alpha: opacity),
               fontSize: size,
               fontWeight: FontWeight.w900)),
-      textDirection: TextDirection.ltr,
+      textDirection: ui.TextDirection.ltr,
     )..layout();
     tp.paint(c, center - Offset(tp.width / 2, tp.height / 2));
   }
