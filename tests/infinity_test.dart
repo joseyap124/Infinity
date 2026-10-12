@@ -132,6 +132,138 @@ void main() {
     });
   });
 
+  group('v4.3 tombol notifikasi', () {
+    const gopayTopUp =
+        'Kamu berhasil isi saldo GO-PAY sebesar Rp250.000. Saldomu sekarang: Rp612.500.';
+    AppStore setup() {
+      final s = storeWith([
+        acc('bca', initial: 1000000),
+        acc('gopay', initial: 100000, type: AccountType.ewallet),
+      ]);
+      s.categories = [
+        TxCategory(id: 'lain', name: 'Lain lain', type: TxType.expense, icon: 'other', color: 0),
+        TxCategory(id: 'gaji', name: 'Gaji', type: TxType.income, icon: 'other', color: 0),
+      ];
+      s.settings.captureMode = 'ask';
+      return s;
+    }
+
+    Map<String, dynamic> item(String decision,
+            {DateTime? at,
+            String pkg = 'com.bca.mybca.omni.android',
+            String text = 'Transfer berhasil sebesar Rp 50.000,00',
+            String qid = 'q1'}) =>
+        {
+          'pkg': pkg,
+          'title': 'myBCA',
+          'text': text,
+          'time': (at ?? DateTime(2026, 10, 12, 9, 0)).millisecondsSinceEpoch,
+          'qid': qid,
+          'decision': decision,
+        };
+
+    test('Keluar mencatat pengeluaran', () {
+      final s = setup();
+      expect(s.applyCaptureDecisions([item('expense')]), (1, 0));
+      final t = s.transactions.single;
+      expect(t.type, TxType.expense);
+      expect(t.accountId, 'bca');
+      expect(t.amount, 50000);
+      expect(t.note, startsWith('Dari notifikasi'));
+      expect(s.balanceOf('bca'), 950000);
+    });
+
+    test('Masuk mencatat pemasukan walau teksnya tidak jelas', () {
+      final s = setup();
+      expect(s.applyCaptureDecisions([item('income')]), (1, 0));
+      expect(s.transactions.single.type, TxType.income);
+      expect(s.balanceOf('bca'), 1050000);
+    });
+
+    test('Abaikan tidak mencatat, dan tidak diproses dua kali', () {
+      final s = setup();
+      expect(s.applyCaptureDecisions([item('ignore')]), (0, 1));
+      expect(s.transactions, isEmpty);
+      // Notifikasi yang sama terkirim lagi, lalu user menekan Keluar.
+      expect(s.applyCaptureDecisions([item('expense', qid: 'q2')]), (0, 0));
+      expect(s.transactions, isEmpty);
+    });
+
+    test('pilihan yang sama dua kali hanya dicatat sekali', () {
+      final s = setup();
+      s.applyCaptureDecisions([item('expense'), item('expense', qid: 'q2')]);
+      expect(s.transactions, hasLength(1));
+    });
+
+    test('pilihan menggantikan item di "Dari Notifikasi"', () {
+      final s = setup();
+      final at = DateTime(2026, 10, 12, 9, 0);
+      s.ingestCaptured([
+        {
+          'pkg': 'com.bca.mybca.omni.android',
+          'title': 'myBCA',
+          'text': 'Transfer berhasil sebesar Rp 50.000,00',
+          'time': at.millisecondsSinceEpoch,
+        }
+      ]);
+      expect(s.pendingCaptures, hasLength(1));
+      expect(s.applyCaptureDecisions([item('expense', at: at)]), (1, 0));
+      expect(s.pendingCaptures, isEmpty);
+      expect(s.transactions, hasLength(1));
+    });
+
+    test('akun yang tidak dikenal memakai akun utama', () {
+      final s = setup();
+      s.applyCaptureDecisions([
+        item('expense', pkg: 'id.co.bankbaru', text: 'Pembayaran Rp 20.000 berhasil')
+      ]);
+      expect(s.transactions.single.accountId, s.defaultAccountId);
+    });
+
+    test('isi saldo e-wallet tetap menunggu dicek, bukan jadi pengeluaran', () {
+      final s = setup();
+      expect(
+          s.applyCaptureDecisions(
+              [item('expense', pkg: 'com.gojek.gopay', text: gopayTopUp)]),
+          (0, 0));
+      expect(s.transactions, isEmpty);
+      expect(s.pendingCaptures, hasLength(1));
+    });
+
+    test('keputusan tak dikenal atau tanpa nominal dilewati', () {
+      final s = setup();
+      expect(
+          s.applyCaptureDecisions([
+            item('lainnya'),
+            item('expense', text: 'Halo tanpa nominal', qid: 'q3'),
+          ]),
+          (0, 0));
+      expect(s.transactions, isEmpty);
+    });
+
+    test('pengaturan native: nyala hanya kalau mode bukan mati dan saklar aktif', () {
+      final s = setup();
+      Map<String, dynamic> cfg() => jsonDecode(s.captureConfigJson());
+      expect(cfg()['on'], true);
+      s.settings.captureButtons = false;
+      expect(cfg()['on'], false);
+      s.settings.captureButtons = true;
+      s.settings.captureMode = 'off';
+      expect(cfg()['on'], false);
+      s.settings.captureMode = 'auto';
+      expect(cfg()['on'], true);
+      expect((cfg()['pkgs'] as List), contains('seabank'));
+      expect((cfg()['promo'] as List), contains('voucher'));
+      expect(cfg()['out'], 'Keluar');
+    });
+
+    test('saklar tersimpan di pengaturan', () {
+      final a = AppSettings()..captureButtons = false;
+      expect(AppSettings.fromJson(a.toJson()).captureButtons, false);
+      expect(AppSettings.fromJson(<String, dynamic>{}).captureButtons, true);
+    });
+  });
+
   group('Utang & target', () {
     test('cicilan utang dan lunas', () {
       final s = storeWith([acc('a')]);

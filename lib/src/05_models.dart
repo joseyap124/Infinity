@@ -547,6 +547,10 @@ class AppSettings {
   /// 'off' | 'ask' | 'auto' untuk pencatatan dari notifikasi bank/e-wallet.
   String captureMode = 'auto';
 
+  /// Notifikasi dengan tombol Keluar / Masuk / Abaikan saat notifikasi
+  /// bank atau e-wallet terdeteksi (berlaku kalau [captureMode] bukan 'off').
+  bool captureButtons = true;
+
   // Notifikasi
   bool notifHideAmounts = true;
   bool notifEnabled = true;
@@ -599,6 +603,7 @@ class AppSettings {
         'splashSeen': splashSeen,
         'onboarded': onboarded,
         'captureMode': captureMode,
+        'captureButtons': captureButtons,
         'notifHideAmounts': notifHideAmounts,
         'notifEnabled': notifEnabled,
         'notifRecurring': notifRecurring,
@@ -704,6 +709,7 @@ class AppSettings {
     final mode = _s(j['captureMode']);
     s.captureMode =
         (mode == 'off' || mode == 'ask' || mode == 'auto') ? mode! : 'auto';
+    s.captureButtons = j['captureButtons'] != false;
     s.notifHideAmounts = j['notifHideAmounts'] != false;
     s.notifEnabled = j['notifEnabled'] != false;
     s.notifRecurring = j['notifRecurring'] != false;

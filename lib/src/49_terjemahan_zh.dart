@@ -765,4 +765,10 @@ const Map<String, String> kZhStrings = {
   'Bagus!': '很好！',
   'Luar biasa! 🎉': '太棒了！🎉',
   'Juara menabung! 🏆': '储蓄冠军！🏆',
+  'Transaksi terdeteksi': '检测到交易',
+  'Dicatat saat Infinity dibuka.': '打开 Infinity 时记录。',
+  '{0} transaksi dicatat dari tombol notifikasi ✅': '已根据通知按钮记录 {0} 笔交易 ✅',
+  '{0} dicatat otomatis, {1} dari tombol notifikasi, {2} menunggu dicek.': '自动记录 {0} 笔，通知按钮记录 {1} 笔，{2} 笔待确认。',
+  'Notifikasi dengan tombol': '带按钮的通知',
+  'Saat notifikasi bank atau e-wallet terdeteksi, Infinity memunculkan notifikasi dengan tombol Keluar, Masuk, dan Abaikan. Pilihanmu dicatat begitu Infinity dibuka berikutnya.': '检测到银行或电子钱包通知时，Infinity 会弹出带有“支出”“收入”“忽略”按钮的通知。你的选择会在下次打开 Infinity 时记录。',
 };

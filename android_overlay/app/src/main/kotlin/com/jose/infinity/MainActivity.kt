@@ -27,8 +27,14 @@ class MainActivity : FlutterFragmentActivity() {
         // supaya screenshot bisa.
     }
 
+    override fun onPause() {
+        CaptureStore.appForeground = false
+        super.onPause()
+    }
+
     override fun onResume() {
         super.onResume()
+        CaptureStore.appForeground = true
         // Kalau izin akses notifikasi masih aktif tapi layanan terputus
         // (umum setelah update app), sambungkan lagi.
         if (isListenerEnabled()) NotificationCaptureService.rebind(this)
@@ -126,6 +132,17 @@ class MainActivity : FlutterFragmentActivity() {
                     "ackCaptured" -> {
                         val ids = call.argument<List<String>>("ids") ?: emptyList()
                         CaptureStore.ack(this, ids)
+                        for (id in ids) CaptureAlert.cancel(this, id)
+                        result.success(null)
+                    }
+                    "fetchDecisions" -> result.success(CaptureStore.peekDecisions(this))
+                    "ackDecisions" -> {
+                        val ids = call.argument<List<String>>("ids") ?: emptyList()
+                        CaptureStore.ackDecisions(this, ids)
+                        result.success(null)
+                    }
+                    "setCaptureConfig" -> {
+                        CaptureStore.setConfig(this, call.argument<String>("json") ?: "{}")
                         result.success(null)
                     }
                     "saveDownload" -> {

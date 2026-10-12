@@ -3,6 +3,53 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v4.3)
+
+Notifikasi bank atau e-wallet sekarang bisa langsung dijawab dari panel notifikasi.
+
+### Ditambah
+- **Notifikasi dengan tombol**: saat notifikasi bank atau e-wallet terdeteksi (mis. SeaBank Rp 15.000), Infinity memunculkan notifikasi "Transaksi terdeteksi" dengan tombol **Keluar**, **Masuk**, dan **Abaikan**. Keluar atau Masuk langsung menyiapkan transaksinya (akun dan kategori ditebak seperti biasa), Abaikan membuangnya. Di layar kunci, isi notifikasi disembunyikan.
+- Pilihanmu **dicatat begitu Infinity dibuka berikutnya**, bukan saat tombol ditekan, karena data Infinity terenkripsi dan hanya app yang bisa menulisnya. Saldo dan "Aman dibelanjakan" baru berubah setelah itu.
+- Saklar **Notifikasi dengan tombol** ada di Lainnya, Catat Otomatis (muncul kalau mode bukan Mati). Mode Mati, Tanya dulu, dan Langsung catat tetap seperti sebelumnya.
+- Hanya aplikasi keuangan yang dikenali (GoPay, OVO, DANA, ShopeePay, BCA, Jago, BRImo, Livin, BNI, SeaBank, LinkAja, blu, Flip) yang memunculkan notifikasi bertombol, dan notifikasi promo dilewati. Saat Infinity sedang terbuka, notifikasi bertombol tidak muncul karena app membaca sendiri.
+- Isi saldo e-wallet tetap menunggu di "Dari Notifikasi" karena itu transfer, bukan pengeluaran.
+
+### Catatan
+- Notifikasi bertombol memakai izin notifikasi Android yang sama dengan pengingat. Kalau tidak muncul, cek izin notifikasi Infinity di pengaturan HP.
+
+### Akan datang
+Rencana berikutnya, urutannya bisa bergeser:
+- **Pilih banyak transaksi di Riwayat**: tahan satu transaksi untuk memilih beberapa, lalu ubah kategori, ubah akun, atau hapus sekaligus.
+- **Bagikan ringkasan bulan sebagai gambar**: dari Statistik atau Rekap, dengan opsi sembunyikan nominal (default aktif) dan dikirim lewat menu bagikan Android. Gambar dibuat di HP, tidak ada yang diunggah.
+- **Bahasa tahap 2**: menerjemahkan layar yang masih tampil Indonesia (utang, target, tabungan, patungan, acara, rekap dan saran bulanan, dan lainnya).
+- **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
+- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
+
+## v4.2 (12 Okt 2026)
+
+Pilihan bahasa: Indonesia, English, dan 简体中文.
+
+### Ditambah
+- **Bahasa**: Pengaturan, Tampilan, **Bahasa**. Pilihan Indonesia, English, atau 简体中文. Berlaku seketika tanpa menutup halaman yang sedang dibuka, dan ikut tersimpan di backup. Nama bulan dan hari di tanggal ikut bahasa yang dipilih.
+- Yang sudah diterjemahkan di tahap ini: Beranda, Riwayat, form catat transaksi, Statistik, Rencana (anggaran dan tagihan), Akun, Pengaturan, Backup, notifikasi, kategori dan akun bawaan, serta pesan di layar.
+- Tulisan yang kamu ketik sendiri (judul transaksi, nama akun, nama kategori yang kamu buat) tidak pernah diterjemahkan.
+
+### Catatan
+- Layar yang belum diterjemahkan tetap tampil Indonesia, bukan kosong. Yang belum: utang, target dan tabungan, patungan, acara, rekap dan saran bulanan, serta beberapa layar lain. Semuanya masuk tahap 2.
+- Label tetap di widget layar utama (mis. "Masuk", "Keluar") masih Indonesia.
+
+## v4.1 (12 Okt 2026)
+
+Backup lebih terlihat, dan pintasan langsung dari ikon app.
+
+### Ditambah
+- **Kartu kesehatan backup di Beranda**: chip hijau "Backup aman" saat backup di HP baru dan ada salinan di luar HP. Kalau belum ada salinan di luar HP (Google Drive dll) muncul kartu kuning dengan tombol **Simpan ke Drive**. Kalau backup di HP sudah seminggu lebih dan datanya berubah, muncul kartu merah dengan tombol **Simpan sekarang**. Baru muncul setelah ada 10 transaksi. Kartu bisa ditutup untuk hari itu.
+- **Status backup** di Lainnya, Backup & Pulihkan: kapan backup otomatis terakhir, kapan salinan di luar HP terakhir, dan apakah isi data masih sama dengan backup terakhir.
+- **Pintasan ikon**: tahan ikon Infinity di layar utama untuk langsung Catat pengeluaran, Catat pemasukan, atau Transfer.
+
+### Diubah
+- Pengingat salinan di luar HP pindah dari deretan "Perlu perhatian" ke kartu backup di atas, supaya tidak muncul dobel.
+
 ## v4.0 (12 Okt 2026)
 
 Mencatat transaksi jadi satu layar, plus widget baru dan perapian tampilan.
@@ -20,40 +67,6 @@ Mencatat transaksi jadi satu layar, plus widget baru dan perapian tampilan.
 
 ### Ditambah
 - **Widget kecil 2x1**: sisa aman hari ini dan satu tombol "+" untuk langsung mencatat pengeluaran. Tambahkan lewat daftar widget di layar utama HP.
-
-## Berikutnya (v4.2)
-
-Pilihan bahasa: Indonesia, English, dan 简体中文.
-
-### Ditambah
-- **Bahasa**: Pengaturan, Tampilan, **Bahasa**. Pilihan Indonesia, English, atau 简体中文. Berlaku seketika tanpa menutup halaman yang sedang dibuka, dan ikut tersimpan di backup. Nama bulan dan hari di tanggal ikut bahasa yang dipilih.
-- Yang sudah diterjemahkan di tahap ini: Beranda, Riwayat, form catat transaksi, Statistik, Rencana (anggaran dan tagihan), Akun, Pengaturan, Backup, notifikasi, kategori dan akun bawaan, serta pesan di layar.
-- Tulisan yang kamu ketik sendiri (judul transaksi, nama akun, nama kategori yang kamu buat) tidak pernah diterjemahkan.
-
-### Catatan
-- Layar yang belum diterjemahkan tetap tampil Indonesia, bukan kosong. Yang belum: utang, target dan tabungan, patungan, acara, rekap dan saran bulanan, serta beberapa layar lain. Semuanya masuk tahap 2.
-- Label tetap di widget layar utama (mis. "Masuk", "Keluar") masih Indonesia.
-
-### Akan datang
-Rencana berikutnya, urutannya bisa bergeser:
-- **Bahasa tahap 2**: menerjemahkan layar yang masih tampil Indonesia (utang, target, tabungan, patungan, acara, rekap dan saran bulanan, dan lainnya).
-- **Notifikasi dengan tombol**: saat notifikasi bank atau e-wallet terdeteksi (mis. SeaBank Rp 15.000), Infinity memunculkan notifikasi dengan tombol Keluar, Masuk, dan Abaikan. Ada tiga mode: mati, tanya dulu, dan otomatis.
-- **Pilih banyak transaksi di Riwayat**: tahan satu transaksi untuk memilih beberapa, lalu ubah kategori, ubah akun, atau hapus sekaligus.
-- **Bagikan ringkasan bulan sebagai gambar**: dari Statistik atau Rekap, dengan opsi sembunyikan nominal (default aktif) dan dikirim lewat menu bagikan Android. Gambar dibuat di HP, tidak ada yang diunggah.
-- **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.
-- **Dipertimbangkan**: pendeteksi biaya yang bocor (langganan dan biaya kecil berulang) dan fitur "tunda beli".
-
-## v4.1 (12 Okt 2026)
-
-Backup lebih terlihat, dan pintasan langsung dari ikon app.
-
-### Ditambah
-- **Kartu kesehatan backup di Beranda**: chip hijau "Backup aman" saat backup di HP baru dan ada salinan di luar HP. Kalau belum ada salinan di luar HP (Google Drive dll) muncul kartu kuning dengan tombol **Simpan ke Drive**. Kalau backup di HP sudah seminggu lebih dan datanya berubah, muncul kartu merah dengan tombol **Simpan sekarang**. Baru muncul setelah ada 10 transaksi. Kartu bisa ditutup untuk hari itu.
-- **Status backup** di Lainnya, Backup & Pulihkan: kapan backup otomatis terakhir, kapan salinan di luar HP terakhir, dan apakah isi data masih sama dengan backup terakhir.
-- **Pintasan ikon**: tahan ikon Infinity di layar utama untuk langsung Catat pengeluaran, Catat pemasukan, atau Transfer.
-
-### Diubah
-- Pengingat salinan di luar HP pindah dari deretan "Perlu perhatian" ke kartu backup di atas, supaya tidak muncul dobel.
 
 ## v3.7.1 (12 Okt 2026)
 

@@ -200,6 +200,8 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     gLang.value = langOf(store.settings.lang);
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
+    store.addListener(_syncCaptureConfig);
+    _syncCaptureConfig();
     _scheduleNotifications();
     unawaited(NativeBridge.setSecure(store.settings.secureScreen));
     await _ingestCaptures(quiet: true);
@@ -312,25 +314,31 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
 
   Future<void> _ingestCaptures({bool quiet = false}) async {
     if (!store.loaded || store.settings.captureMode == 'off') return;
-    final raw = await NativeBridge.fetchCaptured();
-    if (raw.isEmpty || !mounted) return;
-    final before = store.pendingCaptures.length;
-    final auto = store.ingestCaptured(raw);
-    final waiting = store.pendingCaptures.length - before;
-    // Antrean native baru dikosongkan setelah hasilnya benar-benar tertulis.
-    if (await store.flush()) {
-      await NativeBridge.ackCaptured([
-        for (final r in raw)
-          if (r['qid'] is String) r['qid'] as String
-      ]);
-    }
-    if (!mounted || quiet && auto == 0 && waiting <= 0) return;
-    if (auto > 0) {
-      snack(context, tr('{0} transaksi tercatat otomatis dari notifikasi 🤖', [auto]));
-    } else if (waiting > 0) {
+    // Pilihan tombol di notifikasi dan notifikasi baru; antrean native
+    // dikosongkan setelah hasilnya benar-benar tertulis.
+    final r = await store.syncNativeCaptures();
+    if (r.fetched == 0 || !mounted) return;
+    if (quiet && r.auto == 0 && r.waiting <= 0 && r.buttons == 0) return;
+    if (r.buttons > 0) {
+      snack(context, tr('{0} transaksi dicatat dari tombol notifikasi ✅', [r.buttons]));
+    } else if (r.auto > 0) {
+      snack(context, tr('{0} transaksi tercatat otomatis dari notifikasi 🤖', [r.auto]));
+    } else if (r.waiting > 0) {
       snack(context,
-          tr('{0} transaksi dari notifikasi menunggu dicek di Beranda', [waiting]));
+          tr('{0} transaksi dari notifikasi menunggu dicek di Beranda', [r.waiting]));
     }
+  }
+
+  String? _lastCaptureConfig;
+
+  /// Kirim pengaturan notifikasi bertombol ke native kalau berubah
+  /// (mode, saklar, atau bahasa).
+  void _syncCaptureConfig() {
+    if (!store.loaded) return;
+    final json = store.captureConfigJson();
+    if (json == _lastCaptureConfig) return;
+    _lastCaptureConfig = json;
+    unawaited(NativeBridge.setCaptureConfig(json));
   }
 
   /// Tombol widget: infinity://add?type=expense|income|transfer
@@ -384,6 +392,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     _widgetSub?.cancel();
     _quickSub?.cancel();
     store.removeListener(_syncTheme);
+    store.removeListener(_syncCaptureConfig);
     store.removeListener(_scheduleNotifications);
     WidgetsBinding.instance.removeObserver(this);
     store.dispose();

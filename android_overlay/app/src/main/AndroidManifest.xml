@@ -53,6 +53,11 @@
             </intent-filter>
         </service>
 
+        <!-- Tombol Keluar/Masuk/Abaikan di notifikasi transaksi terdeteksi -->
+        <receiver
+            android:name=".CaptureActionReceiver"
+            android:exported="false"/>
+
         <!-- Widget layar utama -->
         <receiver
             android:name=".InfinityWidgetProvider"

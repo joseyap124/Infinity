@@ -766,6 +766,12 @@ const Map<String, String> kEnStrings = {
   'Bagus!': 'Good!',
   'Luar biasa! 🎉': 'Excellent! 🎉',
   'Juara menabung! 🏆': 'Savings champion! 🏆',
+  'Transaksi terdeteksi': 'Transaction detected',
+  'Dicatat saat Infinity dibuka.': 'Recorded when Infinity is opened.',
+  '{0} transaksi dicatat dari tombol notifikasi ✅': '{0} transactions recorded from notification buttons ✅',
+  '{0} dicatat otomatis, {1} dari tombol notifikasi, {2} menunggu dicek.': '{0} recorded automatically, {1} from notification buttons, {2} waiting to be checked.',
+  'Notifikasi dengan tombol': 'Notifications with buttons',
+  'Saat notifikasi bank atau e-wallet terdeteksi, Infinity memunculkan notifikasi dengan tombol Keluar, Masuk, dan Abaikan. Pilihanmu dicatat begitu Infinity dibuka berikutnya.': 'When a bank or e-wallet notification is detected, Infinity shows a notification with Out, In and Ignore buttons. Your choice is recorded the next time Infinity is opened.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

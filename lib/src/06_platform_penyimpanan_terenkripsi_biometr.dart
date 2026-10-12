@@ -192,6 +192,37 @@ class NativeBridge {
       await _ch.invokeMethod('ackCaptured', {'ids': ids});
     } catch (_) {}
   }
+
+  /// Pilihan dari tombol Keluar / Masuk / Abaikan di notifikasi. Tiap item
+  /// berisi isi notifikasi plus 'decision' (expense | income | ignore).
+  static Future<List<Map<String, dynamic>>> fetchDecisions() async {
+    try {
+      final s = await _ch.invokeMethod<String>('fetchDecisions');
+      if (s == null || s.isEmpty) return [];
+      final list = jsonDecode(s);
+      if (list is! List) return [];
+      return list
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> ackDecisions(List<String> ids) async {
+    if (ids.isEmpty) return;
+    try {
+      await _ch.invokeMethod('ackDecisions', {'ids': ids});
+    } catch (_) {}
+  }
+
+  /// Kirim pengaturan notifikasi bertombol ke native (JSON).
+  static Future<void> setCaptureConfig(String json) async {
+    try {
+      await _ch.invokeMethod('setCaptureConfig', {'json': json});
+    } catch (_) {}
+  }
 }
 
 /// Notifikasi bank/e-wallet yang tertangkap dan menunggu dicek user.

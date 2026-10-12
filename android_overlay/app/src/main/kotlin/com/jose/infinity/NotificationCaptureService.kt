@@ -55,6 +55,10 @@ class NotificationCaptureService : NotificationListenerService() {
             .put("text", text)
             .put("time", sbn.postTime)
         CaptureStore.add(this, item)
+        try {
+            CaptureAlert.show(this, item)
+        } catch (_: Exception) {
+        }
     }
 }
 
@@ -67,8 +71,14 @@ class NotificationCaptureService : NotificationListenerService() {
 object CaptureStore {
     private const val PREFS = "infinity_capture"
     private const val KEY = "items"
+    private const val KEY_DECISIONS = "decisions"
+    private const val KEY_CONFIG = "config"
     private const val MAX = 300
     private var counter = 0L
+
+    /** True selama layar Infinity terbuka. Saat itu app sendiri yang menampilkan notifikasinya. */
+    @Volatile
+    var appForeground = false
 
     private fun read(ctx: Context): JSONArray {
         val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -129,5 +139,87 @@ object CaptureStore {
             kept.put(arr.get(i))
         }
         write(ctx, kept)
+    }
+
+    // ---- Keputusan dari tombol notifikasi (Keluar / Masuk / Abaikan) ----
+    // Data Infinity terenkripsi dan hanya bisa ditulis oleh Dart, jadi tombol
+    // hanya mencatat pilihan di sini. Dart menerapkannya saat app dibuka.
+
+    private fun readDecisions(ctx: Context): JSONArray {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return try {
+            JSONArray(prefs.getString(KEY_DECISIONS, "[]"))
+        } catch (e: Exception) {
+            JSONArray()
+        }
+    }
+
+    private fun writeDecisions(ctx: Context, arr: JSONArray) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY_DECISIONS, arr.toString()).commit()
+    }
+
+    /**
+     * Pindahkan item [qid] dari antrean notifikasi ke antrean keputusan.
+     * Mengembalikan item (dengan "decision") atau null kalau item sudah
+     * diambil Infinity lebih dulu.
+     */
+    @Synchronized
+    fun decide(ctx: Context, qid: String, decision: String): JSONObject? {
+        val arr = read(ctx)
+        var found: JSONObject? = null
+        val kept = JSONArray()
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i)
+            if (found == null && o != null && o.optString("qid") == qid) {
+                found = o
+                continue
+            }
+            kept.put(arr.get(i))
+        }
+        val item = found ?: return null
+        item.put("decision", decision)
+        val dec = readDecisions(ctx)
+        dec.put(item)
+        val trimmed = JSONArray()
+        val start = maxOf(0, dec.length() - MAX)
+        for (i in start until dec.length()) trimmed.put(dec.get(i))
+        // Tulis keputusan dulu, baru hapus dari antrean, supaya tidak hilang.
+        writeDecisions(ctx, trimmed)
+        write(ctx, kept)
+        return item
+    }
+
+    @Synchronized
+    fun peekDecisions(ctx: Context): String = readDecisions(ctx).toString()
+
+    @Synchronized
+    fun ackDecisions(ctx: Context, ids: List<String>) {
+        if (ids.isEmpty()) return
+        val set = ids.toHashSet()
+        val arr = readDecisions(ctx)
+        val kept = JSONArray()
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i)
+            if (o != null && set.contains(o.optString("qid"))) continue
+            kept.put(arr.get(i))
+        }
+        writeDecisions(ctx, kept)
+    }
+
+    // ---- Pengaturan dari Dart (mode, daftar app, teks terjemahan) ----
+
+    fun setConfig(ctx: Context, json: String) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY_CONFIG, json).commit()
+    }
+
+    fun config(ctx: Context): JSONObject {
+        val s = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_CONFIG, null)
+        return try {
+            if (s == null) JSONObject() else JSONObject(s)
+        } catch (e: Exception) {
+            JSONObject()
+        }
     }
 }

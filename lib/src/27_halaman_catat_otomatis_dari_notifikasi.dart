@@ -4,6 +4,71 @@ part of '../main.dart';
 // HALAMAN: CATAT OTOMATIS DARI NOTIFIKASI
 // =============================================================================
 
+/// Hasil membaca antrean notifikasi dari native.
+class CaptureSyncResult {
+  const CaptureSyncResult(
+      {this.fetched = 0,
+      this.auto = 0,
+      this.waiting = 0,
+      this.buttons = 0,
+      this.ignored = 0});
+  final int fetched;
+  final int auto;
+  final int waiting;
+
+  /// Dicatat dari tombol Keluar / Masuk di notifikasi.
+  final int buttons;
+  final int ignored;
+}
+
+/// Pengaturan yang dikirim ke native untuk notifikasi bertombol.
+extension CaptureNativeConfig on AppStore {
+  String captureConfigJson() => jsonEncode({
+        'on': settings.captureButtons && settings.captureMode != 'off',
+        'pkgs': [for (final e in _knownApps) e[0]],
+        'promo': _promoWords,
+        'channel': tr('Transaksi terdeteksi'),
+        'hiddenTitle': tr('Transaksi terdeteksi'),
+        'out': tr('Keluar'),
+        'inn': tr('Masuk'),
+        'ignore': tr('Abaikan'),
+        'doneOut': tr('Pengeluaran'),
+        'doneIn': tr('Pemasukan'),
+        'doneNote': tr('Dicatat saat Infinity dibuka.'),
+      });
+
+  /// Baca pilihan tombol dan notifikasi baru dari native, simpan, lalu
+  /// kosongkan antrean native setelah datanya benar-benar tertulis.
+  Future<CaptureSyncResult> syncNativeCaptures() async {
+    if (!loaded || settings.captureMode == 'off') {
+      return const CaptureSyncResult();
+    }
+    final decisions = await NativeBridge.fetchDecisions();
+    final raw = await NativeBridge.fetchCaptured();
+    if (raw.isEmpty && decisions.isEmpty) return const CaptureSyncResult();
+    final (buttons, ignored) = applyCaptureDecisions(decisions);
+    final before = pendingCaptures.length;
+    final auto = ingestCaptured(raw);
+    final waiting = pendingCaptures.length - before;
+    if (await flush()) {
+      await NativeBridge.ackCaptured([
+        for (final r in raw)
+          if (r['qid'] is String) r['qid'] as String
+      ]);
+      await NativeBridge.ackDecisions([
+        for (final r in decisions)
+          if (r['qid'] is String) r['qid'] as String
+      ]);
+    }
+    return CaptureSyncResult(
+        fetched: raw.length + decisions.length,
+        auto: auto,
+        waiting: waiting < 0 ? 0 : waiting,
+        buttons: buttons,
+        ignored: ignored);
+  }
+}
+
 class AutoCapturePage extends StatefulWidget {
   const AutoCapturePage({super.key, required this.store});
   final AppStore store;
@@ -42,16 +107,14 @@ class _AutoCapturePageState extends State<AutoCapturePage>
   }
 
   Future<void> _checkNow() async {
-    final raw = await NativeBridge.fetchCaptured();
+    final r = await store.syncNativeCaptures();
     if (!mounted) return;
-    final before = store.pendingCaptures.length;
-    final auto = store.ingestCaptured(raw);
-    final waiting = store.pendingCaptures.length - before;
     snack(
         context,
-        raw.isEmpty
+        r.fetched == 0
             ? 'Belum ada notifikasi uang baru.'
-            : tr('{0} dicatat otomatis, {1} menunggu dicek.', [auto, waiting < 0 ? 0 : waiting]));
+            : tr('{0} dicatat otomatis, {1} dari tombol notifikasi, {2} menunggu dicek.',
+                [r.auto, r.buttons, r.waiting]));
   }
 
   Widget _step(String n, String text) => Padding(
@@ -178,6 +241,27 @@ class _AutoCapturePageState extends State<AutoCapturePage>
                       'Langsung dicatat kalau akun bisa ditebak. Kalau akun tidak jelas atau sepertinya sudah kamu catat manual (nominal & akun sama dalam 10 menit), masuk ke "Dari Notifikasi" dulu.',
                   },
                   style: TextStyle(fontSize: 12.5, color: C.muted)),
+              if (mode != 'off') ...[
+                const SizedBox(height: 12),
+                AppCard(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: SwitchListTile(
+                    value: store.settings.captureButtons,
+                    onChanged: (v) {
+                      store.updateSettings((x) => x.captureButtons = v);
+                      if (v) unawaited(Notifier.instance.requestPermission());
+                    },
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                    title: const Text('Notifikasi dengan tombol',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 14)),
+                    subtitle: Text(
+                        'Saat notifikasi bank atau e-wallet terdeteksi, Infinity memunculkan notifikasi dengan tombol Keluar, Masuk, dan Abaikan. Pilihanmu dicatat begitu Infinity dibuka berikutnya.',
+                        style: TextStyle(fontSize: 12.5, color: C.muted)),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               AppCard(
                 child: Column(

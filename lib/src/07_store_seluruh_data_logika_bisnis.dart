@@ -1753,6 +1753,82 @@ class AppStore extends ChangeNotifier {
     return auto;
   }
 
+  /// Menerapkan pilihan dari tombol di notifikasi native. Tiap item berisi isi
+  /// notifikasi dan 'decision': expense, income, atau ignore. Pilihan yang
+  /// jelas dari user langsung dicatat, tanpa pengecekan dobel.
+  /// Mengembalikan (dicatat, diabaikan).
+  (int, int) applyCaptureDecisions(List<Map<String, dynamic>> raw) {
+    var recorded = 0;
+    var ignored = 0;
+    var changed = false;
+    for (final r in raw) {
+      final decision = _s(r['decision']) ?? '';
+      if (decision != 'expense' && decision != 'income' && decision != 'ignore') {
+        continue;
+      }
+      final pkg = _s(r['pkg']) ?? '';
+      final title = (_s(r['title']) ?? '').trim();
+      final text = (_s(r['text']) ?? '').trim();
+      final time = DateTime.fromMillisecondsSinceEpoch(
+          _i(r['time'], DateTime.now().millisecondsSinceEpoch));
+      final key = '$pkg|$title|$text@${time.millisecondsSinceEpoch ~/ 180000}';
+
+      // Kalau sempat masuk antrean "Dari Notifikasi", keluarkan: pilihan user menggantikannya.
+      final before = pendingCaptures.length;
+      pendingCaptures.removeWhere((c) =>
+          c.pkg == pkg &&
+          c.title == title &&
+          c.text == text &&
+          c.time.millisecondsSinceEpoch == time.millisecondsSinceEpoch);
+      final wasPending = pendingCaptures.length != before;
+      // Sudah diproses sebelumnya (notifikasi yang sama terkirim dua kali).
+      if (_seenCaptureKeys.contains(key) && !wasPending) continue;
+      _seenCaptureKeys.add(key);
+      changed = true;
+
+      if (decision == 'ignore') {
+        ignored++;
+        continue;
+      }
+      final c = CapturedNotif(
+          id: newId(), pkg: pkg, title: title, text: text, time: time);
+      final p = parseReceipt(c.fullText, this);
+      final amount = p.amount;
+      if (amount == null) continue;
+      final type = decision == 'income' ? TxType.income : TxType.expense;
+      final accountId =
+          p.accountId ?? accountForPackage(pkg) ?? defaultAccountId;
+      final categoryId = learnedCategory(p.title ?? '', type) ??
+          p.categoryId ??
+          fallbackCategory(type);
+      final setAt = DateTime.tryParse(settings.balanceSetAt[accountId] ?? '');
+      final beforeManualBalance = setAt != null && time.isBefore(setAt);
+      // Isi saldo e-wallet adalah transfer, dan notifikasi sebelum saldo
+      // diubah manual sudah ikut terhitung: keduanya dicek user dulu.
+      if (categoryId == null || p.isTopUp || beforeManualBalance) {
+        pendingCaptures.add(c);
+        continue;
+      }
+      transactions.add(Transaction(
+        id: 'ntf_${time.millisecondsSinceEpoch}_${newId()}',
+        title: p.title ?? 'Transaksi ${appLabelForPackage(pkg)}',
+        amount: amount,
+        type: type,
+        categoryId: categoryId,
+        accountId: accountId,
+        date: time,
+        note: 'Dari notifikasi ${appLabelForPackage(pkg)}',
+      ));
+      recorded++;
+    }
+    if (_seenCaptureKeys.length > 600) {
+      _seenCaptureKeys =
+          _seenCaptureKeys.sublist(_seenCaptureKeys.length - 600);
+    }
+    if (changed) _commit();
+    return (recorded, ignored);
+  }
+
   /// Data teks untuk widget layar utama.
   Map<String, String> widgetData() {
     final now = DateTime.now();
