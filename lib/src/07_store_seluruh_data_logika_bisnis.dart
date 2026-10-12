@@ -1114,6 +1114,100 @@ class AppStore extends ChangeNotifier {
     return best;
   }
 
+  /// Maksimal kategori di bagian "Sering dipakai" (kotak ke-8 = "Semua").
+  static const int kFrequentSlots = 7;
+
+  /// Kategori untuk bagian "Sering dipakai" di layar catat: yang dipin dulu
+  /// (urutan pin), lalu yang paling sering dipakai dalam 90 hari (seri: yang
+  /// terbaru), lalu kategori utama bawaan. Yang disembunyikan dilewati.
+  /// [ensure] (mis. kategori yang sedang dipilih) selalu ikut tampil.
+  List<String> frequentCategories(TxType type,
+      {String? ensure, DateTime? now, int limit = kFrequentSlots}) {
+    final at = now ?? DateTime.now();
+    final from = at.subtract(const Duration(days: 90));
+    bool valid(String id) {
+      final c = categoryById(id);
+      return c != null && c.type == type;
+    }
+
+    final out = <String>[];
+    for (final id in settings.pinnedCats) {
+      if (out.length >= limit) break;
+      if (valid(id) && !out.contains(id)) out.add(id);
+    }
+    final counts = <String, int>{};
+    final last = <String, DateTime>{};
+    for (final t in transactions) {
+      if (t.type != type || t.date.isBefore(from)) continue;
+      final id = t.categoryId;
+      if (id == null || !valid(id)) continue;
+      counts[id] = (counts[id] ?? 0) + 1;
+      final l = last[id];
+      if (l == null || t.date.isAfter(l)) last[id] = t.date;
+    }
+    final ranked = counts.keys.toList()
+      ..sort((a, b) {
+        final c = counts[b]!.compareTo(counts[a]!);
+        return c != 0 ? c : last[b]!.compareTo(last[a]!);
+      });
+    bool ok(String id) =>
+        !out.contains(id) && !settings.hiddenFreq.contains(id);
+    for (final id in ranked) {
+      if (out.length >= limit) break;
+      if (ok(id)) out.add(id);
+    }
+    // Belum cukup riwayat: isi dengan kategori tanpa sub-kategori, sesuai
+    // urutan daftar kategori.
+    final parents = {for (final c in categories) ?c.parentId};
+    for (final c in categories) {
+      if (out.length >= limit) break;
+      if (c.type == type && !parents.contains(c.id) && ok(c.id)) out.add(c.id);
+    }
+    if (ensure != null && valid(ensure) && !out.contains(ensure)) {
+      if (out.length >= limit) {
+        // Kotak terakhir diganti kategori yang sedang dipilih.
+        out[out.length - 1] = ensure;
+      } else {
+        out.add(ensure);
+      }
+    }
+    return out;
+  }
+
+  bool isPinned(String id) => settings.pinnedCats.contains(id);
+
+  /// Berapa kali kategori dipakai dalam [days] hari terakhir.
+  int categoryUseCount(String id, {int days = 90, DateTime? now}) {
+    final from = (now ?? DateTime.now()).subtract(Duration(days: days));
+    var n = 0;
+    for (final t in transactions) {
+      if (t.categoryId == id && !t.date.isBefore(from)) n++;
+    }
+    return n;
+  }
+
+  /// Pin / lepas pin. Mengembalikan false kalau pin sudah penuh.
+  bool togglePin(String id) {
+    if (settings.pinnedCats.contains(id)) {
+      updateSettings((s) => s.pinnedCats.remove(id));
+      return true;
+    }
+    if (settings.pinnedCats.length >= kFrequentSlots) return false;
+    updateSettings((s) {
+      s.pinnedCats.add(id);
+      s.hiddenFreq.remove(id);
+    });
+    return true;
+  }
+
+  void hideFromFrequent(String id) => updateSettings((s) {
+        s.pinnedCats.remove(id);
+        if (!s.hiddenFreq.contains(id)) s.hiddenFreq.add(id);
+      });
+
+  void showInFrequent(String id) =>
+      updateSettings((s) => s.hiddenFreq.remove(id));
+
   String? fallbackCategory(TxType type) {
     if (type == TxType.expense) {
       final lain = categoryById('lain');

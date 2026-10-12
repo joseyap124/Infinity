@@ -3,7 +3,19 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.7.2)
+## Berikutnya (v4.0)
+
+Mencatat transaksi jadi satu layar.
+
+### Diubah
+- **Catat transaksi satu layar**: nominal besar di atas, kategori dipilih langsung dari kotak **Sering dipakai**, akun dan tanggal sebagai chip, lalu tombol angka bawaan app (1 sampai 9, 000, 0, hapus; tahan hapus untuk mengosongkan). Tombol Simpan menampilkan nominalnya, mis. "Simpan Rp 38.000". Tidak ada lagi keyboard sistem yang menutupi layar. Berlaku untuk Pengeluaran, Pemasukan, Transfer, dan edit transaksi.
+- **Sering dipakai**: 7 kategori + "Semua" (untuk daftar lengkap dengan sub-kategori). Urutannya otomatis dari kategori yang paling sering kamu pakai 90 hari terakhir, terpisah untuk pengeluaran dan pemasukan.
+- **Pin**: tahan sebuah kategori untuk pin ke atas (maksimal 7), lepas pin, atau sembunyikan dari Sering dipakai. Kategori yang dipin tidak bergeser. Pin ikut tersimpan di backup.
+- **Transfer**: akun asal dan tujuan dipilih lewat chip yang bisa digeser. Kalau beda mata uang, kolom "Diterima" muncul.
+- **Judul, catatan, foto struk, acara, bagi kategori, tempel struk, dan template** dipindah ke satu layar "Detail transaksi" (tombol "Catatan, struk, bagi"), supaya layar utama tetap bersih. Kolom yang tadinya "Catatan" sekarang bernama **Judul**, dan "Deskripsi" menjadi **Catatan**.
+- Transaksi berulang dan template tetap memakai form lama.
+
+## v3.7.2 (12 Okt 2026)
 
 Perapian tampilan dan widget.
 

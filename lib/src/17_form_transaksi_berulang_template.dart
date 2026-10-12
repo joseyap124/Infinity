@@ -771,8 +771,901 @@ class _TxFormSheetState extends State<TxFormSheet> {
     );
   }
 
+  // ------------------------------------------------ catat satu layar (v4.0)
+
+  Widget _accentTheme(Color accent, Widget child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(primary: accent),
+          textSelectionTheme: TextSelectionThemeData(
+            cursorColor: accent,
+            selectionHandleColor: accent,
+            selectionColor: accent.withValues(alpha: 0.25),
+          ),
+        ),
+        child: child,
+      );
+
+  /// Tombol angka bawaan app: 1-9, 000 (atau koma untuk mata uang desimal),
+  /// 0, hapus. Tahan hapus untuk mengosongkan.
+  void _key(String k) {
+    final dec = hasDecimals(_fromCur);
+    final old = _amountCtrl.text;
+    var t = old;
+    if (k == 'del') {
+      if (dec) {
+        t = old.isEmpty ? '' : old.substring(0, old.length - 1);
+      } else {
+        final d = old.replaceAll(RegExp(r'[^0-9]'), '');
+        t = d.isEmpty ? '' : d.substring(0, d.length - 1);
+      }
+    } else if (k == '.') {
+      if (!dec || old.contains('.')) return;
+      t = '${old.isEmpty ? '0' : old}.';
+    } else {
+      t = old + k;
+    }
+    if (dec && !t.contains('.')) t = t.replaceFirst(RegExp(r'^0+(?=\d)'), '');
+    var text = AmountFormatter(decimals: dec)
+        .formatEditUpdate(
+            TextEditingValue(text: old), TextEditingValue(text: t))
+        .text;
+    if (!dec && parseAmount(text) == 0) text = '';
+    HapticFeedback.selectionClick();
+    setState(() {
+      _amountCtrl.text = text;
+      _error = null;
+      _syncToAmount();
+    });
+  }
+
+  void _clearAmount() {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _amountCtrl.text = '';
+      _error = null;
+      _syncToAmount();
+    });
+  }
+
+  Widget _numpad() {
+    final dec = hasDecimals(_fromCur);
+    final keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', dec ? '.' : '000', '0', 'del'];
+    Widget keyBox(String k) {
+      final isDel = k == 'del';
+      return Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: Semantics(
+            button: true,
+            label: isDel ? 'Hapus' : (k == '.' ? 'Koma' : k),
+            excludeSemantics: true,
+            child: Material(
+              color: C.bg,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => _key(k),
+                onLongPress: isDel ? _clearAmount : null,
+                child: SizedBox(
+                  height: 46,
+                  child: Center(
+                    child: isDel
+                        ? Icon(Icons.backspace_outlined,
+                            size: 21, color: C.carbon)
+                        : Text(k == '.' ? ',' : k,
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: C.carbon)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        for (var r = 0; r < 4; r++)
+          Padding(
+            padding: EdgeInsets.only(top: r == 0 ? 0 : 6),
+            child: Row(children: [for (final k in keys.sublist(r * 3, r * 3 + 3)) keyBox(k)]),
+          ),
+      ],
+    );
+  }
+
+  String _dateLabel() {
+    final n = DateTime.now();
+    final diff = DateTime(n.year, n.month, n.day)
+        .difference(DateTime(_date.year, _date.month, _date.day))
+        .inDays;
+    if (diff == 0) return 'Hari ini';
+    if (diff == 1) return 'Kemarin';
+    return DateFormat('d MMM yyyy', 'id_ID').format(_date);
+  }
+
+  Widget _pill({
+    required Widget leading,
+    required String label,
+    required VoidCallback onTap,
+    bool selected = false,
+    bool disabled = false,
+    Color? accent,
+    bool dropdown = false,
+  }) {
+    final a = accent ?? _type.color;
+    return Opacity(
+      opacity: disabled ? 0.35 : 1,
+      child: Material(
+        color: selected ? a.withValues(alpha: 0.08) : Colors.transparent,
+        shape: StadiumBorder(
+            side: BorderSide(
+                color: selected ? a : C.line, width: selected ? 1.6 : 1)),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: disabled ? null : onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 7, 12, 7),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                leading,
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: selected ? a : C.carbon)),
+                ),
+                if (dropdown)
+                  Icon(Icons.keyboard_arrow_down_rounded,
+                      size: 18, color: C.muted),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _accountLeading(String id, {double size = 22}) {
+    final a = store.accountById(id);
+    if (a == null) return SizedBox(width: size, height: size);
+    return CatIcon(icon: a.type.icon, art: a.type.art, color: a.colorValue, size: size);
+  }
+
+  Widget _accountRow({required bool to}) {
+    final selected = to ? _toId : _fromId;
+    final disabled = to ? _fromId : null;
+    return SizedBox(
+      height: 38,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: store.accounts.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final a = store.accounts[i];
+          return _pill(
+            leading: _accountLeading(a.id),
+            label: a.name,
+            selected: a.id == selected,
+            disabled: a.id == disabled,
+            onTap: () => to ? _selectTo(a.id) : _selectFrom(a.id),
+          );
+        },
+      ),
+    );
+  }
+
+  void _chooseCategory1(String id) {
+    if (id == _categoryId) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _categoryId = id;
+      _catTouched = true;
+      _error = null;
+    });
+  }
+
+  Future<void> _categoryMenu(String id) async {
+    final c = store.categoryById(id);
+    if (c == null) return;
+    HapticFeedback.mediumImpact();
+    final pinned = store.isPinned(id);
+    final hidden = store.settings.hiddenFreq.contains(id);
+    final uses = store.categoryUseCount(id);
+    final act = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: C.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      sheetAnimationStyle: AnimationStyle.noAnimation,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: CatIcon(icon: c.iconData, art: c.art, color: c.colorValue, size: 40),
+              title: Text(c.name,
+                  style: const TextStyle(fontWeight: FontWeight.w900)),
+              subtitle: Text(uses == 0
+                  ? 'Belum dipakai dalam 90 hari terakhir'
+                  : 'Dipakai $uses kali dalam 90 hari terakhir'),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: Icon(
+                  pinned ? Icons.push_pin_outlined : Icons.push_pin_rounded),
+              title: Text(pinned ? 'Lepas pin' : 'Pin ke atas'),
+              onTap: () => Navigator.pop(ctx, 'pin'),
+            ),
+            if (hidden)
+              ListTile(
+                leading: const Icon(Icons.visibility_rounded),
+                title: const Text('Tampilkan lagi di "Sering dipakai"'),
+                onTap: () => Navigator.pop(ctx, 'show'),
+              )
+            else
+              ListTile(
+                leading: const Icon(Icons.visibility_off_rounded),
+                title: const Text('Sembunyikan dari "Sering dipakai"'),
+                onTap: () => Navigator.pop(ctx, 'hide'),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (act == null || !mounted) return;
+    switch (act) {
+      case 'pin':
+        final ok = store.togglePin(id);
+        if (!ok) {
+          snack(context,
+              'Maksimal ${AppStore.kFrequentSlots} kategori dipin. Lepas pin satu dulu.');
+        }
+      case 'hide':
+        store.hideFromFrequent(id);
+      case 'show':
+        store.showInFrequent(id);
+    }
+    setState(() {});
+  }
+
+  Widget _frequentGrid(Color accent) {
+    final ids = store.frequentCategories(_type, ensure: _categoryId);
+    final cells = <Widget>[];
+    for (final id in ids) {
+      final c = store.categoryById(id);
+      if (c == null) continue;
+      final sel = id == _categoryId;
+      cells.add(InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _chooseCategory1(id),
+        onLongPress: () => _categoryMenu(id),
+        child: Semantics(
+          button: true,
+          selected: sel,
+          label: c.name,
+          excludeSemantics: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: sel ? accent.withValues(alpha: 0.08) : null,
+              border: sel ? Border.all(color: accent, width: 1.6) : null,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            padding: const EdgeInsets.fromLTRB(2, 6, 2, 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CatIcon(icon: c.iconData, art: c.art, color: c.colorValue, size: 42),
+                    if (store.isPinned(id))
+                      Positioned(
+                        right: -4,
+                        top: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                              color: C.surface,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: C.line)),
+                          child: Icon(Icons.push_pin_rounded,
+                              size: 11, color: accent),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(shortCategoryName(c.name),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 10.5,
+                        height: 1.15,
+                        fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                        color: sel ? accent : C.carbon)),
+              ],
+            ),
+          ),
+        ),
+      ));
+    }
+    cells.add(InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: _pickCategory,
+      child: Semantics(
+        button: true,
+        label: 'Semua kategori',
+        excludeSemantics: true,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(2, 6, 2, 4),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CatIcon(
+                  icon: Icons.apps_rounded,
+                  art: 'other',
+                  color: C.muted,
+                  size: 42),
+              const SizedBox(height: 4),
+              Text('Semua',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: C.carbon)),
+            ],
+          ),
+        ),
+      ),
+    ));
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      mainAxisSpacing: 4,
+      crossAxisSpacing: 4,
+      childAspectRatio: 0.86,
+      children: cells,
+    );
+  }
+
+  /// Foto struk (dipakai di layar detail).
+  Widget _photoSection(Color accent, VoidCallback refresh) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          for (final p in _photos)
+            ReceiptThumb(
+              name: p,
+              onRemove: () {
+                setState(() => _photos.remove(p));
+                refresh();
+              },
+            ),
+          InkWell(
+            onTap: () async {
+              await _addPhoto();
+              refresh();
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: C.line, width: 1.5),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_a_photo_rounded, size: 20, color: accent),
+                  Text('Struk',
+                      style: TextStyle(fontSize: 10, color: C.muted)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool get _hasDetails =>
+      _noteCtrl.text.trim().isNotEmpty ||
+      _photos.isNotEmpty ||
+      _eventId != null ||
+      _saveTemplate;
+
+  /// Judul, catatan, foto struk, acara, bagi kategori, tempel struk, template.
+  Future<void> _openDetails() async {
+    FocusScope.of(context).unfocus();
+    final accent = _type.color;
+    await showSheet<void>(
+      context,
+      StatefulBuilder(
+        builder: (ctx, setInner) {
+          void refresh() {
+            if (mounted) setInner(() {});
+          }
+
+          return _accentTheme(
+            accent,
+            SheetFrame(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('Detail transaksi',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: C.carbon)),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Selesai'),
+                      ),
+                    ],
+                  ),
+                  FormRow(
+                    label: 'Judul',
+                    accent: accent,
+                    child: SuggestField(
+                      controller: _titleCtrl,
+                      focusNode: _titleFocus,
+                      suggest: (q) => store.suggestTitles(q, _type),
+                      detail: (t) {
+                        final last = store.lastWithTitle(t, _type);
+                        if (last == null) return null;
+                        final cat = store
+                            .categoryById(store.learnedCategory(t, _type) ??
+                                last.categoryId)
+                            ?.name;
+                        return [
+                          money(last.amount, store.currencyOf(last.accountId)),
+                          ?cat,
+                          store.accountName(last.accountId),
+                        ].join(' · ');
+                      },
+                      onPicked: (t) {
+                        _pickedTitle(t);
+                        refresh();
+                      },
+                      textCapitalization: TextCapitalization.sentences,
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: C.carbon),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                        hintText: 'Misal "Nasi padang"',
+                      ),
+                    ),
+                  ),
+                  FormRow(
+                    label: 'Catatan',
+                    accent: accent,
+                    child: SuggestField(
+                      controller: _noteCtrl,
+                      focusNode: _noteFocus,
+                      suggest: store.suggestNotes,
+                      maxLength: 120,
+                      minLines: 1,
+                      maxLines: 3,
+                      textCapitalization: TextCapitalization.sentences,
+                      style: TextStyle(fontSize: 14, color: C.carbon),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                        counterText: '',
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                        hintText: 'Opsional',
+                      ),
+                    ),
+                  ),
+                  if (store.events.isNotEmpty)
+                    FormRow(
+                      label: 'Acara',
+                      accent: accent,
+                      onTap: () async {
+                        final id = await pickEvent(ctx, store, _eventId);
+                        if (id == null || !mounted) return;
+                        setState(() => _eventId = id.isEmpty ? null : id);
+                        refresh();
+                      },
+                      child: FormValue(store.eventById(_eventId)?.name,
+                          placeholder: 'Tanpa acara'),
+                    ),
+                  if (Receipts.available)
+                    FormRow(
+                      label: 'Foto',
+                      accent: accent,
+                      child: _photoSection(accent, refresh),
+                    ),
+                  if (_canSplit && !_splitting && _categoryId != null)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.call_split_rounded, color: accent),
+                      title: const Text('Bagi ke beberapa kategori',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
+                      onTap: () {
+                        Navigator.of(ctx).pop();
+                        _addSplit();
+                      },
+                    ),
+                  if (!widget.isEditing) ...[
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.content_paste_rounded, color: accent),
+                      title: const Text('Isi dari teks struk atau notifikasi',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
+                      subtitle: const Text('Salin dulu teksnya, lalu ketuk di sini'),
+                      onTap: () {
+                        Navigator.of(ctx).pop();
+                        _pasteReceipt();
+                      },
+                    ),
+                    if (store.templates.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text('Pakai template',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: C.muted)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final t in store.templates)
+                            ActionChip(
+                              avatar: const Icon(Icons.bolt_rounded, size: 16),
+                              label: Text(t.title),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              side: BorderSide(color: C.line),
+                              onPressed: () {
+                                Navigator.of(ctx).pop();
+                                _applyTemplate(t);
+                              },
+                            ),
+                        ],
+                      ),
+                    ],
+                    CheckboxListTile(
+                      value: _saveTemplate,
+                      onChanged: (v) {
+                        setState(() => _saveTemplate = v ?? false);
+                        refresh();
+                      },
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: const Text('Simpan juga sebagai template catat cepat',
+                          style: TextStyle(fontSize: 13.5)),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  PrimaryButton(
+                    label: 'Selesai',
+                    color: accent,
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  String get _saveLabel {
+    if (widget.isEditing) return 'Simpan perubahan';
+    final a = _amount;
+    if (a <= 0) return 'Simpan';
+    final m = money(a, _fromCur);
+    return switch (_type) {
+      TxType.expense => 'Simpan $m',
+      TxType.income => 'Simpan pemasukan $m',
+      TxType.transfer => 'Simpan transfer $m',
+    };
+  }
+
+  Widget _buildOnePage(BuildContext context) {
+    final accent = _type.color;
+    final isTransfer = _type == TxType.transfer;
+    final dec = hasDecimals(_fromCur);
+    final raw = _amountCtrl.text;
+    final empty = raw.isEmpty;
+    final shown = empty ? '0' : (dec ? raw.replaceAll('.', ',') : raw);
+    final title = _titleCtrl.text.trim();
+
+    final top = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Segmented<TxType>(
+          values: const [TxType.expense, TxType.income, TxType.transfer],
+          selected: _type,
+          labelOf: (t) => t.label,
+          colorOf: (t) => t.color,
+          dense: true,
+          onChanged: _changeType,
+        ),
+        const SizedBox(height: 10),
+        // Nominal besar (diisi lewat tombol angka di bawah).
+        Row(
+          children: [
+            const SizedBox(width: 44),
+            Expanded(
+              child: Semantics(
+                label: 'Nominal $shown',
+                excludeSemantics: true,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(currencySymbol(_fromCur),
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: C.muted)),
+                      const SizedBox(width: 6),
+                      Text(shown,
+                          style: TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.w900,
+                              color: empty ? C.muted.withValues(alpha: 0.45) : C.carbon)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Kalkulator',
+              onPressed: _openCalculator,
+              icon: Icon(Icons.calculate_rounded, color: accent),
+            ),
+          ],
+        ),
+        InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: _openDetails,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            child: Text(title.isEmpty ? '+ Tambah judul atau catatan' : title,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: title.isEmpty ? FontWeight.w600 : FontWeight.w700,
+                    color: title.isEmpty ? C.muted : C.carbon)),
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (isTransfer) ...[
+          Text('DARI AKUN',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: C.muted)),
+          const SizedBox(height: 6),
+          _accountRow(to: false),
+          const SizedBox(height: 10),
+          Text('KE AKUN',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: C.muted)),
+          const SizedBox(height: 6),
+          _accountRow(to: true),
+          if (_crossCurrency) ...[
+            const SizedBox(height: 6),
+            FormRow(
+              label: 'Diterima',
+              accent: accent,
+              child: TextField(
+                controller: _toAmountCtrl,
+                keyboardType:
+                    TextInputType.numberWithOptions(decimal: hasDecimals(_toCur)),
+                inputFormatters: [AmountFormatter(decimals: hasDecimals(_toCur))],
+                onChanged: (_) => setState(() {
+                  _toTouched = true;
+                  _error = null;
+                }),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Text(currencySymbol(_toCur),
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w800)),
+                  ),
+                  prefixIconConstraints:
+                      const BoxConstraints(minWidth: 0, minHeight: 0),
+                  helperText: 'Otomatis dari kurs, ubah kalau beda.',
+                ),
+              ),
+            ),
+          ],
+        ] else if (_splitting && _canSplit)
+          _splitCard(accent)
+        else ...[
+          Row(
+            children: [
+              Text('SERING DIPAKAI',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: C.muted)),
+              const Spacer(),
+              Text('tahan untuk pin',
+                  style: TextStyle(fontSize: 11, color: C.muted)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          _frequentGrid(accent),
+        ],
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (!isTransfer)
+              _pill(
+                leading: _accountLeading(_fromId, size: 22),
+                label: store.accountName(_fromId),
+                dropdown: true,
+                onTap: () => _pickAccount(to: false),
+              ),
+            _pill(
+              leading: ArtIcon(Icons.calendar_month_rounded,
+                  color: accent, size: 16),
+              label: _dateLabel(),
+              dropdown: true,
+              onTap: _pickDate,
+            ),
+            _pill(
+              leading: Icon(
+                  _hasDetails ? Icons.edit_note_rounded : Icons.add_rounded,
+                  size: 18,
+                  color: _hasDetails ? accent : C.muted),
+              label: _hasDetails ? 'Detail terisi' : 'Catatan, struk, bagi',
+              selected: _hasDetails,
+              onTap: _openDetails,
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+      ],
+    );
+
+    return _accentTheme(
+      accent,
+      Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: Container(
+            decoration: BoxDecoration(
+              color: C.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      margin: const EdgeInsets.only(top: 10, bottom: 6),
+                      decoration: BoxDecoration(
+                          color: C.line, borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 8, 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                              widget.isEditing ? 'Edit transaksi' : 'Catat transaksi',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: C.carbon)),
+                        ),
+                        IconButton(
+                          tooltip: 'Tutup',
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: top,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(17, 4, 17, 14),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_info != null && _error == null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(_info!,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: C.accentDark,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12.5)),
+                          ),
+                        if (_error != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: ErrorBox(_error!),
+                          ),
+                        _numpad(),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          child: PrimaryButton(
+                            label: _saveLabel,
+                            color: accent,
+                            onPressed: _submit,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.mode == FormMode.transaction) return _buildOnePage(context);
     final accent = _type.color;
     final isTransfer = _type == TxType.transfer;
     final mode = widget.mode;
@@ -1378,6 +2271,17 @@ class FormValue extends StatelessWidget {
 }
 
 // ------------------------------------------------- panel kategori (grid MM)
+
+/// Nama kategori untuk kotak kecil: tanpa emoji dan tanpa keterangan dalam
+/// kurung, mis. "Bills (Listrik, Air, Kuota) 💡" menjadi "Bills".
+String shortCategoryName(String name) {
+  final t = name
+      .replaceAll(_emojiRe, '')
+      .replaceAll(RegExp(r'\s*\([^)]*\)'), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  return t.isEmpty ? name.trim() : t;
+}
 
 final RegExp _emojiRe = RegExp(
     r'[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]',

@@ -1573,4 +1573,146 @@ void main() {
       expect(kExtraArtKeys, contains('logo'));
     });
   });
+
+  group('v4.0 catat satu layar', () {
+    final now = DateTime(2026, 10, 12, 12);
+    AppStore fresh() => AppStore()..clearAll();
+    List<String> freq(AppStore s, TxType t, {String? ensure}) =>
+        s.frequentCategories(t, now: now, ensure: ensure);
+
+    test('tanpa riwayat: diisi kategori tanpa sub-kategori, maksimal 7', () {
+      final s = fresh();
+      final f = freq(s, TxType.expense);
+      expect(f.length, AppStore.kFrequentSlots);
+      expect(f.toSet().length, f.length);
+      final parents = {for (final c in s.categories) c.parentId};
+      for (final id in f) {
+        expect(parents.contains(id), isFalse, reason: '$id punya sub-kategori');
+        expect(s.categoryById(id)!.type, TxType.expense);
+      }
+    });
+
+    test('pemasukan: semua kategori pemasukan bawaan muat', () {
+      final s = fresh();
+      final f = freq(s, TxType.income);
+      expect(f, containsAll(['gaji', 'bonus', 'passive', 'refund']));
+      expect(f.every((id) => s.categoryById(id)!.type == TxType.income), isTrue);
+    });
+
+    test('urut dari yang paling sering, seri dipecah yang terbaru', () {
+      final s = fresh();
+      s.accounts = [acc('a', initial: 1000)];
+      s.transactions = [
+        tx('1', TxType.expense, 10, 'a', cat: 'cafe', date: DateTime(2026, 10, 1)),
+        tx('2', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 10, 2)),
+        tx('3', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 10, 3)),
+        tx('4', TxType.expense, 10, 'a', cat: 'transport', date: DateTime(2026, 10, 5)),
+        tx('5', TxType.expense, 10, 'a', cat: 'cafe', date: DateTime(2026, 10, 4)),
+      ];
+      final f = freq(s, TxType.expense);
+      // makan 2x, cafe 2x (lebih lama dari makan? cafe terakhir 4 Okt > makan 3 Okt)
+      expect(f.take(3).toList(), ['cafe', 'makan', 'transport']);
+    });
+
+    test('yang dipin selalu di depan dan tidak bergeser', () {
+      final s = fresh();
+      s.accounts = [acc('a', initial: 1000)];
+      s.transactions = [
+        for (var i = 0; i < 5; i++)
+          tx('m$i', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 10, 1 + i)),
+      ];
+      expect(s.togglePin('kos'), isTrue);
+      expect(s.togglePin('bills'), isTrue);
+      final f = freq(s, TxType.expense);
+      expect(f.take(3).toList(), ['kos', 'bills', 'makan']);
+      expect(s.isPinned('kos'), isTrue);
+      // Lepas pin: kembali ke urutan otomatis.
+      expect(s.togglePin('kos'), isTrue);
+      expect(freq(s, TxType.expense).first, 'makan');
+    });
+
+    test('pin kategori jenis lain atau yang sudah dihapus diabaikan', () {
+      final s = fresh();
+      s.togglePin('gaji');
+      s.togglePin('hilang');
+      final f = freq(s, TxType.expense);
+      expect(f.contains('gaji'), isFalse);
+      expect(f.contains('hilang'), isFalse);
+      expect(freq(s, TxType.income).first, 'gaji');
+    });
+
+    test('pin maksimal 7', () {
+      final s = fresh();
+      final ids = s.categories
+          .where((c) => c.type == TxType.expense)
+          .map((c) => c.id)
+          .take(8)
+          .toList();
+      for (final id in ids.take(7)) {
+        expect(s.togglePin(id), isTrue);
+      }
+      expect(s.togglePin(ids[7]), isFalse);
+      expect(s.settings.pinnedCats.length, 7);
+    });
+
+    test('disembunyikan dilewati, tapi pin menampilkannya lagi', () {
+      final s = fresh();
+      s.accounts = [acc('a', initial: 1000)];
+      s.transactions = [
+        tx('1', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 10, 1)),
+      ];
+      expect(freq(s, TxType.expense).first, 'makan');
+      s.hideFromFrequent('makan');
+      expect(freq(s, TxType.expense).contains('makan'), isFalse);
+      s.togglePin('makan');
+      expect(freq(s, TxType.expense).first, 'makan');
+      expect(s.settings.hiddenFreq.contains('makan'), isFalse);
+      s.hideFromFrequent('makan');
+      expect(s.isPinned('makan'), isFalse);
+      s.showInFrequent('makan');
+      expect(freq(s, TxType.expense).first, 'makan');
+    });
+
+    test('kategori yang sedang dipilih selalu ikut tampil', () {
+      final s = fresh();
+      final f = freq(s, TxType.expense);
+      final other = s.categories
+          .firstWhere((c) => c.type == TxType.expense && !f.contains(c.id) &&
+              s.childrenOf(c.id).isEmpty)
+          .id;
+      final withSel = freq(s, TxType.expense, ensure: other);
+      expect(withSel.length, AppStore.kFrequentSlots);
+      expect(withSel.contains(other), isTrue);
+    });
+
+    test('jumlah pemakaian 90 hari', () {
+      final s = fresh();
+      s.accounts = [acc('a', initial: 1000)];
+      s.transactions = [
+        tx('1', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 10, 1)),
+        tx('2', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 6, 1)),
+        tx('3', TxType.expense, 10, 'a', cat: 'makan', date: DateTime(2026, 9, 1)),
+      ];
+      expect(s.categoryUseCount('makan', now: now), 2);
+    });
+
+    test('pin dan sembunyi ikut tersimpan di JSON', () {
+      final s = fresh();
+      s.togglePin('kos');
+      s.hideFromFrequent('makan');
+      final back = AppSettings.fromJson(
+          jsonDecode(jsonEncode(s.settings.toJson())) as Map<String, dynamic>);
+      expect(back.pinnedCats, ['kos']);
+      expect(back.hiddenFreq, ['makan']);
+      expect(AppSettings.fromJson({}).pinnedCats, isEmpty);
+    });
+
+    test('nama pendek untuk kotak kategori', () {
+      expect(shortCategoryName('Bills (Listrik, Air, Kuota) 💡'), 'Bills');
+      expect(shortCategoryName('Makan dan Minum 🍲'), 'Makan dan Minum');
+      expect(shortCategoryName('Personal Care (Skincare, Shampoo) 🛀'), 'Personal Care');
+      expect(shortCategoryName('Gaji'), 'Gaji');
+      expect(shortCategoryName('🍲'), '🍲');
+    });
+  });
 }

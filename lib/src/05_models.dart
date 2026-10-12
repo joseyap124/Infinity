@@ -483,6 +483,11 @@ class AppSettings {
   /// Ikon kategori bawaan sudah dipindah ke ikon kartun (sekali saja).
   bool iconsV37 = false;
 
+  /// Kategori yang dipin ke bagian "Sering dipakai" di layar catat (urut),
+  /// dan yang disembunyikan dari sana.
+  List<String> pinnedCats = [];
+  List<String> hiddenFreq = [];
+
   /// Akun yang otomatis terpilih saat mencatat transaksi baru.
   String? defaultAccountId;
 
@@ -568,6 +573,8 @@ class AppSettings {
         'accentIndex': accentIndex,
         'iconStyle': iconStyle,
         if (iconsV37) 'iconsV37': true,
+        if (pinnedCats.isNotEmpty) 'pinnedCats': pinnedCats,
+        if (hiddenFreq.isNotEmpty) 'hiddenFreq': hiddenFreq,
         'defaultAccountId': defaultAccountId,
         'balanceSetAt': balanceSetAt,
         'dismissedSubs': dismissedSubs,
@@ -641,6 +648,12 @@ class AppSettings {
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
     s.iconStyle = _s(j['iconStyle']) == 'classic' ? 'classic' : 'cartoon';
     s.iconsV37 = j['iconsV37'] == true;
+    if (j['pinnedCats'] is List) {
+      s.pinnedCats = (j['pinnedCats'] as List).whereType<String>().toList();
+    }
+    if (j['hiddenFreq'] is List) {
+      s.hiddenFreq = (j['hiddenFreq'] as List).whereType<String>().toList();
+    }
     s.autoBackup = j['autoBackup'] != false;
     s.defaultAccountId = _s(j['defaultAccountId']);
     final ds = j['dismissedSubs'];
