@@ -36,6 +36,10 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Pintasan ikon: tahan ikon Infinity di layar utama -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
         <!-- Catat otomatis: membaca notifikasi bank/e-wallet -->

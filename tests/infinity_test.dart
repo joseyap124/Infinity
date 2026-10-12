@@ -954,17 +954,57 @@ void main() {
       expect(s.healthCheck(DateTime(2026, 10, 9)).any((i) => i.title.contains('terbuang')), isTrue);
     });
 
-    test('pengingat simpan ke Drive', () {
+    test('status backup: tersembunyi, lama, di luar HP, aman', () {
       final now = DateTime(2026, 10, 9, 12);
-      final s = storeWith([acc('bca', initial: 100000)], [
-        for (var i = 0; i < 12; i++)
-          tx('t$i', TxType.expense, 1000, 'bca', date: now.subtract(Duration(days: 20 - i))),
-      ]);
-      expect(s.insights(now).any((i) => i.id == 'drive'), isTrue);
+      List<Transaction> txs(int n) => [
+            for (var i = 0; i < n; i++)
+              tx('t$i', TxType.expense, 1000, 'bca', date: now.subtract(Duration(days: 20 - i))),
+          ];
+      // Data masih sedikit: tidak diingatkan.
+      var s = storeWith([acc('bca', initial: 100000)], txs(5));
+      expect(s.backupStatus(now).level, BackupLevel.hidden);
+
+      // Belum pernah backup.
+      s = storeWith([acc('bca', initial: 100000)], txs(12));
+      expect(s.backupStatus(now).level, BackupLevel.stale);
+      expect(s.backupStatus(now).newTx, 12);
+
+      // Backup di HP baru dan isinya sama, belum ada salinan di luar HP.
+      s.updateSettings((x) {
+        x.lastAutoBackup = now.subtract(const Duration(hours: 2));
+        x.lastBackupSig = s.backupSignature();
+      });
+      expect(s.backupStatus(now).level, BackupLevel.offsite);
+      expect(s.backupStatus(now).upToDate, isTrue);
+
+      // Salinan di luar HP baru: aman.
       s.markDriveSaved(now.subtract(const Duration(days: 2)));
-      expect(s.insights(now).any((i) => i.id == 'drive'), isFalse);
+      expect(s.backupStatus(now).level, BackupLevel.ok);
+
+      // Salinan di luar HP sudah 9 hari.
       s.markDriveSaved(now.subtract(const Duration(days: 9)));
-      expect(s.insights(now).firstWhere((i) => i.id == 'drive').title, contains('9 hari'));
+      expect(s.backupStatus(now).level, BackupLevel.offsite);
+
+      // Backup di HP 9 hari lalu dan datanya sudah berubah: paling mendesak.
+      s.updateSettings((x) {
+        x.lastAutoBackup = now.subtract(const Duration(days: 9));
+        x.lastBackupSig = 'lama';
+      });
+      final st = s.backupStatus(now);
+      expect(st.level, BackupLevel.stale);
+      expect(st.newTx, 12);
+
+      // Backup 9 hari lalu tapi isinya masih sama persis: tidak dianggap lama.
+      s.updateSettings((x) => x.lastBackupSig = s.backupSignature());
+      expect(s.backupStatus(now).level, isNot(BackupLevel.stale));
+    });
+
+    test('agoLabel', () {
+      final now = DateTime(2026, 10, 9, 12);
+      expect(agoLabel(now.subtract(const Duration(seconds: 20)), now), 'baru saja');
+      expect(agoLabel(now.subtract(const Duration(minutes: 5)), now), '5 menit lalu');
+      expect(agoLabel(now.subtract(const Duration(hours: 2)), now), '2 jam lalu');
+      expect(agoLabel(now.subtract(const Duration(days: 9)), now), '9 hari lalu');
     });
   });
 

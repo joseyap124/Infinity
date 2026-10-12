@@ -5,8 +5,11 @@ part of '../main.dart';
 // =============================================================================
 
 class BackupPage extends StatefulWidget {
-  const BackupPage({super.key, required this.store});
+  const BackupPage({super.key, required this.store, this.startDriveSave = false});
   final AppStore store;
+
+  /// Langsung buka layar "Simpan sebagai" untuk salinan di luar HP (dari kartu Beranda).
+  final bool startDriveSave;
 
   @override
   State<BackupPage> createState() => _BackupPageState();
@@ -127,6 +130,7 @@ class _BackupPageState extends State<BackupPage> {
   Future<void> _clear() => confirmResetAll(context, store);
 
   bool _hasPw = false;
+  bool _autoStarted = false;
 
   @override
   void initState() {
@@ -137,7 +141,13 @@ class _BackupPageState extends State<BackupPage> {
 
   void _refresh() {
     store.backupPassword().then((pw) {
-      if (mounted) setState(() => _hasPw = pw != null);
+      if (!mounted) return;
+      setState(() => _hasPw = pw != null);
+      // Dari kartu Beranda: langsung ke layar simpan, setelah status kata sandi diketahui.
+      if (widget.startDriveSave && !_autoStarted) {
+        _autoStarted = true;
+        _saveToDrive();
+      }
     });
   }
 
@@ -294,6 +304,8 @@ class _BackupPageState extends State<BackupPage> {
       body: ListView(
         padding: pagePad(context, 32),
         children: [
+          BackupStatusCard(store: store),
+          const SizedBox(height: 12),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

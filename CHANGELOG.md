@@ -23,12 +23,20 @@ Mencatat transaksi jadi satu layar, plus widget baru dan perapian tampilan.
 
 ## Berikutnya (v4.1)
 
+Backup lebih terlihat, dan pintasan langsung dari ikon app.
+
+### Ditambah
+- **Kartu kesehatan backup di Beranda**: chip hijau "Backup aman" saat backup di HP baru dan ada salinan di luar HP. Kalau belum ada salinan di luar HP (Google Drive dll) muncul kartu kuning dengan tombol **Simpan ke Drive**. Kalau backup di HP sudah seminggu lebih dan datanya berubah, muncul kartu merah dengan tombol **Simpan sekarang**. Baru muncul setelah ada 10 transaksi. Kartu bisa ditutup untuk hari itu.
+- **Status backup** di Lainnya, Backup & Pulihkan: kapan backup otomatis terakhir, kapan salinan di luar HP terakhir, dan apakah isi data masih sama dengan backup terakhir.
+- **Pintasan ikon**: tahan ikon Infinity di layar utama untuk langsung Catat pengeluaran, Catat pemasukan, atau Transfer.
+
+### Diubah
+- Pengingat salinan di luar HP pindah dari deretan "Perlu perhatian" ke kartu backup di atas, supaya tidak muncul dobel.
+
 ### Akan datang
 Rencana berikutnya, urutannya bisa bergeser:
-- **Kartu kesehatan backup** di Beranda: chip kecil saat aman, dan kartu peringatan kalau belum ada salinan di luar HP atau backup sudah lama.
 - **Bahasa**: pilihan English dan 简体中文 di Pengaturan. Dikerjakan bertahap, kalimat yang belum diterjemahkan tetap tampil Indonesia.
 - **Notifikasi dengan tombol**: saat notifikasi bank atau e-wallet terdeteksi (mis. SeaBank Rp 15.000), Infinity memunculkan notifikasi dengan tombol Keluar, Masuk, dan Abaikan. Ada tiga mode: mati, tanya dulu, dan otomatis.
-- **Pintasan ikon**: tahan ikon Infinity di layar utama untuk langsung Catat pengeluaran, Catat pemasukan, atau Transfer.
 - **Pilih banyak transaksi di Riwayat**: tahan satu transaksi untuk memilih beberapa, lalu ubah kategori, ubah akun, atau hapus sekaligus.
 - **Bagikan ringkasan bulan sebagai gambar**: dari Statistik atau Rekap, dengan opsi sembunyikan nominal (default aktif) dan dikirim lewat menu bagikan Android. Gambar dibuat di HP, tidak ada yang diunggah.
 - **Cicilan dan PayLater**: daftar cicilan dengan sisa tenor dan jatuh tempo, yang mengurangi angka "Aman dibelanjakan". Menunggu contoh tagihan asli untuk memastikan formatnya.

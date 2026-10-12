@@ -410,29 +410,7 @@ extension InsightStore on AppStore {
         action: 'Cek',
       ));
     }
-    // Salinan backup ke luar HP (Google Drive) sudah lama.
-    if (transactions.length >= 10 && !hidden('drive')) {
-      final lastDrive = settings.lastDriveSave;
-      final firstTx = transactions
-          .map((t) => t.date)
-          .reduce((a, b) => a.isBefore(b) ? a : b);
-      final days = lastDrive == null
-          ? now.difference(firstTx).inDays
-          : now.difference(lastDrive).inDays;
-      if (days > 7) {
-        out.add(Insight(
-          id: 'drive',
-          kind: InsightKind.backup,
-          title: lastDrive == null
-              ? 'Belum ada salinan backup di luar HP'
-              : 'Salinan backup di Drive sudah $days hari',
-          body: 'Kalau HP hilang atau rusak, data hanya bisa kembali dari salinan di luar HP. Simpan ke Google Drive, cukup seminggu sekali.',
-          icon: Icons.add_to_drive_rounded,
-          color: C.blueDark,
-          action: 'Simpan',
-        ));
-      }
-    }
+    // Backup di HP dan salinan di luar HP: kartu khusus di Beranda (BackupHealthCard).
     for (final m in balanceMismatches()) {
       final acc = accountById(m.accountId)!;
       out.add(Insight(

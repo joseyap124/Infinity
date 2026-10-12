@@ -634,6 +634,7 @@ class DashboardTab extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
+              BackupHealthCard(store: store),
               InsightStrip(
                   store: store,
                   onOpenCaptures: () {},
