@@ -27,6 +27,13 @@ class MainActivity : FlutterFragmentActivity() {
         // supaya screenshot bisa.
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Kalau izin akses notifikasi masih aktif tapi layanan terputus
+        // (umum setelah update app), sambungkan lagi.
+        if (isListenerEnabled()) NotificationCaptureService.rebind(this)
+    }
+
     private var pendingPick: MethodChannel.Result? = null
     private var pendingSave: MethodChannel.Result? = null
     private var pendingSaveBytes: ByteArray? = null

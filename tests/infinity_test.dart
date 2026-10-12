@@ -366,6 +366,28 @@ void main() {
       expect(p.isTopUp, isFalse);
     });
 
+    test('email BCA berbahasa Inggris: "IDR 263,000.00" = 263000', () {
+      final p = parseReceipt(
+          'BCA Internet Transaction Journal\n'
+          'Status : Successful\nTransaction Date : 11 Oct 2026 18:51:24\n'
+          'Transfer Type : Transfer to BCA Virtual Account\n'
+          'BCA Virtual Account No. : 7002785142784769\n'
+          'Company/Product Name : DOMPET ANAK BANGSA PT / GoPay Transfer\n'
+          'Bill Total : IDR 263,000.00\nTotal Payment : IDR 263,000.00',
+          setup());
+      expect(p.amount, 263000);
+    });
+
+    test('format angka Indonesia dan Inggris dibaca benar', () {
+      double? amt(String t) => parseReceipt(t, setup()).amount;
+      expect(amt('Pembayaran Rp1.250.000 berhasil'), 1250000);
+      expect(amt('Pembayaran Rp1.250.000,00 berhasil'), 1250000);
+      expect(amt('Pembayaran Rp 25.000 berhasil'), 25000);
+      expect(amt('Payment IDR 1,250,000.50 done'), 1250000);
+      expect(amt('Payment IDR 263000.00 done'), 263000);
+      expect(amt('Payment IDR 25,000 done'), 25000);
+    });
+
     test('promo diabaikan', () {
       final s = setup();
       s.ingestCaptured([n('Diskon Rp 5.000 di Kedai Boboko. Nikmati potongan harga senilai Rp 5.000', DateTime.now())]);

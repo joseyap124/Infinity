@@ -3,7 +3,13 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v3.6.1)
+## Berikutnya (v3.6.2)
+
+### Diperbaiki
+- **Nominal salah dari notifikasi atau email bank berbahasa Inggris**: "IDR 263,000.00" sebelumnya terbaca Rp 26.300.000. Sekarang format Inggris ("263,000.00", "1,250,000.50") dan Indonesia ("1.250.000,00") sama-sama dibaca benar. Berlaku juga untuk teks struk yang ditempel.
+- **Notifikasi bank tidak masuk ke Beranda setelah update**: layanan pembaca notifikasi di sebagian HP terputus setelah app diperbarui. Infinity sekarang meminta Android menyambungkannya lagi saat dibuka, dan saat layanan terputus.
+
+## v3.6.1 (10 Okt 2026)
 
 ### Diubah
 - **Beranda tanpa warna di belakang**: tidak ada lagi blok hijau atau warna aksen di latar atas. Latar sama dengan halaman lain; nama, sapaan, dan ikon status bar mengikuti tema. Kartu gelap sekarang berisi juga Total saldo dan "Kelola akun". Akun dan tombol Bills/Budget/Patungan/Utang jadi kartu putih polos bergaris tipis (akun diberi titik warna kecil), bukan lagi kotak berwarna di dalam satu kartu besar.

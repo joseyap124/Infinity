@@ -48,10 +48,13 @@ final RegExp _saldoRe = RegExp(
     r'(?:sisa\s+saldo|saldo(?:mu|\s+anda|\s+akhir|\s+tersedia|\s+tersisa)?(?:\s+(?:sekarang|saat ini|kini))?)\s*(?:adalah|jadi|menjadi)?\s*[:\-]?\s*(?:rp\.?|idr)\s*([0-9][0-9.,]*)',
     caseSensitive: false);
 
-/// Angka gaya Indonesia: "1.250.000", "1.250.000,00", "25000", "25,000".
+/// Angka gaya Indonesia dan Inggris: "1.250.000", "1.250.000,00", "25000",
+/// "25,000", "263,000.00" (email bank berbahasa Inggris).
 double? _parseIdNumber(String raw) {
   var s = raw.trim();
-  s = s.replaceAll(RegExp(r',\d{1,2}$'), ''); // buang desimal ",00"
+  // Buang desimal 1-2 digit di ujung (",00" atau ".00"). Pemisah ribuan
+  // selalu 3 digit, jadi "1.250" tetap 1250 dan "263,000.00" jadi 263000.
+  s = s.replaceAll(RegExp(r'[.,]\d{1,2}$'), '');
   s = s.replaceAll(RegExp(r'[.,\s]'), '');
   return double.tryParse(s);
 }

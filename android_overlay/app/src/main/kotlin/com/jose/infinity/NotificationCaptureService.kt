@@ -16,6 +16,28 @@ class NotificationCaptureService : NotificationListenerService() {
 
     private val money = Regex("""(?i)(rp\.?|idr)\s?[0-9]""")
 
+    /**
+     * Sebagian HP (Oppo/Realme/Vivo, dan setelah update app) memutus layanan
+     * ini tanpa memberi tahu. Minta Android menyambungkannya lagi.
+     */
+    override fun onListenerDisconnected() {
+        super.onListenerDisconnected()
+        rebind(this)
+    }
+
+    companion object {
+        fun rebind(ctx: Context) {
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= 24) {
+                    NotificationListenerService.requestRebind(
+                        android.content.ComponentName(ctx, NotificationCaptureService::class.java)
+                    )
+                }
+            } catch (_: Exception) {
+            }
+        }
+    }
+
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName == packageName) return
         val n = sbn.notification ?: return
