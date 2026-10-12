@@ -115,7 +115,7 @@ String? gPdfFont;
 const int kPdfMaxTxRows = 600;
 
 class _ReportPager {
-  _ReportPager(this.footer, {this.scale = 2.0}) {
+  _ReportPager(this.footer) {
     _begin();
   }
 
@@ -126,7 +126,7 @@ class _ReportPager {
   static const Color red = Color(0xFFC62828);
 
   final String footer;
-  final double scale;
+  static const double scale = 2.0;
   final List<Future<PdfPageImage>> _pages = [];
   ui.PictureRecorder? _rec;
   Canvas? _c;

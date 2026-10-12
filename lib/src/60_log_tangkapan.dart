@@ -101,7 +101,7 @@ extension CaptureLogStore on AppStore {
 
   void clearCaptureLog() {
     captureLog = [];
-    notifyListeners();
+    _commit();
   }
 }
 
