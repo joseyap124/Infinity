@@ -428,7 +428,7 @@ class SettingsPage extends StatelessWidget {
                       Icons.toggle_on_rounded,
                       C.income,
                       'Fitur',
-                      tr('{0} dari {1} menyala', [store.featuresOnCount, kFeatureDefaults.length]),
+                      tr('{0} dari {1} menyala', [store.featuresOnCount, kFeatureList.length]),
                       () => _pushPage(context, FeaturesPage(store: store))),
                 ]),
               ),

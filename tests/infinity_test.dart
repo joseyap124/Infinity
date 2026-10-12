@@ -2297,7 +2297,6 @@ void main() {
       final a = AppSettings();
       expect(a.feature('cicilan'), isTrue);
       expect(a.feature('tunda'), isFalse);
-      expect(a.feature('bocor'), isFalse);
       a.features['cicilan'] = false;
       a.features['tunda'] = true;
       final back = AppSettings.fromJson(a.toJson());

@@ -10,13 +10,16 @@ Rilis besar: Beranda baru dengan maskot, kartu budget baru, kalender peta panas,
 ### Ditambah
 - **Beranda baru**: cincin jatah harian dengan maskot Infinity di tengahnya, total saldo (ketuk untuk daftar akun), dan 4 pintasan bulat (Tagihan, Anggaran, Patungan, Utang).
 - **Maskot 6 suasana** sesuai sisa jatah hari ini: Senang (80% ke atas), Aman (50-80%), Hati-hati (30-50%), Bahaya (di bawah 30%), Boros (lewat jatah), dan Ngantuk (3 hari tidak mencatat).
-- **Pengaturan > Fitur**: nyalakan atau matikan Cicilan, Utang, Target, Patungan, Acara, Tunda beli, dan Biaya bocor. Fitur yang dimatikan disembunyikan dan tidak dihitung, datanya tetap tersimpan.
+- **Pengaturan > Fitur**: nyalakan atau matikan Cicilan, Utang, Target, Patungan, Acara, dan Tunda beli. Fitur yang dimatikan disembunyikan dan tidak dihitung, datanya tetap tersimpan.
 - **Animasi pembuka** bisa dipilih: sekali saja, tiap buka, atau mati.
 - **Gaya ikon**: Flat (ilustrasi datar) dan Mono (satu warna), selain Kartun dan Klasik.
 
 ### Diubah
 - Pengingat backup di Beranda baru muncul setelah 30 hari tanpa backup (sebelumnya 7 hari). Saat aman, tidak ada kartu atau chip lagi di Beranda; statusnya tetap ada di Backup & Pulihkan.
 - Kartu akun di Beranda dihapus; akun dibuka lewat baris Total saldo.
+
+### Akan datang
+- **Biaya bocor** (pendeteksi langganan dan biaya kecil berulang) ditunda ke rilis setelah 5.0.
 
 ## v4.7 (12 Okt 2026)
 

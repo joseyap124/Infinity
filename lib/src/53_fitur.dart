@@ -9,7 +9,7 @@ extension FeatureStore on AppStore {
   List<Debt> get debtsOn => feature('utang') ? debts : const <Debt>[];
   List<Goal> get goalsOn => feature('target') ? goals : const <Goal>[];
   int get featuresOnCount =>
-      kFeatureDefaults.keys.where((k) => settings.feature(k)).length;
+      kFeatureList.where((f) => settings.feature(f.$1)).length;
 }
 
 /// (id, nama, keterangan) berurutan seperti di layar Fitur.
@@ -20,7 +20,6 @@ const List<(String, String, String)> kFeatureList = [
   ('patungan', 'Patungan', 'Bagi tagihan dengan teman'),
   ('acara', 'Acara', 'Kelompokkan pengeluaran per acara'),
   ('tunda', 'Tunda beli', 'Daftar tunggu sebelum membeli'),
-  ('bocor', 'Biaya bocor', 'Deteksi biaya kecil yang berulang'),
 ];
 
 class FeaturesPage extends StatelessWidget {
@@ -67,7 +66,7 @@ class FeaturesPage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                  'Fitur baru (Tunda beli, Biaya bocor) mati bawaannya, kamu yang memilih memakainya. Yang mati juga berhenti dihitung, misalnya cicilan tidak lagi mengurangi "Aman dibelanjakan".',
+                  'Fitur baru (Tunda beli) mati bawaannya, kamu yang memilih memakainya. Yang mati juga berhenti dihitung, misalnya cicilan tidak lagi mengurangi "Aman dibelanjakan".',
                   style: TextStyle(fontSize: 12.5, color: C.muted, height: 1.4)),
             ],
           ),

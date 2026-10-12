@@ -462,7 +462,6 @@ const Map<String, bool> kFeatureDefaults = {
   'patungan': true,
   'acara': true,
   'tunda': false,
-  'bocor': false,
 };
 
 class AppSettings {
