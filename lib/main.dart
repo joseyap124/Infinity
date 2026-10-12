@@ -27,6 +27,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide Text;
 // Text bawaan dipakai lewat m.Text; Text milik app (47_bahasa.dart) menerjemahkan isinya.
 import 'package:flutter/material.dart' as m show Text;
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:archive/archive.dart';
 import 'package:cryptography/cryptography.dart';
