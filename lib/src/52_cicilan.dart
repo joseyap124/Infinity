@@ -951,7 +951,7 @@ class _InstallmentEditorSheetState extends State<InstallmentEditorSheet> {
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   maxLength: 2,
                   onChanged: (_) => setState(() => _error = null),
-                  decoration: fieldDeco('Jatuh tempo tiap tanggal')
+                  decoration: fieldDeco('Jatuh tempo (tgl)')
                       .copyWith(counterText: ''),
                 ),
               ),
@@ -963,7 +963,7 @@ class _InstallmentEditorSheetState extends State<InstallmentEditorSheet> {
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   maxLength: 3,
                   onChanged: (_) => setState(() => _error = null),
-                  decoration: fieldDeco('Sudah dibayar berapa kali')
+                  decoration: fieldDeco('Sudah dibayar (kali)')
                       .copyWith(counterText: ''),
                 ),
               ),
