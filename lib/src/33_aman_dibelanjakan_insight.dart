@@ -172,7 +172,7 @@ extension InsightStore on AppStore {
         base -= card;
       }
       var owe = 0.0;
-      for (final d in debts) {
+      for (final d in debtsOn) {
         final due = d.due;
         if (!d.theyOwe && !d.settled && due != null && due.isBefore(end)) {
           owe += d.remaining;
@@ -183,7 +183,7 @@ extension InsightStore on AppStore {
         base -= owe;
       }
       var save = 0.0;
-      for (final g in goals) {
+      for (final g in goalsOn) {
         save += goalPerMonth(g, now) ?? 0;
       }
       if (save > 0) {
@@ -505,7 +505,7 @@ extension InsightStore on AppStore {
         action: 'Perbarui',
       ));
     }
-    for (final e in events) {
+    for (final e in (feature('acara') ? events : const <TxEvent>[])) {
       if (e.budget <= 0 || !e.ongoing(now)) continue;
       final spent = eventSpent(e.id);
       if (spent < e.budget * 0.8) continue;
@@ -524,7 +524,7 @@ extension InsightStore on AppStore {
         payload: e,
       ));
     }
-    for (final d in debts) {
+    for (final d in debtsOn) {
       final due = d.due;
       if (d.settled || due == null) continue;
       final days = dayOnly(due).difference(today).inDays;
@@ -630,7 +630,7 @@ extension InsightStore on AppStore {
         payload: s,
       ));
     }
-    for (final g in goals) {
+    for (final g in goalsOn) {
       final d = g.deadline;
       if (d == null || goalProgress(g) >= g.target) continue;
       final days = dayOnly(d).difference(today).inDays;

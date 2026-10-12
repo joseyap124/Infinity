@@ -134,13 +134,15 @@ class InstallmentDue {
 }
 
 extension InstallmentStore on AppStore {
-  List<Installment> get activeInstallments =>
-      installments.where((x) => !x.done).toList();
+  List<Installment> get activeInstallments => !settings.feature('cicilan')
+      ? const <Installment>[]
+      : installments.where((x) => !x.done).toList();
 
   /// Semua tagihan yang belum dibayar dan jatuh tempo sebelum [limit]
   /// (termasuk yang sudah lewat tapi belum ditandai dibayar).
   List<InstallmentDue> installmentsDueBefore(DateTime limit) {
     final out = <InstallmentDue>[];
+    if (!settings.feature('cicilan')) return out;
     for (final x in installments) {
       for (var k = x.paidCount; k < x.tenor && k < x.paidCount + 24; k++) {
         final d = x.dueOf(k);
@@ -155,6 +157,7 @@ extension InstallmentStore on AppStore {
   /// Tagihan terdekat tiap barang (satu per barang), urut tanggal.
   List<InstallmentDue> nextInstallmentDues() {
     final out = <InstallmentDue>[];
+    if (!settings.feature('cicilan')) return out;
     for (final x in installments) {
       if (x.done) continue;
       out.add(InstallmentDue(x, x.paidCount, x.dueOf(x.paidCount), x.amountOf(x.paidCount)));
@@ -163,8 +166,9 @@ extension InstallmentStore on AppStore {
     return out;
   }
 
-  double get installmentsRemaining =>
-      installments.fold(0.0, (s, x) => s + x.remaining);
+  double get installmentsRemaining => !settings.feature('cicilan')
+      ? 0.0
+      : installments.fold(0.0, (s, x) => s + x.remaining);
 
   void upsertInstallment(Installment x) {
     final i = installments.indexWhere((e) => e.id == x.id);

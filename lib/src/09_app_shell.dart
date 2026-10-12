@@ -196,7 +196,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     }
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
-    gCartoon.value = store.settings.iconStyle != 'classic';
+    gIconStyle.value = store.settings.iconStyle;
     gLang.value = langOf(store.settings.lang);
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
@@ -242,7 +242,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   void _syncTheme() {
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
-    gCartoon.value = store.settings.iconStyle != 'classic';
+    gIconStyle.value = store.settings.iconStyle;
     final lang = langOf(store.settings.lang);
     if (gLang.value != lang) {
       gLang.value = lang;
@@ -434,12 +434,19 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
         if (!store.loaded) {
           return const ColoredBox(color: Color(0xFF16181D));
         }
-        // Animasi koin hanya saat app pertama kali dibuka.
-        if (!store.settings.splashSeen && !_splashDone) {
-          return AnimatedSplash(onDone: () {
-            setState(() => _splashDone = true);
-            store.updateSettings((s) => s.splashSeen = true);
-          });
+        // Animasi pembuka sesuai pilihan: sekali saja (bawaan), tiap buka, atau mati.
+        final sm = store.settings.splashMode;
+        final showSplash = !_splashDone &&
+            (sm == 'always' || (sm == 'once' && !store.settings.splashSeen));
+        if (showSplash) {
+          return AnimatedSplash(
+              quick: sm == 'always',
+              onDone: () {
+                setState(() => _splashDone = true);
+                if (!store.settings.splashSeen) {
+                  store.updateSettings((s) => s.splashSeen = true);
+                }
+              });
         }
         // Panduan singkat untuk install baru.
         if (!store.settings.onboarded) {
@@ -532,8 +539,11 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
 /// memantul, lalu tulisan Infinity muncul. Gambarnya sama dengan ikon app
 /// (lihat tool/make_logo.py) supaya menyambung dari splash bawaan Android.
 class AnimatedSplash extends StatefulWidget {
-  const AnimatedSplash({super.key, required this.onDone});
+  const AnimatedSplash({super.key, required this.onDone, this.quick = false});
   final VoidCallback onDone;
+
+  /// Versi singkat (sekitar 1 detik) untuk mode "tiap buka".
+  final bool quick;
 
   @override
   State<AnimatedSplash> createState() => _AnimatedSplashState();
@@ -547,7 +557,8 @@ class _AnimatedSplashState extends State<AnimatedSplash>
   void initState() {
     super.initState();
     _c = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1800))
+        vsync: this,
+        duration: Duration(milliseconds: widget.quick ? 1000 : 1800))
       ..addStatusListener((s) {
         if (s == AnimationStatus.completed) widget.onDone();
       });

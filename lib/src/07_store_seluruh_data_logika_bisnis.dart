@@ -1016,7 +1016,7 @@ class AppStore extends ChangeNotifier {
 
     if (s.notifRecurring) {
       for (final x in installments) {
-        if (x.done) continue;
+        if (x.done || !s.feature('cicilan')) continue;
         // Tagihan terdekat saja, dengan pengingat sehari sebelumnya.
         final k = x.paidCount;
         final due = x.dueOf(k);
@@ -1075,7 +1075,7 @@ class AppStore extends ChangeNotifier {
       }
     }
 
-    if (s.notifDebt) {
+    if (s.notifDebt && s.feature('utang')) {
       for (final d in debts) {
         final due = d.due;
         if (d.settled || due == null) continue;

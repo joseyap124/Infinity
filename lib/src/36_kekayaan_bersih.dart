@@ -18,7 +18,8 @@ extension NetWorthStore on AppStore {
   /// Kewajiban yang belum ikut di saldo akun: sisa cicilan dan utang kamu
   /// ke orang lain (catatan di Utang & Piutang).
   double get pendingLiabilitiesIDR =>
-      installmentsRemaining + debtTotal(theyOwe: false);
+      installmentsRemaining +
+      (settings.feature('utang') ? debtTotal(theyOwe: false) : 0.0);
 
   /// Kekayaan bersih kalau kewajiban itu dikurangkan.
   double get netWorthAfterLiabilitiesIDR => netWorthIDR - pendingLiabilitiesIDR;
@@ -140,7 +141,8 @@ class NetWorthCard extends StatelessWidget {
 
 String _afterText(AppStore store) {
   final inst = store.installmentsRemaining;
-  final owe = store.debtTotal(theyOwe: false);
+  final owe =
+      store.settings.feature('utang') ? store.debtTotal(theyOwe: false) : 0.0;
   final after = money(store.netWorthAfterLiabilitiesIDR);
   if (inst > 0 && owe > 0) {
     return tr('Kalau sisa cicilan {0} dan utang {1} ikut dikurangi: {2}',

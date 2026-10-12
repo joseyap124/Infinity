@@ -207,9 +207,10 @@ class CatIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: gCartoon,
-      builder: (context, cartoon, _) {
+    return ValueListenableBuilder<String>(
+      valueListenable: gIconStyle,
+      builder: (context, iconStyle, _) {
+        final cartoon = iconsArt(iconStyle);
         final bytes =
             cartoon ? artBytes(art ?? kFnArt[icon.codePoint]) : null;
         if (bytes != null) {
@@ -231,14 +232,21 @@ class CatIcon extends StatelessWidget {
                 filterQuality: FilterQuality.medium),
           );
         }
+        final mono = iconStyle == 'mono';
         return Container(
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
+            color: mono
+                ? (C.isDark ? const Color(0xFF2A2F36) : const Color(0xFFEEF0F3))
+                : color.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: darken(color), size: size * 0.5),
+          child: Icon(icon,
+              color: mono
+                  ? (C.isDark ? const Color(0xFFD0D4DA) : const Color(0xFF2F3440))
+                  : darken(color),
+              size: size * 0.5),
         );
       },
     );
@@ -256,11 +264,18 @@ class ArtIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: gCartoon,
-      builder: (context, cartoon, _) {
+    return ValueListenableBuilder<String>(
+      valueListenable: gIconStyle,
+      builder: (context, iconStyle, _) {
+        final cartoon = iconsArt(iconStyle);
         final bytes = cartoon ? artBytes(art ?? kFnArt[icon.codePoint]) : null;
-        if (bytes == null) return Icon(icon, color: color, size: size);
+        if (bytes == null) {
+          return Icon(icon,
+              color: iconStyle == 'mono'
+                  ? (C.isDark ? const Color(0xFFD0D4DA) : const Color(0xFF2F3440))
+                  : color,
+              size: size);
+        }
         return Image.memory(bytes,
             width: size * 1.3,
             height: size * 1.3,

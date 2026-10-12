@@ -240,6 +240,7 @@ class PlanTab extends StatelessWidget {
             _section(context, 'Kartu kredit'),
             home._creditCard(context, credits),
           ],
+          if (store.feature('cicilan')) ...[
           _section(context, 'Cicilan',
               action: store.installments.isEmpty ? null : 'Semua',
               onAction: () => _pushPage(context, InstallmentsPage(store: store))),
@@ -249,6 +250,8 @@ class PlanTab extends StatelessWidget {
                 'Tambah', () => _pushPage(context, InstallmentsPage(store: store)))
           else
             InstallmentSummaryCard(store: store),
+          ],
+          if (store.feature('target')) ...[
           _section(context, 'Target tabungan',
               action: store.goals.isEmpty ? null : 'Semua',
               onAction: () => _pushPage(context, GoalsPage(store: store))),
@@ -262,6 +265,8 @@ class PlanTab extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: GoalCard(store: store, goal: g, compact: true),
               ),
+          ],
+          if (store.feature('utang')) ...[
           _section(context, 'Utang & piutang',
               action: 'Buka',
               onAction: () => _pushPage(context, DebtsPage(store: store))),
@@ -306,27 +311,34 @@ class PlanTab extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => showSheet<void>(
-                      context, PatunganSheet(store: store)),
-                  icon: const Icon(Icons.groups_rounded),
-                  label: const Text('Patungan'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _pushPage(context, EventsPage(store: store)),
-                  icon: const Icon(Icons.celebration_rounded),
-                  label: const Text('Acara'),
-                ),
-              ),
-            ],
-          ),
+          ],
+          if (store.feature('patungan') || store.feature('acara')) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                if (store.feature('patungan'))
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => showSheet<void>(
+                          context, PatunganSheet(store: store)),
+                      icon: const Icon(Icons.groups_rounded),
+                      label: const Text('Patungan'),
+                    ),
+                  ),
+                if (store.feature('patungan') && store.feature('acara'))
+                  const SizedBox(width: 8),
+                if (store.feature('acara'))
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () =>
+                          _pushPage(context, EventsPage(store: store)),
+                      icon: const Icon(Icons.celebration_rounded),
+                      label: const Text('Acara'),
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -411,6 +423,13 @@ class SettingsPage extends StatelessWidget {
                       '${s.homeCards.length} kartu tampil',
                       () => showSheet<void>(
                           context, HomeCardsSheet(store: store))),
+                  _row(
+                      context,
+                      Icons.toggle_on_rounded,
+                      C.income,
+                      'Fitur',
+                      tr('{0} dari {1} menyala', [store.featuresOnCount, kFeatureDefaults.length]),
+                      () => _pushPage(context, FeaturesPage(store: store))),
                 ]),
               ),
               const SizedBox(height: 14),
@@ -545,9 +564,14 @@ class AppearancePage extends StatelessWidget {
                     const SmallLabel('Gaya ikon kategori'),
                     const SizedBox(height: 8),
                     Segmented<String>(
-                      values: const ['cartoon', 'classic'],
+                      values: const ['cartoon', 'flat', 'classic', 'mono'],
                       selected: s.iconStyle,
-                      labelOf: (v) => v == 'classic' ? 'Klasik' : 'Kartun',
+                      labelOf: (v) => switch (v) {
+                        'classic' => 'Klasik',
+                        'flat' => 'Flat',
+                        'mono' => 'Mono',
+                        _ => 'Kartun',
+                      },
                       dense: true,
                       onChanged: (v) =>
                           store.updateSettings((x) => x.iconStyle = v),
@@ -572,6 +596,32 @@ class AppearancePage extends StatelessWidget {
                           ),
                       ],
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SmallLabel('Animasi pembuka'),
+                    const SizedBox(height: 8),
+                    Segmented<String>(
+                      values: const ['once', 'always', 'off'],
+                      selected: s.splashMode,
+                      labelOf: (v) => switch (v) {
+                        'always' => 'Tiap buka',
+                        'off' => 'Mati',
+                        _ => 'Sekali saja',
+                      },
+                      dense: true,
+                      onChanged: (v) =>
+                          store.updateSettings((x) => x.splashMode = v),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                        'Sekali saja: hanya saat pertama kali dibuka. Tiap buka: versi singkat sekitar 1 detik. Otomatis dilewati kalau "Kurangi animasi" di HP menyala.',
+                        style: TextStyle(fontSize: 12, color: C.muted)),
                   ],
                 ),
               ),

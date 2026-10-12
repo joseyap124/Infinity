@@ -1284,7 +1284,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                       ),
                     ),
                   ),
-                  if (store.events.isNotEmpty)
+                  if (store.feature('acara') && store.events.isNotEmpty)
                     FormRow(
                       label: 'Acara',
                       accent: accent,
@@ -1893,7 +1893,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                   ),
                 ),
               ),
-            if (mode == FormMode.transaction && store.events.isNotEmpty)
+            if (mode == FormMode.transaction && store.feature('acara') && store.events.isNotEmpty)
               FormRow(
                 label: 'Acara',
                 accent: accent,

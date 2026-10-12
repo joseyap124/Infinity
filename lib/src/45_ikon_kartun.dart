@@ -3,20 +3,26 @@ part of '../main.dart';
 // Ikon kartun untuk kategori (PNG 144px, ditanam sebagai base64 karena app
 // tidak punya folder aset). Semua kunci [kIcons] ada gambarnya, ditambah [kExtraArtKeys].
 
-/// Gaya ikon yang sedang dipakai. true = kartun, false = klasik (Material).
-final ValueNotifier<bool> gCartoon = ValueNotifier<bool>(true);
+/// Gaya ikon yang sedang dipakai: 'cartoon' | 'flat' | 'classic' | 'mono'.
+final ValueNotifier<String> gIconStyle = ValueNotifier<String>('cartoon');
+
+/// Apakah gaya itu memakai gambar (Kartun atau Flat), bukan ikon Material.
+bool iconsArt(String style) => style == 'cartoon' || style == 'flat';
 
 final Map<String, Uint8List> _artBytes = <String, Uint8List>{};
 
-/// Bytes gambar ikon kartun, atau null kalau kuncinya tidak punya gambar.
+/// Bytes gambar ikon (Kartun, atau Flat kalau gaya itu aktif dan ada
+/// gambarnya), atau null kalau kuncinya tidak punya gambar.
 /// Instans yang sama dipakai ulang supaya cache gambar Flutter kena.
 Uint8List? artBytes(String? key) {
   if (key == null) return null;
-  final cached = _artBytes[key];
+  final flat = gIconStyle.value == 'flat' && kFlatB64.containsKey(key);
+  final ck = flat ? 'flat:$key' : key;
+  final cached = _artBytes[ck];
   if (cached != null) return cached;
-  final b64 = _kArtB64[key];
+  final b64 = flat ? kFlatB64[key] : _kArtB64[key];
   if (b64 == null) return null;
-  return _artBytes[key] = base64Decode(b64);
+  return _artBytes[ck] = base64Decode(b64);
 }
 
 final Iterable<String> kArtKeys = _kArtB64.keys;

@@ -136,14 +136,15 @@ class MoreTab extends StatelessWidget {
                     subtitle:
                         tr('{0} aktif', [store.recurring.where((r) => r.active).length]),
                     onTap: () => _push(context, RecurringPage(store: store))),
-                _tile(context,
-                    icon: Icons.local_activity_rounded,
-                    color: Colors.purple,
-                    title: 'Acara',
-                    subtitle: store.events.isEmpty
-                        ? 'Mis. trip, Lebaran: total & anggaran per acara'
-                        : '${store.events.length} acara',
-                    onTap: () => _push(context, EventsPage(store: store))),
+                if (store.feature('acara'))
+                  _tile(context,
+                      icon: Icons.local_activity_rounded,
+                      color: Colors.purple,
+                      title: 'Acara',
+                      subtitle: store.events.isEmpty
+                          ? 'Mis. trip, Lebaran: total & anggaran per acara'
+                          : '${store.events.length} acara',
+                      onTap: () => _push(context, EventsPage(store: store))),
                 _tile(context,
                     icon: Icons.upload_file_rounded,
                     color: Colors.redAccent,

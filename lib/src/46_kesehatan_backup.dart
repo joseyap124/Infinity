@@ -1,7 +1,9 @@
 part of '../main.dart';
 
-// Kartu kesehatan backup di Beranda (v4.1): chip hijau kalau aman, kartu kuning
-// kalau belum ada salinan di luar HP, kartu merah kalau backup sudah lama.
+// Kartu kesehatan backup di Beranda (v4.1). Sejak v5.0 pengingat baru muncul
+// setelah 30 hari tanpa backup: kartu merah kalau backup di HP sudah lama dan
+// datanya berubah, kartu kuning kalau salinan di luar HP sudah lama. Saat
+// aman, Beranda tidak menampilkan apa pun (statusnya ada di halaman Backup).
 
 /// Teks relatif singkat: "baru saja", "5 menit lalu", "2 jam lalu", "9 hari lalu".
 String agoLabel(DateTime at, DateTime now) {
@@ -46,10 +48,10 @@ class BackupStatus {
 }
 
 /// Hari sejak backup di HP dianggap lama (kalau datanya sudah berubah).
-const int kBackupStaleDays = 7;
+const int kBackupStaleDays = 30;
 
 /// Hari sejak salinan di luar HP dianggap lama.
-const int kOffsiteStaleDays = 7;
+const int kOffsiteStaleDays = 30;
 
 /// Jumlah transaksi minimal sebelum backup mulai diingatkan.
 const int kBackupMinTx = 10;
@@ -76,8 +78,10 @@ extension BackupHealthStore on AppStore {
           newTx: newTx,
           upToDate: false);
     }
+    // Salinan di luar HP hanya diingatkan kalau pernah dibuat lalu sudah lama.
+    // Yang belum pernah memakainya tidak ditagih tiap kali buka Beranda.
     final driveAge = drive == null ? null : now.difference(drive).inDays;
-    if (drive == null || driveAge! >= kOffsiteStaleDays) {
+    if (drive != null && driveAge! >= kOffsiteStaleDays) {
       return BackupStatus(
           level: BackupLevel.offsite,
           lastLocal: local,
@@ -132,39 +136,7 @@ class _BackupHealthCardState extends State<BackupHealthCard> {
       case BackupLevel.hidden:
         return const SizedBox.shrink();
       case BackupLevel.ok:
-        final last = st.lastLocal;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: InkWell(
-              onTap: _openBackup,
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(8, 5, 12, 5),
-                decoration: BoxDecoration(
-                  color: C.income.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ArtIcon(Icons.shield_rounded, color: C.income, size: 18, art: 'perisai'),
-                    const SizedBox(width: 6),
-                    Text(
-                        last == null
-                            ? 'Backup aman'
-                            : tr('Backup aman · {0}', [agoLabel(last, now)]),
-                        style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w800,
-                            color: C.income)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
+        return const SizedBox.shrink();
       case BackupLevel.offsite:
       case BackupLevel.stale:
         final stale = st.level == BackupLevel.stale;
@@ -306,7 +278,7 @@ class BackupStatusCard extends StatelessWidget {
             ? C.redDark
             : C.income;
     final driveColor = drive == null
-        ? C.amberDark
+        ? C.muted
         : now.difference(drive).inDays >= kOffsiteStaleDays
             ? C.amberDark
             : C.income;

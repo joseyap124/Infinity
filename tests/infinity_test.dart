@@ -1195,7 +1195,7 @@ void main() {
       final now = DateTime(2026, 10, 9, 12);
       List<Transaction> txs(int n) => [
             for (var i = 0; i < n; i++)
-              tx('t$i', TxType.expense, 1000, 'bca', date: now.subtract(Duration(days: 20 - i))),
+              tx('t$i', TxType.expense, 1000, 'bca', date: now.subtract(Duration(days: 60 - i * 3))),
           ];
       // Data masih sedikit: tidak diingatkan.
       var s = storeWith([acc('bca', initial: 100000)], txs(5));
@@ -1206,33 +1206,43 @@ void main() {
       expect(s.backupStatus(now).level, BackupLevel.stale);
       expect(s.backupStatus(now).newTx, 12);
 
-      // Backup di HP baru dan isinya sama, belum ada salinan di luar HP.
+      // Backup di HP baru dan isinya sama, belum pernah ada salinan di luar HP:
+      // tidak ditagih.
       s.updateSettings((x) {
         x.lastAutoBackup = now.subtract(const Duration(hours: 2));
         x.lastBackupSig = s.backupSignature();
       });
-      expect(s.backupStatus(now).level, BackupLevel.offsite);
+      expect(s.backupStatus(now).level, BackupLevel.ok);
       expect(s.backupStatus(now).upToDate, isTrue);
 
       // Salinan di luar HP baru: aman.
       s.markDriveSaved(now.subtract(const Duration(days: 2)));
       expect(s.backupStatus(now).level, BackupLevel.ok);
 
-      // Salinan di luar HP sudah 9 hari.
-      s.markDriveSaved(now.subtract(const Duration(days: 9)));
+      // Salinan di luar HP 29 hari: masih belum diingatkan; 31 hari: diingatkan.
+      s.markDriveSaved(now.subtract(const Duration(days: 29)));
+      expect(s.backupStatus(now).level, BackupLevel.ok);
+      s.markDriveSaved(now.subtract(const Duration(days: 31)));
       expect(s.backupStatus(now).level, BackupLevel.offsite);
 
-      // Backup di HP 15 hari lalu dan datanya sudah berubah: paling mendesak.
+      // Backup di HP 20 hari lalu dan datanya berubah: belum diingatkan.
       s.updateSettings((x) {
-        x.lastAutoBackup = now.subtract(const Duration(days: 15));
+        x.lastAutoBackup = now.subtract(const Duration(days: 20));
+        x.lastBackupSig = 'lama';
+      });
+      expect(s.backupStatus(now).level, isNot(BackupLevel.stale));
+
+      // Backup di HP 35 hari lalu dan datanya sudah berubah: paling mendesak.
+      s.updateSettings((x) {
+        x.lastAutoBackup = now.subtract(const Duration(days: 35));
         x.lastBackupSig = 'lama';
       });
       final st = s.backupStatus(now);
       expect(st.level, BackupLevel.stale);
-      // Transaksi bertanggal setelah backup: i = 6..11.
-      expect(st.newTx, 6);
+      // Transaksi bertanggal setelah backup: hari ke-60-3i < 35 berarti i >= 9.
+      expect(st.newTx, 3);
 
-      // Backup 15 hari lalu tapi isinya masih sama persis: tidak dianggap lama.
+      // Backup 35 hari lalu tapi isinya masih sama persis: tidak dianggap lama.
       s.updateSettings((x) => x.lastBackupSig = s.backupSignature());
       expect(s.backupStatus(now).level, isNot(BackupLevel.stale));
     });

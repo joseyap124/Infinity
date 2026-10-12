@@ -679,7 +679,7 @@ class DashboardTab extends StatelessWidget {
         if (credits.isEmpty) return const [];
         return [_creditCard(context, credits), gap];
       case 'goals':
-        if (store.goals.isEmpty) return const [];
+        if (store.goals.isEmpty || !store.feature('target')) return const [];
         return [
           SectionTitle('Target Tabungan',
               trailing: TextButton(
@@ -777,358 +777,173 @@ class DashboardTab extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _heroCard(context),
-          const SizedBox(height: 10),
-          _accountsCard(context),
+          const SizedBox(height: 8),
+          _shortcuts(context),
         ],
       ),
     );
   }
 
-  /// Kartu gelap: aman dibelanjakan hari ini, masuk/keluar periode ini, dan
-  /// jumlah transaksi periode ini (v3.6).
+  /// Kartu utama (v5.0): cincin sisa jatah hari ini dengan maskot yang
+  /// suasananya mengikuti kondisi, jatah per hari, dan total saldo.
   Widget _heroCard(BuildContext context) {
     final hide = store.settings.hideBalance;
     final now = DateTime.now();
     final s = store.safeToSpend(now);
-    final range = currentPeriod(now);
-    final income = store.sumIDR(TxType.income, range);
-    final expense = store.sumIDR(TxType.expense, range);
-    final count = periodTxCount(store, range);
     final left = s.leftToday;
     final over = left < 0;
-    const inColor = Color(0xFF4ADE80);
-    const outColor = Color(0xFFFB7185);
-    final top = C.isDark ? const Color(0xFF1F2E34) : const Color(0xFF0E2733);
-    final bottom = C.isDark ? const Color(0xFF243C3C) : const Color(0xFF153F3E);
-    final totalFlow = income + expense;
-    final inShare = totalFlow <= 0 ? 0.5 : income / totalFlow;
+    final lastTx = lastTransactionDate(store, now);
+    final mood = mascotMoodFor(
+        leftToday: left,
+        perDay: s.perDay,
+        lastTx: lastTx,
+        now: now,
+        hasAccounts: store.accounts.isNotEmpty);
+    final sleepy = mood == MascotMood.sleepy;
+    final ratio = s.perDay > 0 ? left / s.perDay : 0.0;
     final netWorth = store.netWorthIDR;
+    void openDetail() =>
+        showSheet<void>(context, SafeSpendSheet(store: store));
+    final String line = hide
+        ? 'Ketuk untuk rincian'
+        : sleepy
+            ? (lastTx == null
+                ? 'Belum ada catatan. Ketuk maskot untuk mulai'
+                : tr('Belum mencatat {0} hari. Ketuk maskot untuk mulai',
+                    [now.difference(lastTx).inDays]))
+            : tr('{0}/hari · {1} hari lagi', [money(s.perDay), s.daysLeft]);
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
+        color: C.surface,
         borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [top, bottom]),
+        border: Border.all(color: C.line),
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () =>
-                  showSheet<void>(context, SafeSpendSheet(store: store)),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                              over
-                                  ? 'Lewat jatah hari ini'
-                                  : 'Aman dibelanjakan hari ini',
-                              style: const TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white70)),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                                hide
-                                    ? 'Rp ••••••'
-                                    : money(over ? -left : left),
-                                style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w900,
-                                    color: over ? outColor : Colors.white)),
-                          ),
-                          Text(
-                              hide
-                                  ? 'Ketuk untuk rincian'
-                                  : tr('Jatah {0}/hari · {1} hari lagi{2}', [money(s.perDay), s.daysLeft, s.spentToday > 0 ? tr(' · keluar hari ini {0}', [money(s.spentToday)]) : '']) +
-                                      (s.installments > 0
-                                          ? '\n${tr('Sudah dikurangi cicilan {0} ({1})', [money(s.installments), DateFormat('d MMM', gDateLoc).format(s.installmentsOn!)])}'
-                                          : ''),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 11.5, color: Colors.white60)),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right_rounded,
-                        color: Colors.white54),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
+      child: Row(
+        children: [
+          InkWell(
+            customBorder: const CircleBorder(),
+            onTap: sleepy ? () => openTxForm(context, store) : openDetail,
+            child: MascotRing(mood: mood, progress: over ? 1.0 : ratio),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                    child: _flow('Masuk', income, inColor,
-                        Icons.south_west_rounded, hide)),
-                Expanded(
-                    child: _flow('Keluar', expense, outColor,
-                        Icons.north_east_rounded, hide)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: SizedBox(
-                height: 6,
-                child: Row(
-                  children: [
-                    Expanded(
-                        flex: (inShare * 1000).round().clamp(1, 999),
-                        child: const ColoredBox(color: inColor)),
-                    const SizedBox(width: 2),
-                    Expanded(
-                        flex: ((1 - inShare) * 1000).round().clamp(1, 999),
-                        child: const ColoredBox(color: outColor)),
-                  ],
-                ),
-              ),
-            ),
-            InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => _push(context, AccountsPage(store: store)),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 4),
-                child: Row(
-                  children: [
-                    const Text('Total saldo ',
-                        style:
-                            TextStyle(fontSize: 12.5, color: Colors.white60)),
-                    Expanded(
-                      child: FittedBox(
+                InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: openDetail,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          over
+                              ? 'Lewat jatah hari ini'
+                              : 'Aman dibelanjakan hari ini',
+                          style: TextStyle(fontSize: 12.5, color: C.muted)),
+                      FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
-                        child: Text(hide ? 'Rp ••••••••' : money(netWorth),
-                            style: const TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white)),
+                        child: Text(
+                            hide ? 'Rp ••••••' : money(over ? -left : left),
+                            style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                color: over ? C.redDark : C.carbon)),
                       ),
-                    ),
-                    const Text('Kelola akun',
-                        style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white70)),
-                    const Icon(Icons.chevron_right_rounded,
-                        size: 18, color: Colors.white54),
-                  ],
+                      Text(line,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 12.5, color: C.muted, height: 1.25)),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-            InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: onSeeAll,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                          count == 0
-                              ? 'Belum ada transaksi periode ini'
-                              : tr('{0} transaksi periode ini', [count]),
-                          style: const TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white70)),
+                const SizedBox(height: 4),
+                InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => _push(context, AccountsPage(store: store)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Text('Total saldo ',
+                            style: TextStyle(fontSize: 12.5, color: C.muted)),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(hide ? 'Rp ••••••••' : money(netWorth),
+                                style: TextStyle(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: C.carbon)),
+                          ),
+                        ),
+                        Icon(Icons.chevron_right_rounded,
+                            size: 18, color: C.muted),
+                      ],
                     ),
-                    const Icon(Icons.chevron_right_rounded,
-                        size: 18, color: Colors.white54),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _flow(
-      String label, double v, Color color, IconData icon, bool hide) {
+  /// Pintasan bulat di bawah kartu utama. Yang fiturnya dimatikan tidak tampil.
+  Widget _shortcuts(BuildContext context) {
+    final items = <(IconData, String, Color, VoidCallback)>[
+      (Icons.receipt_long_rounded, 'Tagihan', C.amberDark,
+          () => _push(context, RecurringPage(store: store))),
+      (Icons.track_changes_rounded, 'Anggaran', C.redDark,
+          () => _push(context, BudgetPage(store: store))),
+      if (store.feature('patungan'))
+        (Icons.groups_rounded, 'Patungan', C.blueDark,
+            () => showSheet<void>(context, PatunganSheet(store: store))),
+      if (store.feature('utang'))
+        (Icons.handshake_rounded, 'Utang', C.income,
+            () => _push(context, DebtsPage(store: store))),
+    ];
     return Row(
       children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: const TextStyle(
-                      fontSize: 11.5, color: Colors.white60)),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(hide ? 'Rp ••••' : money(v),
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: color)),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Akun dalam grid 2 kolom (maks 4) dan 4 tombol pintas, semuanya kartu
-  /// putih polos di atas latar halaman (tanpa blok warna di belakang).
-  Widget _accountsCard(BuildContext context) {
-    final hide = store.settings.hideBalance;
-    final shown = store.accounts.take(4).toList();
-    final more = store.accounts.length - shown.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(builder: (context, box) {
-          const gap = 10.0;
-          final w = (box.maxWidth - gap) / 2;
-          return Wrap(
-            spacing: gap,
-            runSpacing: gap,
-            children: [
-              for (final a in shown)
-                SizedBox(width: w, child: _accountTile(context, a, hide)),
-            ],
-          );
-        }),
-        if (more > 0)
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () => _push(context, AccountsPage(store: store)),
-              style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 8)),
-              child: Text(tr('Semua akun ({0}) ›', [store.accounts.length]),
-                  style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: C.accentDark)),
-            ),
-          ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            _quickAction(Icons.receipt_long_rounded, 'Bills', C.amberDark,
-                () => _push(context, RecurringPage(store: store))),
-            const SizedBox(width: 10),
-            _quickAction(Icons.track_changes_rounded, 'Budget', C.redDark,
-                () => _push(context, BudgetPage(store: store))),
-            const SizedBox(width: 10),
-            _quickAction(Icons.groups_rounded, 'Patungan', C.blueDark,
-                () => showSheet<void>(context, PatunganSheet(store: store))),
-            const SizedBox(width: 10),
-            _quickAction(Icons.handshake_rounded, 'Utang', C.income,
-                () => _push(context, DebtsPage(store: store))),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _accountTile(BuildContext context, Account a, bool hide) {
-    final bal = store.balanceOf(a.id);
-    return Material(
-      color: C.surface,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => openAccountHistory(context, store, a),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: C.line),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 9,
-                    height: 9,
-                    decoration: BoxDecoration(
-                        color: a.colorValue, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                        a.currency == 'IDR' ? a.name : '${a.name} · ${a.currency}',
+        for (final (icon, label, color, onTap) in items)
+          Expanded(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.13),
+                          shape: BoxShape.circle),
+                      alignment: Alignment.center,
+                      child: ArtIcon(icon, color: color, size: 24),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                             fontSize: 12,
-                            color: C.muted,
-                            fontWeight: FontWeight.w600)),
-                  ),
-                ],
+                            fontWeight: FontWeight.w600,
+                            color: C.carbon)),
+                  ],
+                ),
               ),
-              const SizedBox(height: 2),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(hide ? '•••••' : money(bal, a.currency),
-                    style: TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w800,
-                        color: bal < 0 ? C.redDark : C.carbon)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _quickAction(
-      IconData icon, String label, Color color, VoidCallback onTap) {
-    return Expanded(
-      child: Material(
-        color: C.surface,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: C.line),
-            ),
-            child: Column(
-              children: [
-                ArtIcon(icon, color: color, size: 26),
-                const SizedBox(height: 4),
-                Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: C.carbon)),
-              ],
             ),
           ),
-        ),
-      ),
+      ],
     );
   }
 

@@ -453,6 +453,18 @@ class FormResult {
   final bool saveAsTemplate;
 }
 
+/// Fitur yang bisa dimatikan di Pengaturan > Fitur (id -> menyala secara bawaan).
+/// Yang dimatikan disembunyikan dan tidak ikut dihitung; datanya tetap tersimpan.
+const Map<String, bool> kFeatureDefaults = {
+  'cicilan': true,
+  'utang': true,
+  'target': true,
+  'patungan': true,
+  'acara': true,
+  'tunda': false,
+  'bocor': false,
+};
+
 class AppSettings {
   BudgetPeriod budgetPeriod = BudgetPeriod.monthly;
 
@@ -478,7 +490,15 @@ class AppSettings {
   Map<String, String> spendKinds = {};
   int accentIndex = 0;
 
-  /// Gaya ikon kategori: 'cartoon' (bergambar) | 'classic' (ikon Material).
+  /// Pilihan fitur yang berbeda dari bawaannya (lihat [kFeatureDefaults]).
+  Map<String, bool> features = {};
+
+  bool feature(String id) => features[id] ?? (kFeatureDefaults[id] ?? true);
+
+  /// Animasi pembuka: 'once' (sekali saja) | 'always' (tiap buka) | 'off'.
+  String splashMode = 'once';
+
+  /// Gaya ikon kategori: 'cartoon' | 'flat' | 'classic' | 'mono'.
   String iconStyle = 'cartoon';
 
   /// Bahasa tampilan: 'id' | 'en' | 'zh'.
@@ -580,6 +600,8 @@ class AppSettings {
         if (spendKinds.isNotEmpty) 'spendKinds': spendKinds,
         'accentIndex': accentIndex,
         'iconStyle': iconStyle,
+        if (features.isNotEmpty) 'features': features,
+        if (splashMode != 'once') 'splashMode': splashMode,
         if (lang != 'id') 'lang': lang,
         if (iconsV37) 'iconsV37': true,
         if (pinnedCats.isNotEmpty) 'pinnedCats': pinnedCats,
@@ -656,7 +678,18 @@ class AppSettings {
     final tm = _s(j['themeMode']);
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
-    s.iconStyle = _s(j['iconStyle']) == 'classic' ? 'classic' : 'cartoon';
+    final isv = _s(j['iconStyle']);
+    s.iconStyle =
+        (isv == 'classic' || isv == 'mono' || isv == 'flat') ? isv! : 'cartoon';
+    if (j['features'] is Map) {
+      s.features = {
+        for (final e in (j['features'] as Map).entries)
+          if (e.value is bool && kFeatureDefaults.containsKey(e.key.toString()))
+            e.key.toString(): e.value as bool
+      };
+    }
+    final spm = _s(j['splashMode']);
+    s.splashMode = (spm == 'always' || spm == 'off') ? spm! : 'once';
     s.lang = const ['en', 'zh'].contains(_s(j['lang'])) ? _s(j['lang'])! : 'id';
     s.iconsV37 = j['iconsV37'] == true;
     if (j['pinnedCats'] is List) {

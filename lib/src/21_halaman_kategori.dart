@@ -251,9 +251,10 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
                                 : C.line,
                             width: e.key == _icon ? 2 : 1),
                       ),
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: gCartoon,
-                        builder: (context, cartoon, _) {
+                      child: ValueListenableBuilder<String>(
+      valueListenable: gIconStyle,
+      builder: (context, iconStyle, _) {
+        final cartoon = iconsArt(iconStyle);
                           final bytes = cartoon ? artBytes(e.key) : null;
                           if (bytes != null) {
                             return Padding(
