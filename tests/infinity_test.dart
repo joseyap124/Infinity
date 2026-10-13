@@ -2991,6 +2991,7 @@ void main() {
       ];
       expect(missing, isEmpty);
     });
+  });
 
   group('v5.5.0 widget ikut gaya dan maskot', () {
     test('widgetData membawa gaya dan maskot pilihan', () {
@@ -3013,6 +3014,5 @@ void main() {
       s.settings.mascotSkin = 'custom';
       expect(s.widgetData()['w_skin_path'], '/data/x/maskot.png');
     });
-  });
   });
 }
