@@ -4,7 +4,7 @@ part of '../main.dart';
 // TAB 3: STATISTIK
 // =============================================================================
 
-enum _StatTab { kategori, tren, aset }
+enum _StatTab { kategori, tren, aset, kalender }
 
 class StatsTab extends StatefulWidget {
   const StatsTab({super.key, required this.store});
@@ -263,6 +263,14 @@ class _StatsTabState extends State<StatsTab> {
       onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => YearRecapPage(store: store))),
     ));
+    rows.add(_moreRow(
+      leading: CatIcon(
+          icon: Icons.tune_rounded, color: C.income, size: 38),
+      title: tr('Kalau...'),
+      subtitle: tr('Simulasi hemat, tabung, atau percepat cicilan'),
+      onTap: () => Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => WhatIfPage(store: store))),
+    ));
     if (monthly) {
       rows.add(_moreRow(
         leading: CatIcon(
@@ -504,6 +512,9 @@ class _StatsTabState extends State<StatsTab> {
         ? now.difference(r.start).inDays + 1
         : r.end.difference(r.start).inDays;
     final avgDaily = elapsedDays > 0 ? expense / elapsedDays : 0.0;
+    final tab = (_tab == _StatTab.kalender && _mode == BudgetPeriod.yearly)
+        ? _StatTab.kategori
+        : _tab;
 
     return SafeArea(
       bottom: false,
@@ -546,22 +557,28 @@ class _StatsTabState extends State<StatsTab> {
           _hero(income, expense, net, avgDaily),
           const SizedBox(height: 14),
           Segmented<_StatTab>(
-            values: _StatTab.values,
-            selected: _tab,
+            values: [
+              for (final t in _StatTab.values)
+                if (t != _StatTab.kalender || _mode != BudgetPeriod.yearly) t
+            ],
+            selected: tab,
             labelOf: (t) => switch (t) {
               _StatTab.kategori => tr('Kategori'),
               _StatTab.tren => tr('Tren'),
               _StatTab.aset => tr('Aset'),
+              _StatTab.kalender => tr('Kalender'),
             },
             dense: true,
             onChanged: (t) => setState(() => _tab = t),
           ),
           const SizedBox(height: 12),
-          if (_tab == _StatTab.kategori) ...[
+          if (tab == _StatTab.kategori) ...[
             _categoryCard(context, byCat, total, r),
             const SizedBox(height: 12),
             SpendKindCard(store: store, range: r, prev: _prevRange),
-          ] else if (_tab == _StatTab.tren) ...[
+          ] else if (tab == _StatTab.kalender) ...[
+            SpendCalendar(store: store, range: r),
+          ] else if (tab == _StatTab.tren) ...[
             _trendCard(),
             // Perbandingan dengan bulan lalu, hanya untuk bulan berjalan.
             if (_mode == BudgetPeriod.monthly &&

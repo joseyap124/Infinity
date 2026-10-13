@@ -3,7 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.2.0)
+## Berikutnya (v5.3.0)
+
+Dua cara baru melihat uangmu: kalender pengeluaran dan simulasi "Kalau...". Semuanya dihitung dari data di HP.
+
+### Ditambah
+- **Kalender di Statistik.** Tab keempat setelah Kategori, Tren, dan Aset (tidak ada di tampilan Tahun). Tiap hari diwarnai dari hijau (hemat) sampai merah (boros), jadi hari yang jebol langsung kelihatan. Ketuk satu hari untuk melihat total, jumlah transaksi, kategori terbesar, dan selisihnya dari patokan. Patokannya jatah harian dari anggaranmu; kalau belum ada anggaran, rata-rata harian dari data sampai 90 hari terakhir, dan kalau data kurang dari seminggu, warna dibandingkan dengan hari paling boros di bulan itu. Di bawahnya ada ringkasan: berapa hari di bawah patokan dan hari paling boros.
+- **Kalau...** Simulasi kebiasaan. Pilih Hemat harian, Tabung, atau Cicilan, lalu geser angka dengan tombol - dan +. Infinity menghitung kapan target tabunganmu tercapai atau cicilanmu lunas, dibanding kalau tidak ada perubahan. Sisa uang bulanan diambil dari rata-rata 3 periode terakhir dan bisa kamu ubah kalau tidak pas. Dibuka dari Statistik (bagian Lainnya) atau dari tab Cicilan dan Target di Rencana. Ini perkiraan, bukan janji.
+
+## v5.2.0 (13 Okt 2026)
 
 Statistik dan Rencana lebih ringan: satu ringkasan di atas, isi lainnya dibagi ke tab, tidak lagi menumpuk panjang ke bawah.
 

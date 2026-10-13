@@ -393,6 +393,31 @@ class _PlanTabState extends State<PlanTab> {
             ),
           ],
           ...body,
+          if (sub == _PlanSub.cicilan || sub == _PlanSub.target) ...[
+            const SizedBox(height: 10),
+            AppCard(
+              onTap: () => _pushPage(context, WhatIfPage(store: store)),
+              child: Row(
+                children: [
+                  CatIcon(icon: Icons.tune_rounded, color: C.income, size: 38),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(tr('Kalau...'),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w800, fontSize: 14)),
+                        Text(tr('Lihat efek hemat atau tabung ke target dan cicilan'),
+                            style: TextStyle(fontSize: 12, color: C.muted)),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: C.muted),
+                ],
+              ),
+            ),
+          ],
           if (store.feature('patungan') || store.feature('acara')) ...[
             const SizedBox(height: 16),
             Row(
