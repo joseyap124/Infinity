@@ -4,7 +4,7 @@ import 'dart:io' show File, zlib;
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
-import 'package:flutter/material.dart' show Color, DateTimeRange;
+import 'package:flutter/material.dart' show Color, DateTimeRange, Icons;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:infinity/main.dart';
