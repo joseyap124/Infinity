@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.5.1)
+## Berikutnya (v5.5.2)
+
+### Diperbaiki
+- **Layar "Data belum bisa dibuka" saat membuka dari widget.** Gagal membaca kunci data sering hanya sesaat, jadi sekarang Infinity mencoba lagi sendiri sampai tiga kali (tiap 2,5 detik) sebelum menyerah, dan pembacaan kunci di awal dicoba empat kali dengan jeda makin panjang. Kalau tetap gagal, layar itu menampilkan baris kecil "Kode: ..." berisi penyebab teknisnya (mis. secure storage kosong atau dekripsi gagal) supaya masalahnya bisa dilacak. Datamu tidak diubah atau dihapus oleh langkah ini.
+
+## v5.5.1 (13 Okt 2026)
 
 ### Diubah
 - **Judul langsung bisa diketik.** Ketuk tulisan "+ Tambah judul atau catatan" di form transaksi, dan kolom Judul langsung aktif dengan keyboard terbuka, tanpa perlu mengetuk kolomnya lagi. Tombol "Catatan, struk, bagi" tetap membuka lembar tanpa keyboard, karena isinya juga foto struk dan acara.

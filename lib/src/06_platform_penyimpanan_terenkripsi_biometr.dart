@@ -335,11 +335,23 @@ class DataFile {
   /// File data ada tetapi kuncinya hilang (lihat [init]).
   static bool keyLost = false;
 
+  /// Alasan terakhir data tidak bisa dibuka (teknis, ditampilkan kecil di layar
+  /// "Data belum bisa dibuka" supaya penyebabnya bisa dilacak).
+  static String lastFailure = '';
+  static String _ssErr = '';
+
+  static String _short(Object e) {
+    final t = e.toString().replaceAll(RegExp(r'\s+'), ' ');
+    return '${e.runtimeType}: ${t.length > 90 ? t.substring(0, 90) : t}';
+  }
+
   static Future<String?> _readKeyOnce() async {
     try {
       final k = await SecureStore.read(_keyName);
+      _ssErr = '';
       return (k == null || k.isEmpty) ? null : k;
-    } catch (_) {
+    } catch (e) {
+      _ssErr = _short(e);
       return null;
     }
   }
@@ -355,10 +367,10 @@ class DataFile {
       // dimatikan sistem). Coba beberapa kali dulu, dan jangan langsung
       // membuat kunci baru: kunci baru membuat data lama tidak bisa dibuka.
       String? k;
-      for (var i = 0; i < 3 && k == null; i++) {
+      for (var i = 0; i < 4 && k == null; i++) {
         k = await _readKeyOnce();
-        if (k == null && i < 2) {
-          await Future<void>.delayed(const Duration(milliseconds: 300));
+        if (k == null && i < 3) {
+          await Future<void>.delayed(Duration(milliseconds: 300 * (i + 1)));
         }
       }
       // Salinan kunci di folder privat app (tidak ikut backup, tidak bisa
@@ -387,6 +399,8 @@ class DataFile {
           // lagi): biarkan, dan tampilkan layar "Data tidak bisa dibuka".
           keyLost = true;
           _key = null;
+          lastFailure =
+              'kunci tidak ditemukan; secure storage: ${_ssErr.isEmpty ? 'kosong' : _ssErr}; salinan kunci: tidak ada';
           return true;
         }
         k = base64Encode(_random(32));
@@ -400,9 +414,10 @@ class DataFile {
         } catch (_) {}
       }
       return true;
-    } catch (_) {
+    } catch (e) {
       _file = null;
       _key = null;
+      lastFailure = 'init gagal: ${_short(e)}';
       return false;
     }
   }
@@ -422,13 +437,20 @@ class DataFile {
     }
     if (f == null || key == null || !f.existsSync()) return null;
     final b = await f.readAsBytes();
-    if (b.length < 28) throw const FormatException('File data terlalu pendek');
+    if (b.length < 28) {
+      lastFailure = 'file data terlalu pendek (${b.length} byte)';
+      throw const FormatException('File data terlalu pendek');
+    }
     try {
       return await _decrypt(b, key);
-    } catch (_) {
+    } catch (e) {
       // Kunci di secure storage tidak cocok: coba salinan kunci di folder app.
       final alt = _alt;
-      if (alt == null) rethrow;
+      if (alt == null) {
+        lastFailure =
+            'dekripsi gagal (${_short(e)}); salinan kunci berbeda: tidak ada';
+        rethrow;
+      }
       final r = await _decrypt(b, alt);
       _key = alt;
       try {

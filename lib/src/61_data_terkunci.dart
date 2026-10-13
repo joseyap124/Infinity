@@ -16,6 +16,35 @@ class DataLockedScreen extends StatefulWidget {
 class _DataLockedScreenState extends State<DataLockedScreen> {
   bool _busy = false;
   String? _note;
+  Timer? _auto;
+  int _autoTries = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleAuto();
+  }
+
+  @override
+  void dispose() {
+    _auto?.cancel();
+    super.dispose();
+  }
+
+  /// Gagal baca kunci sering hanya sesaat (mis. app baru dibuka dari widget
+  /// atau baru dihidupkan sistem), jadi coba lagi diam-diam beberapa kali.
+  void _scheduleAuto() {
+    if (_autoTries >= 3) return;
+    _auto = Timer(const Duration(milliseconds: 2500), () async {
+      if (!mounted || _busy) return;
+      _autoTries++;
+      await widget.onRetry();
+      if (mounted) {
+        setState(() {});
+        _scheduleAuto();
+      }
+    });
+  }
 
   Future<void> _retry() async {
     setState(() {
@@ -80,6 +109,11 @@ class _DataLockedScreenState extends State<DataLockedScreen> {
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
                       color: C.redDark)),
+            ],
+            if (DataFile.lastFailure.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              SelectableText('Kode: ${DataFile.lastFailure}',
+                  style: TextStyle(fontSize: 11.5, height: 1.35, color: C.muted)),
             ],
             const SizedBox(height: 24),
             PrimaryButton(
