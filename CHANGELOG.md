@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.5.0)
+## Berikutnya (v5.5.1)
+
+### Diubah
+- **Judul langsung bisa diketik.** Ketuk tulisan "+ Tambah judul atau catatan" di form transaksi, dan kolom Judul langsung aktif dengan keyboard terbuka, tanpa perlu mengetuk kolomnya lagi. Tombol "Catatan, struk, bagi" tetap membuka lembar tanpa keyboard, karena isinya juga foto struk dan acara.
+
+## v5.5.0 (13 Okt 2026)
 
 Widget layar utama sekarang ikut gaya dan maskot pilihanmu.
 

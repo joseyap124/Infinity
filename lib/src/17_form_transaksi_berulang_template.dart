@@ -1201,8 +1201,17 @@ class _TxFormSheetState extends State<TxFormSheet> {
       _saveTemplate;
 
   /// Judul, catatan, foto struk, acara, bagi kategori, tempel struk, template.
-  Future<void> _openDetails() async {
+  ///
+  /// [focusTitle]: dibuka dari tulisan judul, jadi kolom Judul langsung aktif
+  /// dan keyboard muncul tanpa perlu mengetuk lagi.
+  Future<void> _openDetails({bool focusTitle = false}) async {
     FocusScope.of(context).unfocus();
+    if (focusTitle) {
+      // Tunggu lembar terbuka dulu, baru fokus (kolomnya baru ada di dalamnya).
+      unawaited(Future<void>.delayed(const Duration(milliseconds: 280), () {
+        if (mounted && !_titleFocus.hasFocus) _titleFocus.requestFocus();
+      }));
+    }
     final accent = _type.color;
     await showSheet<void>(
       context,
@@ -1461,7 +1470,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
         ),
         InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: _openDetails,
+          onTap: () => _openDetails(focusTitle: true),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             child: Text(title.isEmpty ? '+ Tambah judul atau catatan' : title,
