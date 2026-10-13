@@ -3,7 +3,17 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.0.4)
+## Berikutnya (v5.0.5)
+
+Judul transaksi dari notifikasi bank lebih jelas, sehingga kategorinya lebih mudah ditebak dari kebiasaanmu.
+
+### Diubah
+- **Judul dari notifikasi memakai nama tujuan.** "You spent IDR 10,000.00 at Account Transfer" sekarang berjudul "Account Transfer", "Pengeluaran sebesar IDR 25,000.00 di KOPI KENANGAN" berjudul "Kopi Kenangan", dan "Transferan sejumlah Rp1.000 ke MANDIRI" berjudul "Mandiri". Dulu judulnya "Transaksi myBCA" untuk semuanya, sehingga Infinity tidak bisa belajar kategori per tujuan. Kategori ditebak dari kebiasaanmu setelah judul yang sama dicatat minimal 2 kali dengan kategori yang sama. Nama yang disamarkan bank (mis. "A****** P****") tidak dipakai sebagai judul.
+
+### Diperbaiki
+- **Judul "Pembayaran ke X" ikut membawa nominal dan kalimat berikutnya**, mis. "Kopi Kenangan Rp25.000 berhasil. Sisa sa". Sekarang hanya nama tujuannya.
+
+## v5.0.4 (13 Okt 2026)
 
 Perbaikan pembacaan notifikasi BCA dan Mandiri.
 

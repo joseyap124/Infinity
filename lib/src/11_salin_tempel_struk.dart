@@ -119,6 +119,43 @@ const List<String> _genericAccountWords = [
   'bank', 'kartu', 'kredit', 'utama', 'kantong', 'tabungan', 'dompet', 'rekening',
 ];
 
+/// Potong nama tujuan di akhir frasa: tanda baca kalimat, kata sambung
+/// ("on", "pada", "berhasil"), atau nominal berikutnya.
+final RegExp _merchantCut = RegExp(
+    r'\s*(?:[.,;:!]\s|[.,;:!]$|\s(?:on|pada|tanggal|tgl|dengan|menggunakan|using|via|berhasil|successful|successfully|sukses|saldo|balance|from|dari|jam)\b|\s(?:rp\.?|idr)\s?[0-9])',
+    caseSensitive: false);
+
+/// Rapikan nama toko/tujuan dari teks notifikasi. Null kalau tidak layak
+/// jadi judul (terlalu pendek, hanya angka, atau disamarkan bank dengan "*").
+String? _cleanMerchant(String raw) {
+  var t = raw.trim();
+  final cut = _merchantCut.firstMatch(t);
+  if (cut != null) t = t.substring(0, cut.start);
+  t = t.replaceAll(RegExp('^["\'\\s]+|["\'\\s.,;:!]+\$'), '').trim();
+  if (t.length < 3 || t.contains('*')) return null;
+  if (!RegExp(r'[A-Za-z]{2}').hasMatch(t)) return null;
+  if (t.length > 40) t = t.substring(0, 40).trim();
+  // "KOPI KENANGAN" jadi "Kopi Kenangan"; nama campur huruf dibiarkan.
+  if (t == t.toUpperCase()) {
+    t = t
+        .toLowerCase()
+        .split(RegExp(r'\s+'))
+        .map((w) => w.isEmpty ? w : w[0].toUpperCase() + w.substring(1))
+        .join(' ');
+  }
+  return t;
+}
+
+/// Nama tujuan dari notifikasi bank: "... IDR 10,000.00 at Account Transfer.",
+/// "... Rp25.000 di KOPI KENANGAN.", "... Rp1.000 ke MANDIRI berhasil".
+String? merchantFromNotification(String text) {
+  final m = RegExp(
+          r'(?:rp\.?|idr)\s?[0-9][0-9.,]*\s+(?:at|di|ke|to|kepada|untuk)\s+([^\n]{2,80})',
+          caseSensitive: false)
+      .firstMatch(text);
+  return m == null ? null : _cleanMerchant(m.group(1)!);
+}
+
 /// Membaca teks struk/notifikasi (GoPay, m-banking, e-commerce) yang disalin
 /// user, lalu menebak nominal, tipe, akun, judul, dan kategori. Hasilnya
 /// tebakan: user tetap mengecek sebelum menyimpan.
@@ -199,7 +236,8 @@ ParsedReceipt parseReceipt(String text, AppStore store) {
           r'\b(?:pembayaran ke|bayar ke|transfer ke|kirim ke|merchant|penerima|tujuan)\b\s*[:\-]?\s*([A-Za-z0-9][^\n,]{2,40})',
           caseSensitive: false)
       .firstMatch(text);
-  if (mt != null) title = mt.group(1)!.trim();
+  if (mt != null) title = _cleanMerchant(mt.group(1)!);
+  title ??= merchantFromNotification(text);
 
   String? categoryId;
   for (final e in _categoryHints.entries) {

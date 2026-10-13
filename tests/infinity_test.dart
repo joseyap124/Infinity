@@ -2802,4 +2802,69 @@ void main() {
       expect(t.accountId, 'bca');
     });
   });
+
+  group('v5.0.5 judul dari notifikasi', () {
+    AppStore setup() {
+      final s = storeWith([acc('bca', initial: 2000000)]);
+      s.categories = [
+        TxCategory(id: 'lain', name: 'Lain lain', type: TxType.expense, icon: 'other', color: 0),
+        TxCategory(id: 'admin', name: 'Admin', type: TxType.expense, icon: 'other', color: 0),
+      ];
+      s.settings.captureMode = 'auto';
+      return s;
+    }
+
+    String? title(String t) => parseReceipt(t, setup()).title;
+
+    test('myBCA berbahasa Inggris: "at Account Transfer"', () {
+      expect(title('You spent IDR 10,000.00 at Account Transfer.'), 'Account Transfer');
+    });
+
+    test('myBCA berbahasa Indonesia: "di KOPI KENANGAN" dirapikan', () {
+      expect(title('Pengeluaran sebesar IDR 25,000.00 di KOPI KENANGAN.'), 'Kopi Kenangan');
+    });
+
+    test('GoPay dan Mandiri', () {
+      expect(title('Transferan sejumlah Rp1.000 ke MANDIRI berhasil'), 'Mandiri');
+      expect(title('Pembayaran Rp25.000 ke Kopi Kenangan berhasil. Sisa saldo Rp150.000'), 'Kopi Kenangan');
+    });
+
+    test('judul lama "Pembayaran ke X" tidak ikut nominal dan kalimat berikutnya', () {
+      expect(title('Pembayaran ke Kopi Kenangan Rp25.000 berhasil. Sisa saldo Rp150.000'), 'Kopi Kenangan');
+    });
+
+    test('nama disamarkan bank atau tanpa tujuan tidak dijadikan judul', () {
+      expect(title('Pemasukan sebesar IDR 100,000.00 dari A****** P****.'), isNull);
+      expect(title('Dana Rp 1.000,00 masuk ke rek. ****8509. Login ke Livin\' by Mandiri'), isNull);
+      expect(title('Isi saldo GO-PAY sebesar Rp250.000. Saldomu sekarang: Rp612.500.'), isNull);
+    });
+
+    test('judul tujuan dipakai untuk menebak kategori dari kebiasaan', () {
+      final s = setup();
+      for (var i = 0; i < 2; i++) {
+        s.transactions.add(Transaction(
+            id: 'h$i',
+            title: 'Account Transfer',
+            amount: 5000.0 * (i + 1),
+            type: TxType.expense,
+            categoryId: 'admin',
+            accountId: 'bca',
+            date: DateTime.now().subtract(Duration(days: 3 + i)),
+            note: ''));
+      }
+      final at = DateTime.now().subtract(const Duration(minutes: 1));
+      final n = s.ingestCaptured([
+        {
+          'pkg': 'com.bca.mybca.omni.android',
+          'title': 'myBCA',
+          'text': 'You spent IDR 10,000.00 at Account Transfer.',
+          'time': at.millisecondsSinceEpoch,
+        }
+      ]);
+      expect(n, 1);
+      final t = s.transactions.last;
+      expect(t.title, 'Account Transfer');
+      expect(t.categoryId, 'admin');
+    });
+  });
 }
