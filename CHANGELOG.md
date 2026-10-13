@@ -3,7 +3,16 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.4.1)
+## Berikutnya (v5.5.0)
+
+Widget layar utama sekarang ikut gaya dan maskot pilihanmu.
+
+### Diubah
+- **Widget ikut gaya.** Ketiga widget (4x2, 2x2, 2x1) memakai warna gaya yang kamu pilih: Malam Biru, Kuning Ceria, atau Merah Kafe, lengkap dengan garis tepi. Gaya Klasik tetap seperti sebelumnya (biru gelap kehijauan).
+- **Widget ikut maskot.** Cincin di widget menampilkan Burung Hantu, Rubah, Gagak, atau gambar sendiri sesuai pilihan di Pengaturan, bukan lagi selalu maskot lama. Kalau gambarnya tidak terbaca, widget kembali ke maskot klasik.
+- Motif latar (kabut, awan, lampu) belum ada di widget; hanya warna dan garis tepi.
+
+## v5.4.1 (13 Okt 2026)
 
 ### Diubah
 - **Bagian bawah Statistik lebih ringkas.** Daftar "Lainnya" yang berisi lima baris diganti satu baris empat tombol: Rekap bulan, Rekap tahun, Kalau..., dan Ekspor. Ekspor membuka pilihan Laporan PDF dan Bagikan ringkasan bulan. Di tampilan Minggu dan Tahun hanya Rekap tahun dan Kalau... yang tampil, karena rekap bulan, PDF, dan bagikan memang untuk satu bulan.

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Latar widget untuk gaya merah (v5.5). Dipilih dari kode lewat w_pack. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="315"
+        android:startColor="#FF2A1412"
+        android:endColor="#FF1B0B0B" />
+    <stroke
+        android:width="1.5dp"
+        android:color="#FF7A2E24" />
+    <corners android:radius="24dp" />
+</shape>

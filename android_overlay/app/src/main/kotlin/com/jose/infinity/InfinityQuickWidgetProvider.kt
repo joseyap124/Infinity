@@ -22,11 +22,17 @@ class InfinityQuickWidgetProvider : HomeWidgetProvider() {
     ) {
         val mood = widgetData.getString("w_mood", null) ?: "ok"
         val ring = (widgetData.getString("w_ring", null) ?: "0").toIntOrNull() ?: 0
+        val skin = widgetData.getString("w_skin", null)
+        val skinPath = widgetData.getString("w_skin_path", null)
+        val theme = WidgetTheme.of(widgetData.getString("w_pack", null), skin)
         appWidgetIds.forEach { widgetId ->
             val views = RemoteViews(context.packageName, R.layout.infinity_widget_small).apply {
-                setImageViewBitmap(R.id.ws_ring, WidgetArt.ring(context, mood, ring, 160))
+                setImageViewBitmap(R.id.ws_ring, WidgetArt.ring(context, mood, ring, 160, theme, skin, skinPath))
                 setTextViewText(R.id.ws_label, widgetData.getString("w_safe_label", null) ?: "Aman dibelanjakan")
                 setTextViewText(R.id.ws_safe, widgetData.getString("w_safe", null) ?: "Buka Infinity")
+                setInt(R.id.ws_root, "setBackgroundResource", theme.bg)
+                setTextColor(R.id.ws_label, theme.fg2)
+                setTextColor(R.id.ws_safe, theme.fg)
                 setOnClickPendingIntent(R.id.ws_root, launch(context, "infinity://open"))
                 setOnClickPendingIntent(R.id.ws_btn, launch(context, "infinity://add?type=expense"))
             }

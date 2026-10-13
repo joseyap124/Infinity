@@ -2991,5 +2991,28 @@ void main() {
       ];
       expect(missing, isEmpty);
     });
+
+  group('v5.5.0 widget ikut gaya dan maskot', () {
+    test('widgetData membawa gaya dan maskot pilihan', () {
+      final s = AppStore();
+      expect(s.widgetData()['w_pack'], 'classic');
+      expect(s.widgetData()['w_skin'], 'classic');
+      expect(s.widgetData()['w_skin_path'], '');
+      s.settings.stylePack = 'merah';
+      s.settings.mascotSkin = 'fox';
+      final w = s.widgetData();
+      expect(w['w_pack'], 'merah');
+      expect(w['w_skin'], 'fox');
+      expect(w['w_skin_path'], '');
+    });
+
+    test('jalur gambar sendiri hanya dikirim untuk maskot custom', () {
+      final s = AppStore();
+      s.settings.mascotCustomPath = '/data/x/maskot.png';
+      expect(s.widgetData()['w_skin_path'], '');
+      s.settings.mascotSkin = 'custom';
+      expect(s.widgetData()['w_skin_path'], '/data/x/maskot.png');
+    });
+  });
   });
 }

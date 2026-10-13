@@ -1973,6 +1973,10 @@ class AppStore extends ChangeNotifier {
     return {
       'w_mood': mood.name,
       'w_ring': '$ring',
+      // Gaya dan maskot pilihan (v5.5): sisi Android memilih warna dan gambar.
+      'w_pack': s.stylePack,
+      'w_skin': s.mascotSkin,
+      'w_skin_path': s.mascotSkin == 'custom' ? (s.mascotCustomPath ?? '') : '',
       'w_safe_label': over ? tr('Lewat jatah · {0}', [day]) : tr('Aman dibelanjakan · {0}', [day]),
       // Ringkas (mis. "Rp 7,5 jt") supaya muat di widget.
       'w_safe': hide ? tr('Rp ••••') : tr('Rp {0}', [compactMoney(over ? -left : left)]),
