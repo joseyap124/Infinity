@@ -1441,6 +1441,18 @@ const Map<String, String> kEnStrings = {
   'Tampilan bawaan Infinity. Ikut Terang atau Gelap dan warna utama pilihanmu.': 'The default Infinity look. Follows Light or Dark and your main colour.',
   'Gaya selain Klasik mengatur warna, Terang atau Gelap, dan ikon pintasan sendiri. Pemasukan tetap hijau dan pengeluaran tetap merah.': 'Styles other than Classic set their own colours, Light or Dark, and shortcut icons. Income stays green and spending stays red.',
   'Maskot berganti ekspresi sesuai sisa jatah harianmu. Gambar sendiri hanya tersimpan di HP ini dan dipakai untuk semua suasana, ditandai lewat warna cincin.': 'The mascot changes expression with your remaining daily allowance. Your own picture is stored only on this phone and used for every mood, shown through the ring colour.',
+  'minggu lalu': 'last week',
+  'bulan lalu': 'last month',
+  'tahun lalu': 'last year',
+  'Sama seperti {0}': 'Same as {0}',
+  '{0}% lebih hemat dari {1}': '{0}% less than {1}',
+  '{0}% lebih boros dari {1}': '{0}% more than {1}',
+  'Rata-rata/hari': 'Average/day',
+  'Simpan atau kirim laporan bulan ini': 'Save or send this month\'s report',
+  'Gambar ringkas untuk dikirim': 'A short picture to send',
+  'Tren': 'Trend',
+  'Aset': 'Assets',
+  '{0} saran untuk bulan ini': '{0} tips for this month',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

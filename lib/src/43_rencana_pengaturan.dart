@@ -140,9 +140,20 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
 
 // ----------------------------------------------------------------- Tab Rencana
 
-class PlanTab extends StatelessWidget {
+enum _PlanSub { tagihan, cicilan, target, utang }
+
+class PlanTab extends StatefulWidget {
   const PlanTab({super.key, required this.store});
   final AppStore store;
+
+  @override
+  State<PlanTab> createState() => _PlanTabState();
+}
+
+class _PlanTabState extends State<PlanTab> {
+  AppStore get store => widget.store;
+  _PlanSub _sub = _PlanSub.tagihan;
+  bool _tips = false;
 
   Widget _section(BuildContext context, String title,
           {String? action, VoidCallback? onAction}) =>
@@ -181,101 +192,30 @@ class PlanTab extends StatelessWidget {
         ),
       );
 
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final label = periodLabelOf(now);
-    final r = currentPeriod(now);
-    final daysLeft = r.end.difference(dayOnly(now)).inDays;
-    final span = periodSpanText(label);
-    // Kartu yang sudah ada di Beranda dipakai ulang supaya tampilannya sama.
-    final home = DashboardTab(store: store, onSeeAll: () {});
-    final credits =
-        store.accounts.where((a) => a.type == AccountType.credit).toList();
-    final upcoming = store.recurring.where((x) => x.active).toList()
-      ..sort((a, b) => a.nextDate.compareTo(b.nextDate));
-    final soon = upcoming
-        .where((x) => x.nextDate.isBefore(now.add(const Duration(days: 31))))
-        .toList();
-    final owedToMe = store.debtTotal(theyOwe: true);
-    final iOwe = store.debtTotal(theyOwe: false);
-    final hide = store.settings.hideBalance;
-    String m(double v) => hide ? '••••' : money(v);
-
-    return SafeArea(
-      bottom: false,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+  /// Satu baris saran. Ketuk untuk membuka kartu saran lengkap.
+  Widget _tipsRow(int count) {
+    return AppCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      onTap: () => setState(() => _tips = !_tips),
+      child: Row(
         children: [
-          const Text('Rencana',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 2),
-          Text(
-              tr('{0}{1} · {2} hari lagi', [
-                DateFormat('MMMM yyyy', gDateLoc).format(label),
-                span.isEmpty ? '' : ' ($span)',
-                daysLeft
-              ]),
-              style: TextStyle(fontSize: 12.5, color: C.muted)),
-          const SizedBox(height: 12),
-          InsightStrip(
-              store: store,
-              onOpenCaptures: () {},
-              kinds: kPlanInsights,
-              title: 'Saran'),
-          _section(context, 'Anggaran',
-              action: 'Atur',
-              onAction: () => _pushPage(context, BudgetPage(store: store))),
-          home._budgetCard(context),
-          _section(context, 'Tagihan & langganan',
-              action: 'Semua',
-              onAction: () => _pushPage(context, RecurringPage(store: store))),
-          if (soon.isEmpty)
-            _empty(context, Icons.event_repeat_rounded,
-                'Belum ada tagihan atau langganan rutin 30 hari ke depan.',
-                'Tambah', () => _pushPage(context, RecurringPage(store: store)))
-          else
-            home._upcomingCard(context, soon.take(6).toList()),
-          if (credits.isNotEmpty) ...[
-            _section(context, 'Kartu kredit'),
-            home._creditCard(context, credits),
-          ],
-          if (store.feature('cicilan')) ...[
-          _section(context, 'Cicilan',
-              action: store.installments.isEmpty ? null : 'Semua',
-              onAction: () => _pushPage(context, InstallmentsPage(store: store))),
-          if (store.activeInstallments.isEmpty)
-            _empty(context, Icons.credit_score_rounded,
-                'Belum ada cicilan 0%. Misalnya SPayLater atau Kredivo.',
-                'Tambah', () => _pushPage(context, InstallmentsPage(store: store)))
-          else
-            InstallmentSummaryCard(store: store),
-          ],
-          if (store.feature('target')) ...[
-          _section(context, 'Target tabungan',
-              action: store.goals.isEmpty ? null : 'Semua',
-              onAction: () => _pushPage(context, GoalsPage(store: store))),
-          if (store.goals.isEmpty)
-            _empty(context, Icons.savings_rounded,
-                'Belum ada target. Misalnya dana darurat atau liburan.',
-                'Buat', () => _pushPage(context, GoalsPage(store: store)))
-          else
-            for (final g in store.goals.take(3))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: GoalCard(store: store, goal: g, compact: true),
-              ),
-          ],
-          if (store.feature('utang')) ...[
-          _section(context, 'Utang & piutang',
-              action: 'Buka',
-              onAction: () => _pushPage(context, DebtsPage(store: store))),
-          if (owedToMe <= 0 && iOwe <= 0)
-            _empty(context, Icons.handshake_rounded,
-                'Tidak ada utang atau piutang yang belum lunas.', 'Catat',
-                () => _pushPage(context, DebtsPage(store: store)))
-          else
-            AppCard(
+          Icon(Icons.lightbulb_outline_rounded, color: C.amberDark, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(tr('{0} saran untuk bulan ini', [count]),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w800, fontSize: 14)),
+          ),
+          Icon(_tips ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+              color: C.muted),
+        ],
+      ),
+    );
+  }
+
+  Widget _debtCard(BuildContext context, String Function(double) m,
+      double owedToMe, double iOwe) {
+    return AppCard(
               onTap: () => _pushPage(context, DebtsPage(store: store)),
               child: Row(
                 children: [
@@ -310,10 +250,151 @@ class PlanTab extends StatelessWidget {
                   Icon(Icons.chevron_right_rounded, color: C.muted),
                 ],
               ),
+            );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final label = periodLabelOf(now);
+    final r = currentPeriod(now);
+    final daysLeft = r.end.difference(dayOnly(now)).inDays;
+    final span = periodSpanText(label);
+    // Kartu yang sudah ada di Beranda dipakai ulang supaya tampilannya sama.
+    final home = DashboardTab(store: store, onSeeAll: () {});
+    final credits =
+        store.accounts.where((a) => a.type == AccountType.credit).toList();
+    final upcoming = store.recurring.where((x) => x.active).toList()
+      ..sort((a, b) => a.nextDate.compareTo(b.nextDate));
+    final soon = upcoming
+        .where((x) => x.nextDate.isBefore(now.add(const Duration(days: 31))))
+        .toList();
+    final owedToMe = store.debtTotal(theyOwe: true);
+    final iOwe = store.debtTotal(theyOwe: false);
+    final hide = store.settings.hideBalance;
+    String m(double v) => hide ? '••••' : money(v);
+
+    final subs = <_PlanSub>[
+      _PlanSub.tagihan,
+      if (store.feature('cicilan')) _PlanSub.cicilan,
+      if (store.feature('target')) _PlanSub.target,
+      if (store.feature('utang')) _PlanSub.utang,
+    ];
+    final sub = subs.contains(_sub) ? _sub : _PlanSub.tagihan;
+    final tipCount = store
+        .insights(now)
+        .where((i) => kPlanInsights.contains(i.kind))
+        .length;
+
+    final List<Widget> body;
+    switch (sub) {
+      case _PlanSub.tagihan:
+        body = [
+          _section(context, 'Tagihan & langganan',
+              action: 'Semua',
+              onAction: () => _pushPage(context, RecurringPage(store: store))),
+          if (soon.isEmpty)
+            _empty(context, Icons.event_repeat_rounded,
+                'Belum ada tagihan atau langganan rutin 30 hari ke depan.',
+                'Tambah', () => _pushPage(context, RecurringPage(store: store)))
+          else
+            home._upcomingCard(context, soon.take(6).toList()),
+          if (credits.isNotEmpty) ...[
+            _section(context, 'Kartu kredit'),
+            home._creditCard(context, credits),
+          ],
+        ];
+      case _PlanSub.cicilan:
+        body = [
+          _section(context, 'Cicilan',
+              action: store.installments.isEmpty ? null : 'Semua',
+              onAction: () => _pushPage(context, InstallmentsPage(store: store))),
+          if (store.activeInstallments.isEmpty)
+            _empty(context, Icons.credit_score_rounded,
+                'Belum ada cicilan 0%. Misalnya SPayLater atau Kredivo.',
+                'Tambah', () => _pushPage(context, InstallmentsPage(store: store)))
+          else
+            InstallmentSummaryCard(store: store),
+        ];
+      case _PlanSub.target:
+        body = [
+          _section(context, 'Target tabungan',
+              action: store.goals.isEmpty ? null : 'Semua',
+              onAction: () => _pushPage(context, GoalsPage(store: store))),
+          if (store.goals.isEmpty)
+            _empty(context, Icons.savings_rounded,
+                'Belum ada target. Misalnya dana darurat atau liburan.',
+                'Buat', () => _pushPage(context, GoalsPage(store: store)))
+          else
+            for (final g in store.goals.take(3))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: GoalCard(store: store, goal: g, compact: true),
+              ),
+        ];
+      case _PlanSub.utang:
+        body = [
+          _section(context, 'Utang & piutang',
+              action: 'Buka',
+              onAction: () => _pushPage(context, DebtsPage(store: store))),
+          if (owedToMe <= 0 && iOwe <= 0)
+            _empty(context, Icons.handshake_rounded,
+                'Tidak ada utang atau piutang yang belum lunas.', 'Catat',
+                () => _pushPage(context, DebtsPage(store: store)))
+          else
+            _debtCard(context, m, owedToMe, iOwe),
+        ];
+    }
+
+    return SafeArea(
+      bottom: false,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+        children: [
+          const Text('Rencana',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 2),
+          Text(
+              tr('{0}{1} · {2} hari lagi', [
+                DateFormat('MMMM yyyy', gDateLoc).format(label),
+                span.isEmpty ? '' : ' ($span)',
+                daysLeft
+              ]),
+              style: TextStyle(fontSize: 12.5, color: C.muted)),
+          _section(context, 'Anggaran',
+              action: 'Atur',
+              onAction: () => _pushPage(context, BudgetPage(store: store))),
+          home._budgetCard(context),
+          if (tipCount > 0) ...[
+            const SizedBox(height: 10),
+            _tipsRow(tipCount),
+            if (_tips) ...[
+              const SizedBox(height: 10),
+              InsightStrip(
+                  store: store,
+                  onOpenCaptures: () {},
+                  kinds: kPlanInsights,
+                  title: 'Saran'),
+            ],
+          ],
+          if (subs.length > 1) ...[
+            const SizedBox(height: 16),
+            Segmented<_PlanSub>(
+              values: subs,
+              selected: sub,
+              labelOf: (t) => switch (t) {
+                _PlanSub.tagihan => tr('Tagihan'),
+                _PlanSub.cicilan => tr('Cicilan'),
+                _PlanSub.target => tr('Target'),
+                _PlanSub.utang => tr('Utang'),
+              },
+              dense: true,
+              onChanged: (t) => setState(() => _sub = t),
             ),
           ],
+          ...body,
           if (store.feature('patungan') || store.feature('acara')) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Row(
               children: [
                 if (store.feature('patungan'))

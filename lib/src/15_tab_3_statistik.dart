@@ -4,6 +4,8 @@ part of '../main.dart';
 // TAB 3: STATISTIK
 // =============================================================================
 
+enum _StatTab { kategori, tren, aset }
+
 class StatsTab extends StatefulWidget {
   const StatsTab({super.key, required this.store});
   final AppStore store;
@@ -18,6 +20,7 @@ class _StatsTabState extends State<StatsTab> {
   DateTime _anchor = DateTime.now();
   TxType _type = TxType.expense;
   bool _legendAll = false;
+  _StatTab _tab = _StatTab.kategori;
 
   DateTimeRange get _range => _mode.range(_anchor);
 
@@ -94,145 +97,235 @@ class _StatsTabState extends State<StatsTab> {
     return out;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final r = _range;
-    final income = store.sumIDR(TxType.income, r);
-    final expense = store.sumIDR(TxType.expense, r);
-    final net = income - expense;
-    final byCat = store.byTopCategory(_type, r).entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final total = byCat.fold(0.0, (s, e) => s + e.value);
+  /// Pembanding hero: pengeluaran periode ini dengan periode sebelumnya.
+  /// Kalau periode masih berjalan, yang dibandingkan hanya jumlah hari yang
+  /// sama dari periode sebelumnya, supaya tidak timpang.
+  double? _expensePct(double expense) {
     final now = DateTime.now();
-    // Hanya boleh maju kalau periode yang dilihat sudah lewat seluruhnya.
-    final canNext = !r.end.isAfter(now);
-    final elapsedDays = inRange(now, r)
-        ? now.difference(r.start).inDays + 1
-        : r.end.difference(r.start).inDays;
-    final avgDaily = elapsedDays > 0 ? expense / elapsedDays : 0.0;
+    final r = _range;
+    final p = _prevRange;
+    DateTimeRange pr = p;
+    if (inRange(now, r)) {
+      final days = now.difference(r.start).inDays + 1;
+      var end = DateTime(p.start.year, p.start.month, p.start.day + days);
+      if (end.isAfter(p.end)) end = p.end;
+      pr = DateTimeRange(start: p.start, end: end);
+    }
+    final before = store.sumIDR(TxType.expense, pr);
+    if (before <= 0) return null;
+    return (expense - before) / before * 100;
+  }
 
-    return SafeArea(
-      bottom: false,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-        children: [
-          const Text('Statistik',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
-          Segmented<BudgetPeriod>(
-            values: BudgetPeriod.values,
-            selected: _mode,
-            labelOf: (p) => p.short,
-            dense: true,
-            onChanged: (p) => setState(() {
-              _mode = p;
-              _anchor = DateTime.now();
-            }),
-          ),
-          const SizedBox(height: 8),
-          Row(
+  Widget _hero(double income, double expense, double net, double avgDaily) {
+    final pct = _expensePct(expense);
+    final prevName = switch (_mode) {
+      BudgetPeriod.weekly => tr('minggu lalu'),
+      BudgetPeriod.monthly => tr('bulan lalu'),
+      BudgetPeriod.yearly => tr('tahun lalu'),
+    };
+    Widget stat(String label, String value, Color color, CrossAxisAlignment al) =>
+        Expanded(
+          child: Column(
+            crossAxisAlignment: al,
             children: [
-              IconButton(
-                  tooltip: tr('Sebelumnya'),
-                  onPressed: () => _shift(-1),
-                  icon: const Icon(Icons.chevron_left_rounded)),
-              Expanded(
-                child: Text(_rangeLabel(),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w900, fontSize: 16)),
+              Text(label, style: TextStyle(fontSize: 11, color: C.muted)),
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(value,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: color)),
               ),
-              IconButton(
-                  tooltip: tr('Berikutnya'),
-                  onPressed: canNext ? () => _shift(1) : null,
-                  icon: const Icon(Icons.chevron_right_rounded)),
             ],
           ),
-          const SizedBox(height: 4),
+        );
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(tr('Pengeluaran'),
+              style: TextStyle(fontSize: 12, color: C.muted)),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(money(expense),
+                style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    color: C.carbon)),
+          ),
+          if (pct != null) ...[
+            const SizedBox(height: 6),
+            Text(
+                pct.abs() < 0.5
+                    ? tr('Sama seperti {0}', [prevName])
+                    : (pct < 0
+                        ? tr('{0}% lebih hemat dari {1}',
+                            [pct.abs().toStringAsFixed(0), prevName])
+                        : tr('{0}% lebih boros dari {1}',
+                            [pct.toStringAsFixed(0), prevName])),
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: pct.abs() < 0.5
+                        ? C.muted
+                        : (pct < 0 ? C.income : C.redDark))),
+          ],
+          const SizedBox(height: 14),
+          Divider(height: 1, color: C.line),
+          const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                  child: _SummaryBox(
-                      label: 'Pemasukan',
-                      value: income,
-                      color: C.income,
-                      icon: Icons.south_west_rounded)),
-              const SizedBox(width: 10),
-              Expanded(
-                  child: _SummaryBox(
-                      label: 'Pengeluaran',
-                      value: expense,
-                      color: C.redDark,
-                      icon: Icons.north_east_rounded)),
+              stat(tr('Pemasukan'), money(income), C.income,
+                  CrossAxisAlignment.start),
+              stat(tr('Selisih'), net > 0 ? '+${money(net)}' : money(net),
+                  net >= 0 ? C.income : C.redDark, CrossAxisAlignment.center),
+              stat(tr('Rata-rata/hari'), money(avgDaily), C.carbon,
+                  CrossAxisAlignment.end),
             ],
           ),
-          const SizedBox(height: 10),
-          AppCard(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Selisih (net)',
-                          style: TextStyle(fontSize: 12, color: C.muted)),
-                      Text(net > 0 ? '+${money(net)}' : money(net),
-                          style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              color: net >= 0 ? C.income : C.redDark)),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text('Rata-rata keluar/hari',
-                          style: TextStyle(fontSize: 12, color: C.muted)),
-                      Text(money(avgDaily),
-                          style: const TextStyle(
-                              fontSize: 17, fontWeight: FontWeight.w900)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          SpendKindCard(store: store, range: r, prev: _prevRange),
-          if (_mode == BudgetPeriod.monthly) ...[
-            const SizedBox(height: 12),
-            MonthAdviceCard(store: store, month: periodLabelOf(_anchor)),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Wrap(
-                alignment: WrapAlignment.end,
+        ],
+      ),
+    );
+  }
+
+  Widget _moreRow(
+      {required Widget leading,
+      required String title,
+      required String subtitle,
+      required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            leading,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextButton.icon(
-                    onPressed: () => showMonthPdfSheet(
-                        context, store, periodLabelOf(_anchor)),
-                    icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
-                    label: const Text('Laporan PDF'),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => showMonthShareSheet(
-                        context, store, periodLabelOf(_anchor)),
-                    icon: const Icon(Icons.ios_share_rounded, size: 18),
-                    label: const Text('Bagikan ringkasan bulan'),
-                  ),
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 14)),
+                  Text(subtitle,
+                      style: TextStyle(fontSize: 12, color: C.muted)),
                 ],
               ),
             ),
-            // Perbandingan dengan bulan lalu (dulu di Beranda), hanya untuk
-            // bulan berjalan.
-            if (periodLabelOf(_anchor) == periodLabelOf(DateTime.now())) ...[
-              const SizedBox(height: 12),
-              MonthCompareCard(store: store),
-            ],
+            Icon(Icons.chevron_right_rounded, color: C.muted),
           ],
-          const SizedBox(height: 12),
-          AppCard(
+        ),
+      ),
+    );
+  }
+
+  Widget _more(BuildContext context) {
+    final monthly = _mode == BudgetPeriod.monthly;
+    final month = periodLabelOf(_anchor);
+    final rows = <Widget>[];
+    if (monthly) {
+      final r = store.monthRecap(month, DateTime.now());
+      final fixes = r.advice.where((a) => !a.isPraise).length;
+      final praise = r.advice.where((a) => a.isPraise).length;
+      final tier = r.tier;
+      rows.add(_moreRow(
+        leading: Container(
+          width: 38,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: (tier == null ? C.blueDark : _tierColor(tier))
+                .withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(tier?.emoji ?? '📋', style: const TextStyle(fontSize: 20)),
+        ),
+        title: tr('Rekap & saran {0}',
+            [DateFormat('MMMM', gDateLoc).format(r.month)]),
+        subtitle: r.advice.isEmpty
+            ? tr('Belum cukup data')
+            : tr('{0}{1} perlu diperbaiki · {2} sudah bagus',
+                [tier == null ? '' : '${tr(tier.label)} · ', fixes, praise]),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => MonthStoryPage(store: store, month: month))),
+      ));
+    }
+    rows.add(_moreRow(
+      leading: CatIcon(
+          icon: Icons.auto_graph_rounded, color: C.accentDark, size: 38),
+      title: tr('Rekap tahun {0}', [DateTime.now().year]),
+      subtitle: tr('Total setahun, bulan paling boros, kategori terbesar'),
+      onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => YearRecapPage(store: store))),
+    ));
+    if (monthly) {
+      rows.add(_moreRow(
+        leading: CatIcon(
+            icon: Icons.picture_as_pdf_rounded, color: C.redDark, size: 38),
+        title: tr('Laporan PDF'),
+        subtitle: tr('Simpan atau kirim laporan bulan ini'),
+        onTap: () => showMonthPdfSheet(context, store, month),
+      ));
+      rows.add(_moreRow(
+        leading: CatIcon(
+            icon: Icons.ios_share_rounded, color: C.blueDark, size: 38),
+        title: tr('Bagikan ringkasan bulan'),
+        subtitle: tr('Gambar ringkas untuk dikirim'),
+        onTap: () => showMonthShareSheet(context, store, month),
+      ));
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(tr('Lainnya'),
+              style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w800, color: C.muted)),
+        ),
+        AppCard(
+          padding: EdgeInsets.zero,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Column(
+              children: [
+                for (var i = 0; i < rows.length; i++) ...[
+                  if (i > 0) Divider(height: 1, color: C.line),
+                  rows[i],
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _trendCard() {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionTitle(_mode == BudgetPeriod.monthly
+              ? 'Tren 6 Bulan'
+              : (_mode == BudgetPeriod.weekly
+                  ? 'Tren Harian'
+                  : 'Tren Bulanan ${_anchor.year}')),
+          const SizedBox(height: 16),
+          TrendChart(buckets: _buckets()),
+        ],
+      ),
+    );
+  }
+
+  Widget _categoryCard(BuildContext context,
+      List<MapEntry<String, double>> byCat, double total, DateTimeRange r) {
+    return AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -348,53 +441,11 @@ class _StatsTabState extends State<StatsTab> {
                 ],
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SectionTitle(_mode == BudgetPeriod.monthly
-                    ? 'Tren 6 Bulan'
-                    : (_mode == BudgetPeriod.weekly
-                        ? 'Tren Harian'
-                        : 'Tren Bulanan ${_anchor.year}')),
-                const SizedBox(height: 16),
-                TrendChart(buckets: _buckets()),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          NetWorthCard(store: store),
-          const SizedBox(height: 12),
-          AppCard(
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => YearRecapPage(store: store))),
-            child: Row(
-              children: [
-                CatIcon(
-                    icon: Icons.auto_graph_rounded,
-                    color: C.accentDark,
-                    size: 38),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tr('Rekap tahun {0}', [DateTime.now().year]),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 15)),
-                      Text('Total setahun, bulan paling boros, kategori terbesar',
-                          style: TextStyle(fontSize: 12, color: C.muted)),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right_rounded, color: C.muted),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          AppCard(
+          );
+  }
+
+  Widget _accountsCard() {
+    return AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -434,7 +485,97 @@ class _StatsTabState extends State<StatsTab> {
                   ),
               ],
             ),
+          );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final r = _range;
+    final income = store.sumIDR(TxType.income, r);
+    final expense = store.sumIDR(TxType.expense, r);
+    final net = income - expense;
+    final byCat = store.byTopCategory(_type, r).entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final total = byCat.fold(0.0, (s, e) => s + e.value);
+    final now = DateTime.now();
+    // Hanya boleh maju kalau periode yang dilihat sudah lewat seluruhnya.
+    final canNext = !r.end.isAfter(now);
+    final elapsedDays = inRange(now, r)
+        ? now.difference(r.start).inDays + 1
+        : r.end.difference(r.start).inDays;
+    final avgDaily = elapsedDays > 0 ? expense / elapsedDays : 0.0;
+
+    return SafeArea(
+      bottom: false,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        children: [
+          const Text('Statistik',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+          Segmented<BudgetPeriod>(
+            values: BudgetPeriod.values,
+            selected: _mode,
+            labelOf: (p) => p.short,
+            dense: true,
+            onChanged: (p) => setState(() {
+              _mode = p;
+              _anchor = DateTime.now();
+            }),
           ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              IconButton(
+                  tooltip: tr('Sebelumnya'),
+                  onPressed: () => _shift(-1),
+                  icon: const Icon(Icons.chevron_left_rounded)),
+              Expanded(
+                child: Text(_rangeLabel(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, fontSize: 16)),
+              ),
+              IconButton(
+                  tooltip: tr('Berikutnya'),
+                  onPressed: canNext ? () => _shift(1) : null,
+                  icon: const Icon(Icons.chevron_right_rounded)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          _hero(income, expense, net, avgDaily),
+          const SizedBox(height: 14),
+          Segmented<_StatTab>(
+            values: _StatTab.values,
+            selected: _tab,
+            labelOf: (t) => switch (t) {
+              _StatTab.kategori => tr('Kategori'),
+              _StatTab.tren => tr('Tren'),
+              _StatTab.aset => tr('Aset'),
+            },
+            dense: true,
+            onChanged: (t) => setState(() => _tab = t),
+          ),
+          const SizedBox(height: 12),
+          if (_tab == _StatTab.kategori) ...[
+            _categoryCard(context, byCat, total, r),
+            const SizedBox(height: 12),
+            SpendKindCard(store: store, range: r, prev: _prevRange),
+          ] else if (_tab == _StatTab.tren) ...[
+            _trendCard(),
+            // Perbandingan dengan bulan lalu, hanya untuk bulan berjalan.
+            if (_mode == BudgetPeriod.monthly &&
+                periodLabelOf(_anchor) == periodLabelOf(DateTime.now())) ...[
+              const SizedBox(height: 12),
+              MonthCompareCard(store: store),
+            ],
+          ] else ...[
+            NetWorthCard(store: store),
+            const SizedBox(height: 12),
+            _accountsCard(),
+          ],
+          const SizedBox(height: 20),
+          _more(context),
         ],
       ),
     );

@@ -3,7 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.1.0)
+## Berikutnya (v5.2.0)
+
+Statistik dan Rencana lebih ringan: satu ringkasan di atas, isi lainnya dibagi ke tab, tidak lagi menumpuk panjang ke bawah.
+
+### Diubah
+- **Statistik.** Di atas ada satu kartu ringkasan: pengeluaran periode ini, perbandingannya dengan periode sebelumnya (mis. "8% lebih hemat dari bulan lalu"), lalu Pemasukan, Selisih, dan Rata-rata/hari. Perbandingan untuk periode yang masih berjalan memakai jumlah hari yang sama dari periode sebelumnya, supaya adil. Isinya dibagi ke tiga tab: **Kategori** (donat, daftar kategori, Golongan pengeluaran), **Tren** (grafik dan perbandingan dengan bulan lalu), dan **Aset** (kekayaan bersih dan saldo per akun). Rekap dan saran bulan, Rekap tahun, Laporan PDF, dan Bagikan ringkasan pindah ke bagian Lainnya di bawah.
+- **Rencana.** Anggaran tetap di atas. Saran jadi satu baris ("N saran untuk bulan ini") yang dibuka dengan sekali ketuk. Tagihan (termasuk kartu kredit), Cicilan, Target, dan Utang sekarang berupa empat tab, jadi hanya satu yang tampil sekaligus. Tab untuk fitur yang kamu matikan tidak muncul. Patungan dan Acara tetap di bawah.
+
+## v5.1.0 (13 Okt 2026)
 
 Tampilan Infinity bisa dipilih: tiga gaya baru dan tiga maskot hewan, semuanya opsional dan tetap offline.
 
