@@ -224,92 +224,133 @@ class _StatsTabState extends State<StatsTab> {
     );
   }
 
+  Widget _moreTile(
+      {required Widget leading,
+      required String label,
+      required VoidCallback onTap}) {
+    return Expanded(
+      child: AppCard(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 2),
+        onTap: onTap,
+        child: Column(
+          children: [
+            leading,
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 30,
+              child: Center(
+                child: Text(label,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11.5,
+                        height: 1.15)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _exportSheet(BuildContext context, DateTime month) {
+    showSheet<void>(
+      context,
+      SheetFrame(
+        child: Builder(
+          builder: (sheetCtx) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 8),
+                child: Text(tr('Ekspor'),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w900)),
+              ),
+              _moreRow(
+                leading: CatIcon(
+                    icon: Icons.picture_as_pdf_rounded,
+                    color: C.redDark,
+                    size: 38),
+                title: tr('Laporan PDF'),
+                subtitle: tr('Simpan atau kirim laporan bulan ini'),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  showMonthPdfSheet(context, store, month);
+                },
+              ),
+              _moreRow(
+                leading: CatIcon(
+                    icon: Icons.ios_share_rounded,
+                    color: C.blueDark,
+                    size: 38),
+                title: tr('Bagikan ringkasan bulan'),
+                subtitle: tr('Gambar ringkas untuk dikirim'),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  showMonthShareSheet(context, store, month);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _more(BuildContext context) {
     final monthly = _mode == BudgetPeriod.monthly;
     final month = periodLabelOf(_anchor);
-    final rows = <Widget>[];
+    final tiles = <Widget>[];
     if (monthly) {
-      final r = store.monthRecap(month, DateTime.now());
-      final fixes = r.advice.where((a) => !a.isPraise).length;
-      final praise = r.advice.where((a) => a.isPraise).length;
-      final tier = r.tier;
-      rows.add(_moreRow(
+      final tier = store.monthRecap(month, DateTime.now()).tier;
+      tiles.add(_moreTile(
         leading: Container(
-          width: 38,
-          height: 38,
+          width: 34,
+          height: 34,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: (tier == null ? C.blueDark : _tierColor(tier))
                 .withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(11),
           ),
-          child: Text(tier?.emoji ?? '📋', style: const TextStyle(fontSize: 20)),
+          child: Text(tier?.emoji ?? '📋', style: const TextStyle(fontSize: 18)),
         ),
-        title: tr('Rekap & saran {0}',
-            [DateFormat('MMMM', gDateLoc).format(r.month)]),
-        subtitle: r.advice.isEmpty
-            ? tr('Belum cukup data')
-            : tr('{0}{1} perlu diperbaiki · {2} sudah bagus',
-                [tier == null ? '' : '${tr(tier.label)} · ', fixes, praise]),
+        label: tr('Rekap bulan'),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
             builder: (_) => MonthStoryPage(store: store, month: month))),
       ));
     }
-    rows.add(_moreRow(
+    tiles.add(_moreTile(
       leading: CatIcon(
-          icon: Icons.auto_graph_rounded, color: C.accentDark, size: 38),
-      title: tr('Rekap tahun {0}', [DateTime.now().year]),
-      subtitle: tr('Total setahun, bulan paling boros, kategori terbesar'),
+          icon: Icons.auto_graph_rounded, color: C.accentDark, size: 34),
+      label: tr('Rekap tahun'),
       onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => YearRecapPage(store: store))),
     ));
-    rows.add(_moreRow(
-      leading: CatIcon(
-          icon: Icons.tune_rounded, color: C.income, size: 38),
-      title: tr('Kalau...'),
-      subtitle: tr('Simulasi hemat, tabung, atau percepat cicilan'),
+    tiles.add(_moreTile(
+      leading: CatIcon(icon: Icons.tune_rounded, color: C.income, size: 34),
+      label: tr('Kalau...'),
       onTap: () => Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => WhatIfPage(store: store))),
     ));
     if (monthly) {
-      rows.add(_moreRow(
+      tiles.add(_moreTile(
         leading: CatIcon(
-            icon: Icons.picture_as_pdf_rounded, color: C.redDark, size: 38),
-        title: tr('Laporan PDF'),
-        subtitle: tr('Simpan atau kirim laporan bulan ini'),
-        onTap: () => showMonthPdfSheet(context, store, month),
-      ));
-      rows.add(_moreRow(
-        leading: CatIcon(
-            icon: Icons.ios_share_rounded, color: C.blueDark, size: 38),
-        title: tr('Bagikan ringkasan bulan'),
-        subtitle: tr('Gambar ringkas untuk dikirim'),
-        onTap: () => showMonthShareSheet(context, store, month),
+            icon: Icons.more_horiz_rounded, color: C.muted, size: 34),
+        label: tr('Ekspor'),
+        onTap: () => _exportSheet(context, month),
       ));
     }
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(tr('Lainnya'),
-              style: TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w800, color: C.muted)),
-        ),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Column(
-              children: [
-                for (var i = 0; i < rows.length; i++) ...[
-                  if (i > 0) Divider(height: 1, color: C.line),
-                  rows[i],
-                ],
-              ],
-            ),
-          ),
-        ),
+        for (var i = 0; i < tiles.length; i++) ...[
+          if (i > 0) const SizedBox(width: 8),
+          tiles[i],
+        ],
       ],
     );
   }
@@ -591,7 +632,7 @@ class _StatsTabState extends State<StatsTab> {
             const SizedBox(height: 12),
             _accountsCard(),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           _more(context),
         ],
       ),

@@ -1500,6 +1500,9 @@ const Map<String, String> kEnStrings = {
   'Merah marun dan krem hangat ala kafe tua. Selalu gelap.': 'Maroon and warm cream, like an old cafe. Always dark.',
   'Motif latar': 'Background motif',
   'Kabut, awan, atau lampu di belakang Beranda sesuai gaya. Matikan kalau terasa ramai.': 'Fog, clouds, or lamps behind Home, matching the style. Turn it off if it feels busy.',
+  'Rekap bulan': 'Month recap',
+  'Rekap tahun': 'Year recap',
+  'Ekspor': 'Export',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

@@ -1499,4 +1499,7 @@ const Map<String, String> kZhStrings = {
   'Merah marun dan krem hangat ala kafe tua. Selalu gelap.': '酒红与温暖的奶油色，像一间老咖啡馆。始终为深色。',
   'Motif latar': '背景图案',
   'Kabut, awan, atau lampu di belakang Beranda sesuai gaya. Matikan kalau terasa ramai.': '首页背后按风格显示雾气、云朵或灯饰。觉得杂乱可以关闭。',
+  'Rekap bulan': '月度回顾',
+  'Rekap tahun': '年度回顾',
+  'Ekspor': '导出',
 };

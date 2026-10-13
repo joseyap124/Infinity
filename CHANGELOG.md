@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.4.0)
+## Berikutnya (v5.4.1)
+
+### Diubah
+- **Bagian bawah Statistik lebih ringkas.** Daftar "Lainnya" yang berisi lima baris diganti satu baris empat tombol: Rekap bulan, Rekap tahun, Kalau..., dan Ekspor. Ekspor membuka pilihan Laporan PDF dan Bagikan ringkasan bulan. Di tampilan Minggu dan Tahun hanya Rekap tahun dan Kalau... yang tampil, karena rekap bulan, PDF, dan bagikan memang untuk satu bulan.
+
+## v5.4.0 (13 Okt 2026)
 
 Gaya tidak lagi polos: tiap gaya punya motif latar sendiri, dan ikon kategori serta menu bawah ikut gayanya.
 
