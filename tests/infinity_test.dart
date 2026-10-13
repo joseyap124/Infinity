@@ -2905,12 +2905,12 @@ void main() {
       expect(C.bg, const Color(0xFFFFD92E));
       expect(C.carbon, const Color(0xFF14130A));
       C.pack = 'merah';
-      expect(C.accent, const Color(0xFFE60012));
+      expect(C.accent, const Color(0xFFD4262C));
       C.pack = 'classic';
       expect(C.bg, classicBg);
     });
 
-    test('Malam Biru dan Merah Panggung gelap, Kuning Ceria terang', () {
+    test('Malam Biru dan Merah Kafe gelap, Kuning Ceria terang', () {
       expect(kStylePacks['malam']!.dark, isTrue);
       expect(kStylePacks['merah']!.dark, isTrue);
       expect(kStylePacks['kuning']!.dark, isFalse);
@@ -2946,6 +2946,50 @@ void main() {
         }
       }
       expect(mascotAsset('owl', MascotMood.over), 'assets/mascots/owl_over.png');
+    });
+  });
+
+  group('v5.4.0 motif dan ikon per gaya', () {
+    test('motif latar menyala bawaan dan tersimpan kalau dimatikan', () {
+      expect(AppSettings().packMotif, isTrue);
+      expect(AppSettings.fromJson(<String, dynamic>{}).packMotif, isTrue);
+      final off = AppSettings()..packMotif = false;
+      final j = off.toJson();
+      expect(j['packMotif'], false);
+      expect(AppSettings.fromJson(j).packMotif, isFalse);
+      expect(AppSettings().toJson().containsKey('packMotif'), isFalse);
+    });
+
+    test('Merah Kafe bernama dan berwarna baru', () {
+      expect(kStylePacks['merah']!.name, 'Merah Kafe');
+      expect(kStylePacks['merah']!.bg, const Color(0xFF1B0B0B));
+    });
+
+    test('semua bentuk ikon terbaca dan muat di kanvas 64', () {
+      expect(packGlyphKey('food', Icons.restaurant_rounded), 'food');
+      expect(packGlyphKey(null, Icons.settings_rounded), isNull);
+      expect(packGlyphKey('dompet', Icons.circle), 'salary');
+      for (final k in [
+        'home', 'food', 'car', 'bill', 'receipt', 'health', 'pill', 'care',
+        'sport', 'school', 'travel', 'phone', 'gift', 'charity', 'bag',
+        'movie', 'coffee', 'invest', 'card', 'sos', 'other', 'bank', 'salary',
+        'grid', 'pie', 'target'
+      ]) {
+        expect(packGlyphKey(k, Icons.circle), k);
+      }
+    });
+
+    test('kunci ikon kategori bawaan punya bentuk bertema', () {
+      final s = AppStore();
+      final keys = <String>{};
+      for (final c in s.categories) {
+        keys.add(c.icon);
+      }
+      final missing = [
+        for (final k in keys)
+          if (packGlyphKey(k, Icons.circle) == null) k
+      ];
+      expect(missing, isEmpty);
     });
   });
 }

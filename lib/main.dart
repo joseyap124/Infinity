@@ -115,6 +115,7 @@ part 'src/61_data_terkunci.dart';
 part 'src/62_laporan_pdf.dart';
 part 'src/63_gaya_ikon.dart';
 part 'src/64_kalender_kalau.dart';
+part 'src/65_motif_ikon.dart';
 // WIDGET-IMPORTS-END
 
 void main() {

@@ -825,6 +825,23 @@ class AppearancePage extends StatelessWidget {
                   ],
                 ),
               ),
+              if (s.stylePack != 'classic') ...[
+                const SizedBox(height: 12),
+                AppCard(
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: s.packMotif,
+                    onChanged: (v) =>
+                        store.updateSettings((x) => x.packMotif = v),
+                    title: Text(tr('Motif latar'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 14)),
+                    subtitle: Text(
+                        tr('Kabut, awan, atau lampu di belakang Beranda sesuai gaya. Matikan kalau terasa ramai.'),
+                        style: TextStyle(fontSize: 12, color: C.muted)),
+                  ),
+                ),
+              ],
               if (s.stylePack == 'classic') ...[
               const SizedBox(height: 12),
               AppCard(

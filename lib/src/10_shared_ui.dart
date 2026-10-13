@@ -207,6 +207,9 @@ class CatIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Gaya selain Klasik punya ikon sendiri untuk kategori dan sejenisnya.
+    final pg = C.pack == 'classic' ? null : packGlyphKey(art, icon);
+    if (pg != null) return PackCatIcon(glyph: pg, size: size);
     return ValueListenableBuilder<String>(
       valueListenable: gIconStyle,
       builder: (context, iconStyle, _) {

@@ -3,7 +3,18 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.3.0)
+## Berikutnya (v5.4.0)
+
+Gaya tidak lagi polos: tiap gaya punya motif latar sendiri, dan ikon kategori serta menu bawah ikut gayanya.
+
+### Ditambah
+- **Motif latar di Beranda.** Malam Biru: pusaran, bulan sabit, dan bintang. Kuning Ceria: kabut dan awan putih. Merah Kafe: lampu gantung merah dengan cahaya hangat dan biji kopi. Motif juga tipis di kartu utama. Bisa dimatikan di Pengaturan, Tampilan, Motif latar.
+- **Ikon per gaya.** 22 ikon kategori dan ikon menu bawah mengikuti gaya yang dipilih, dengan gambar yang sama gayanya dengan ikon Tagihan, Anggaran, Patungan, Utang, dan Target. Lima ikon pintasan itu tidak berubah. Gaya Klasik tetap memakai ikon lama.
+
+### Diubah
+- **Merah Panggung jadi Merah Kafe.** Palet baru: merah marun dan krem hangat, bukan lagi hitam dan merah tajam. Selalu gelap.
+
+## v5.3.0 (13 Okt 2026)
 
 Dua cara baru melihat uangmu: kalender pengeluaran dan simulasi "Kalau...". Semuanya dihitung dari data di HP.
 

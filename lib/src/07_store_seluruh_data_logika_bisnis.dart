@@ -329,6 +329,7 @@ class AppStore extends ChangeNotifier {
     settings.homeCards = old.homeCards;
     settings.accentIndex = old.accentIndex;
     settings.stylePack = old.stylePack;
+    settings.packMotif = old.packMotif;
     settings.mascotSkin = old.mascotSkin;
     settings.mascotCustomPath = old.mascotCustomPath;
     settings.iconStyle = old.iconStyle;
@@ -347,6 +348,7 @@ class AppStore extends ChangeNotifier {
     if (!has.containsKey('homeCards')) settings.homeCards = old.homeCards;
     if (!has.containsKey('accentIndex')) settings.accentIndex = old.accentIndex;
     if (!has.containsKey('stylePack')) settings.stylePack = old.stylePack;
+    if (!has.containsKey('packMotif')) settings.packMotif = old.packMotif;
     if (!has.containsKey('mascotSkin')) {
       settings.mascotSkin = old.mascotSkin;
       settings.mascotCustomPath = old.mascotCustomPath;

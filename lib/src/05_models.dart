@@ -492,6 +492,9 @@ class AppSettings {
   /// Paket gaya: 'classic' | 'malam' | 'kuning' | 'merah' (lihat [kStylePacks]).
   String stylePack = 'classic';
 
+  /// Motif latar (kabut, awan, lampu) di Beranda untuk gaya selain Klasik.
+  bool packMotif = true;
+
   /// Maskot di Beranda: 'classic' | 'owl' | 'fox' | 'crow' | 'custom'.
   String mascotSkin = 'classic';
 
@@ -611,6 +614,7 @@ class AppSettings {
         if (spendKinds.isNotEmpty) 'spendKinds': spendKinds,
         'accentIndex': accentIndex,
         if (stylePack != 'classic') 'stylePack': stylePack,
+        if (!packMotif) 'packMotif': false,
         if (mascotSkin != 'classic') 'mascotSkin': mascotSkin,
         if (mascotCustomPath != null) 'mascotCustomPath': mascotCustomPath,
         'iconStyle': iconStyle,
@@ -695,6 +699,7 @@ class AppSettings {
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
     final sp = _s(j['stylePack']);
     s.stylePack = (sp != null && kStylePacks.containsKey(sp)) ? sp : 'classic';
+    s.packMotif = j['packMotif'] != false;
     final ms = _s(j['mascotSkin']);
     s.mascotSkin = (ms == 'owl' || ms == 'fox' || ms == 'crow' || ms == 'custom')
         ? ms!

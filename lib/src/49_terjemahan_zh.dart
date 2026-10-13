@@ -1495,4 +1495,8 @@ const Map<String, String> kZhStrings = {
   'Kurangi': '减少',
   'Dihitung dari target dan cicilan yang sudah kamu catat. Bukan janji: kalau pengeluaran naik lagi, hasilnya bergeser.': '根据你已记录的目标和分期计算。并非承诺：如果支出再次上升，结果会随之改变。',
   '{0} bln': '{0}个月',
+  'Merah Kafe': '咖啡馆红',
+  'Merah marun dan krem hangat ala kafe tua. Selalu gelap.': '酒红与温暖的奶油色，像一间老咖啡馆。始终为深色。',
+  'Motif latar': '背景图案',
+  'Kabut, awan, atau lampu di belakang Beranda sesuai gaya. Matikan kalau terasa ramai.': '首页背后按风格显示雾气、云朵或灯饰。觉得杂乱可以关闭。',
 };

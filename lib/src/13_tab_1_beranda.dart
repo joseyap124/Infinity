@@ -629,7 +629,21 @@ class DashboardTab extends StatelessWidget {
 
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _header(context)),
+        SliverToBoxAdapter(
+          child: Stack(
+            children: [
+              if (store.settings.packMotif && C.pack != 'classic')
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: MediaQuery.sizeOf(context).width * 300 / 390,
+                  child: const PackBackdrop(),
+                ),
+              _header(context),
+            ],
+          ),
+        ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
           sliver: SliverList(
@@ -812,14 +826,20 @@ class DashboardTab extends StatelessWidget {
                 : tr('Belum mencatat {0} hari. Ketuk maskot untuk mulai',
                     [now.difference(lastTx).inDays]))
             : tr('{0}/hari · {1} hari lagi', [money(s.perDay), s.daysLeft]);
+    final motif = store.settings.packMotif && C.pack != 'classic';
     return Container(
-      padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: C.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: C.line),
       ),
-      child: Row(
+      child: Stack(
+        children: [
+          if (motif) const Positioned.fill(child: PackCardMotif()),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
         children: [
           InkWell(
             customBorder: const CircleBorder(),
@@ -889,6 +909,9 @@ class DashboardTab extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
           ),
         ],
       ),

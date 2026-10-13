@@ -59,17 +59,17 @@ const Map<String, StylePack> kStylePacks = {
       Color(0xFF14130A)),
   'merah': StylePack(
       'merah',
-      'Merah Panggung',
-      'Hitam dan merah tajam. Selalu gelap.',
+      'Merah Kafe',
+      'Merah marun dan krem hangat ala kafe tua. Selalu gelap.',
       true,
-      Color(0xFF0A0A0A),
-      Color(0xFF1A1A1A),
-      Color(0xFFFFFFFF),
-      Color(0xFFB8B8B8),
-      Color(0xFF3A3A3A),
-      Color(0xFFE60012),
-      Color(0xFFE60012),
-      Color(0xFF3A3A3A)),
+      Color(0xFF1B0B0B),
+      Color(0xFF2A1412),
+      Color(0xFFFFF1DC),
+      Color(0xFFD9B99B),
+      Color(0xFF7A2E24),
+      Color(0xFFD4262C),
+      Color(0xFFD4262C),
+      Color(0xFF3A1A16)),
 };
 
 class C {

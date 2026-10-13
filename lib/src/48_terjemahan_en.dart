@@ -1496,6 +1496,10 @@ const Map<String, String> kEnStrings = {
   'Kurangi': 'Decrease',
   'Dihitung dari target dan cicilan yang sudah kamu catat. Bukan janji: kalau pengeluaran naik lagi, hasilnya bergeser.': 'Calculated from the goals and instalments you have recorded. Not a promise: if spending rises again, the result shifts.',
   '{0} bln': '{0} mo',
+  'Merah Kafe': 'Cafe Red',
+  'Merah marun dan krem hangat ala kafe tua. Selalu gelap.': 'Maroon and warm cream, like an old cafe. Always dark.',
+  'Motif latar': 'Background motif',
+  'Kabut, awan, atau lampu di belakang Beranda sesuai gaya. Matikan kalau terasa ramai.': 'Fog, clouds, or lamps behind Home, matching the style. Turn it off if it feels busy.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

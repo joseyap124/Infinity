@@ -545,24 +545,24 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
               indicatorColor: C.accent.withValues(alpha: 0.18),
               destinations: [
                 NavigationDestination(
-                    icon: Icon(Icons.home_outlined),
-                    selectedIcon: Icon(Icons.home_rounded),
+                    icon: navIcon('home', Icons.home_outlined, Icons.home_rounded, false),
+                    selectedIcon: navIcon('home', Icons.home_outlined, Icons.home_rounded, true),
                     label: tr('Beranda')),
                 NavigationDestination(
-                    icon: Icon(Icons.receipt_long_outlined),
-                    selectedIcon: Icon(Icons.receipt_long_rounded),
+                    icon: navIcon('receipt', Icons.receipt_long_outlined, Icons.receipt_long_rounded, false),
+                    selectedIcon: navIcon('receipt', Icons.receipt_long_outlined, Icons.receipt_long_rounded, true),
                     label: tr('Riwayat')),
                 NavigationDestination(
-                    icon: Icon(Icons.track_changes_outlined),
-                    selectedIcon: Icon(Icons.track_changes_rounded),
+                    icon: navIcon('target', Icons.track_changes_outlined, Icons.track_changes_rounded, false),
+                    selectedIcon: navIcon('target', Icons.track_changes_outlined, Icons.track_changes_rounded, true),
                     label: tr('Rencana')),
                 NavigationDestination(
-                    icon: Icon(Icons.pie_chart_outline),
-                    selectedIcon: Icon(Icons.pie_chart_rounded),
+                    icon: navIcon('pie', Icons.pie_chart_outline, Icons.pie_chart_rounded, false),
+                    selectedIcon: navIcon('pie', Icons.pie_chart_outline, Icons.pie_chart_rounded, true),
                     label: tr('Statistik')),
                 NavigationDestination(
-                    icon: Icon(Icons.grid_view_outlined),
-                    selectedIcon: Icon(Icons.grid_view_rounded),
+                    icon: navIcon('grid', Icons.grid_view_outlined, Icons.grid_view_rounded, false),
+                    selectedIcon: navIcon('grid', Icons.grid_view_outlined, Icons.grid_view_rounded, true),
                     label: tr('Lainnya')),
               ],
             ),
