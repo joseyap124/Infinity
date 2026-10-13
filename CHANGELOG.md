@@ -6,6 +6,8 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya (v5.5.3)
 
 ### Diperbaiki
+- **Gagal menyimpan data ("Cannot rename file ... .tmp: No such file or directory").** Dua penulis bersamaan (mis. dua jendela Infinity terbuka sekaligus, bisa terjadi saat membuka dari widget) memakai satu file sementara yang sama, jadi salah satunya gagal dan perubahannya tidak tersimpan. Sekarang tiap penyimpanan memakai file sementara dengan nama unik, mencoba sekali lagi kalau file itu hilang di tengah jalan, dan sisa file sementara lama dibersihkan saat app dibuka.
+- **Infinity tidak lagi membuat jendela kedua.** Membuka dari widget atau notifikasi sekarang kembali ke Infinity yang sudah berjalan (mode peluncuran singleTask), bukan membuat salinan kedua yang bisa menimpa data dengan versi yang lebih lama.
 - **Notifikasi uang masuk berbahasa Inggris dibaca sebagai pengeluaran.** Teks seperti "You received IDR 1,496,000.00 from ..." (Financial Diary myBCA di HP berbahasa Inggris) sekarang dikenali sebagai uang masuk, bukan pengeluaran. Kata lain yang ikut dikenali: "incoming transfer", "money received", "funds received", dan "credited".
 
 ## v5.5.2 (13 Okt 2026)

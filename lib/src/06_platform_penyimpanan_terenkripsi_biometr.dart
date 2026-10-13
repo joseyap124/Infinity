@@ -360,6 +360,7 @@ class DataFile {
     try {
       final d = await getApplicationSupportDirectory();
       if (!d.existsSync()) d.createSync(recursive: true);
+      _cleanStaleTmp(d);
       _file = File('${d.path}/infinity_data.bin');
       _keyBak = File('${d.path}/$_keyBakFile');
       _alt = null;
@@ -461,16 +462,52 @@ class DataFile {
     }
   }
 
-  /// Tulis atomik: ke file sementara dulu, lalu ganti nama.
+  static int _wseq = 0;
+
+  /// Tulis atomik: ke file sementara dulu, lalu ganti nama. Nama file
+  /// sementara unik di setiap tulisan, supaya dua penulis bersamaan (mis. dua
+  /// jendela Infinity sekaligus) tidak saling mengambil file sementara
+  /// ("Cannot rename file ... .tmp: No such file or directory").
   static Future<void> write(String json) async {
     final f = _file, key = _key;
     if (f == null || key == null) return;
     final nonce = _random(12);
     final box = await AesGcm.with256bits()
         .encrypt(utf8.encode(json), secretKey: key, nonce: nonce);
-    final tmp = File('${f.path}.tmp');
-    await tmp.writeAsBytes([...nonce, ...box.mac.bytes, ...box.cipherText], flush: true);
-    await tmp.rename(f.path);
+    final bytes = [...nonce, ...box.mac.bytes, ...box.cipherText];
+    final tag = _random(4).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    for (var attempt = 0; attempt < 2; attempt++) {
+      final tmp = File(
+          '${f.path}.${DateTime.now().microsecondsSinceEpoch}_${_wseq++}_$tag.tmp');
+      try {
+        await tmp.writeAsBytes(bytes, flush: true);
+        await tmp.rename(f.path);
+        return;
+      } on FileSystemException {
+        // Berkas sementara hilang di tengah jalan: bersihkan lalu coba sekali
+        // lagi dengan nama baru. Gagal lagi: lempar supaya tercatat.
+        try {
+          if (tmp.existsSync()) tmp.deleteSync();
+        } catch (_) {}
+        if (attempt == 1) rethrow;
+      }
+    }
+  }
+
+  /// Hapus sisa file sementara lama (dari tulisan yang terputus).
+  static void _cleanStaleTmp(Directory d) {
+    try {
+      final now = DateTime.now();
+      for (final e in d.listSync()) {
+        final n = e.path.split('/').last;
+        if (e is File &&
+            n.startsWith('infinity_data.bin.') &&
+            n.endsWith('.tmp') &&
+            now.difference(e.lastModifiedSync()).inMinutes >= 2) {
+          e.deleteSync();
+        }
+      }
+    } catch (_) {}
   }
 
   /// Mulai dari awal: file data yang tidak terbaca disimpan terpisah (tidak
