@@ -35,7 +35,8 @@ class _MulTextScaler extends TextScaler {
   int get hashCode => Object.hash(base, factor);
 }
 
-String themeKey(AppSettings s) => '${s.themeMode}:${s.accentIndex}';
+String themeKey(AppSettings s) =>
+    '${s.themeMode}:${s.accentIndex}:${s.stylePack}';
 
 class InfinityApp extends StatefulWidget {
   const InfinityApp({super.key});
@@ -52,6 +53,7 @@ class _InfinityAppState extends State<InfinityApp> with WidgetsBindingObserver {
     themePref.addListener(_apply);
     C.isDark = _wantDark();
     C.accentIndex = _wantAccent();
+    C.pack = _wantPack();
   }
 
   @override
@@ -64,7 +66,15 @@ class _InfinityAppState extends State<InfinityApp> with WidgetsBindingObserver {
   @override
   void didChangePlatformBrightness() => _apply();
 
+  String _wantPack() {
+    final parts = themePref.value.split(':');
+    final p = parts.length > 2 ? parts[2] : 'classic';
+    return kStylePacks.containsKey(p) ? p : 'classic';
+  }
+
   bool _wantDark() {
+    final fixed = kStylePacks[_wantPack()];
+    if (fixed != null) return fixed.dark;
     final sys = WidgetsBinding.instance.platformDispatcher.platformBrightness ==
         Brightness.dark;
     final mode = themePref.value.split(':').first;
@@ -81,9 +91,14 @@ class _InfinityAppState extends State<InfinityApp> with WidgetsBindingObserver {
   void _apply() {
     final dark = _wantDark();
     final acc = _wantAccent();
-    if ((dark == C.isDark && acc == C.accentIndex) || !mounted) return;
+    final pack = _wantPack();
+    if ((dark == C.isDark && acc == C.accentIndex && pack == C.pack) ||
+        !mounted) {
+      return;
+    }
     C.isDark = dark;
     C.accentIndex = acc;
+    C.pack = pack;
     void visit(Element e) {
       e.markNeedsBuild();
       e.visitChildren(visit);
@@ -212,6 +227,8 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
     gIconStyle.value = store.settings.iconStyle;
+    gMascotSkin.value = store.settings.mascotSkin;
+    gMascotCustom.value = store.settings.mascotCustomPath;
     gLang.value = langOf(store.settings.lang);
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
@@ -258,6 +275,8 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
     gIconStyle.value = store.settings.iconStyle;
+    gMascotSkin.value = store.settings.mascotSkin;
+    gMascotCustom.value = store.settings.mascotCustomPath;
     final lang = langOf(store.settings.lang);
     if (gLang.value != lang) {
       gLang.value = lang;

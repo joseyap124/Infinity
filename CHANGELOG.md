@@ -3,7 +3,19 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.0.5)
+## Berikutnya (v5.1.0)
+
+Tampilan Infinity bisa dipilih: tiga gaya baru dan tiga maskot hewan, semuanya opsional dan tetap offline.
+
+### Ditambah
+- **Gaya.** Di Pengaturan, Tampilan, pilih Gaya: Klasik (seperti biasa), Malam Biru (biru malam dengan garis neon cyan), Kuning Ceria (kuning cerah dengan garis hitam tebal), atau Merah Panggung (hitam dan merah tajam). Tiap gaya mengganti warna dasar, Terang atau Gelap, dan ikon pintasan Tagihan, Anggaran, Patungan, dan Utang di Beranda. Gaya selain Klasik mengatur Terang atau Gelap sendiri dan menggantikan Warna utama; pemasukan tetap hijau dan pengeluaran tetap merah.
+- **Maskot.** Di Pengaturan, Tampilan, pilih Maskot: Klasik (maskot lama), Burung Hantu, Rubah, Gagak, atau Gambar sendiri dari galeri HP. Tiap hewan punya 6 ekspresi yang berganti sesuai sisa jatah harian (Senang, Aman, Hati-hati, Bahaya, Boros, Ngantuk). Gambar sendiri hanya tersimpan di HP ini dan dipakai untuk semua suasana, ditandai lewat warna cincin.
+
+### Diubah
+- Pilihan gaya dan maskot ikut tersimpan di backup dan tidak hilang saat reset data, seperti pilihan tampilan lainnya.
+- Ukuran aplikasi bertambah sekitar 1 MB karena gambar maskot ikut dibundel.
+
+## v5.0.5 (13 Okt 2026)
 
 Judul transaksi dari notifikasi bank lebih jelas, sehingga kategorinya lebih mudah ditebak dari kebiasaanmu.
 

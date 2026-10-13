@@ -6,6 +6,22 @@ part of '../main.dart';
 
 enum MascotMood { happy, ok, warn, danger, over, sleepy }
 
+/// Maskot yang dipilih user: 'classic' | 'owl' | 'fox' | 'crow' | 'custom'.
+final ValueNotifier<String> gMascotSkin = ValueNotifier<String>('classic');
+
+/// Lokasi gambar maskot pilihan sendiri (skin 'custom').
+final ValueNotifier<String?> gMascotCustom = ValueNotifier<String?>(null);
+
+/// Nama berkas gambar maskot bawaan: assets/mascots/<skin>_<mood>.png
+String mascotAsset(String skin, MascotMood mood) =>
+    'assets/mascots/${skin}_${mood.name}.png';
+
+const List<String> kMascotSkins = ['classic', 'owl', 'fox', 'crow', 'custom'];
+
+/// Warna alas lingkaran maskot. Burung hantu bulunya gelap, jadi alasnya biru es.
+Color mascotBase(String skin) =>
+    skin == 'owl' ? const Color(0xFFDCEEFF) : Colors.white;
+
 extension MascotMoodText on MascotMood {
   String get label => switch (this) {
         MascotMood.happy => 'Senang',
@@ -233,13 +249,51 @@ class MascotView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: tr('Maskot Infinity: {0}', [tr(mood.label)]),
-      child: SizedBox(
-        width: size,
-        height: size * 0.92,
-        child: CustomPaint(painter: MascotPainter(mood)),
+      child: ExcludeSemantics(
+        child: ListenableBuilder(
+          listenable: Listenable.merge([gMascotSkin, gMascotCustom]),
+          builder: (context, _) =>
+              mascotImage(gMascotSkin.value, mood, size, gMascotCustom.value),
+        ),
       ),
     );
   }
+}
+
+/// Gambar maskot sesuai pilihan; kalau berkasnya hilang kembali ke maskot klasik.
+Widget mascotImage(String skin, MascotMood mood, double size, String? custom) {
+  Widget classic() => SizedBox(
+        width: size,
+        height: size * 0.92,
+        child: CustomPaint(painter: MascotPainter(mood)),
+      );
+  if (skin == 'owl' || skin == 'fox' || skin == 'crow') {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Image.asset(mascotAsset(skin, mood),
+          fit: BoxFit.contain,
+          gaplessPlayback: true,
+          filterQuality: FilterQuality.medium,
+          errorBuilder: (_, __, ___) => classic()),
+    );
+  }
+  if (skin == 'custom' && custom != null) {
+    final f = File(custom);
+    if (f.existsSync()) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: ClipOval(
+          child: Image.file(f,
+              key: ValueKey(custom),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => classic()),
+        ),
+      );
+    }
+  }
+  return classic();
 }
 
 /// Cincin sisa jatah dengan maskot di tengahnya (atas alas putih supaya
@@ -273,13 +327,16 @@ class MascotRing extends StatelessWidget {
                 C.isDark ? const Color(0xFF2E343C) : const Color(0xFFE3EDE4),
                 stroke),
           ),
-          Container(
-            width: inner,
-            height: inner,
-            decoration:
-                const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-            alignment: Alignment.center,
-            child: MascotView(mood: mood, size: inner * 0.84),
+          ValueListenableBuilder<String>(
+            valueListenable: gMascotSkin,
+            builder: (context, skin, _) => Container(
+              width: inner,
+              height: inner,
+              decoration: BoxDecoration(
+                  color: mascotBase(skin), shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: MascotView(mood: mood, size: inner * 0.84),
+            ),
           ),
         ],
       ),

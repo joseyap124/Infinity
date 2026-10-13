@@ -1,10 +1,10 @@
 // Tes otomatis untuk logika uang Infinity. Dijalankan CI sebelum build APK.
 import 'dart:convert';
-import 'dart:io' show zlib;
+import 'dart:io' show File, zlib;
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
-import 'package:flutter/material.dart' show DateTimeRange;
+import 'package:flutter/material.dart' show Color, DateTimeRange;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:infinity/main.dart';
@@ -2865,6 +2865,87 @@ void main() {
       final t = s.transactions.last;
       expect(t.title, 'Account Transfer');
       expect(t.categoryId, 'admin');
+    });
+  });
+  group('v5.1.0 gaya dan maskot', () {
+    tearDown(() => C.pack = 'classic');
+
+    test('pilihan gaya dan maskot tersimpan dan terbaca lagi', () {
+      final a = AppSettings()
+        ..stylePack = 'merah'
+        ..mascotSkin = 'fox';
+      final b = AppSettings.fromJson(a.toJson());
+      expect(b.stylePack, 'merah');
+      expect(b.mascotSkin, 'fox');
+      expect(AppSettings.fromJson(<String, dynamic>{}).stylePack, 'classic');
+      expect(AppSettings.fromJson(<String, dynamic>{}).mascotSkin, 'classic');
+    });
+
+    test('nilai gaya atau maskot yang tidak dikenal kembali ke Klasik', () {
+      final b = AppSettings.fromJson(
+          <String, dynamic>{'stylePack': 'neon', 'mascotSkin': 'naga'});
+      expect(b.stylePack, 'classic');
+      expect(b.mascotSkin, 'classic');
+    });
+
+    test('gambar sendiri menyimpan lokasi berkasnya', () {
+      final a = AppSettings()
+        ..mascotSkin = 'custom'
+        ..mascotCustomPath = '/data/maskot_1.jpg';
+      final b = AppSettings.fromJson(a.toJson());
+      expect(b.mascotSkin, 'custom');
+      expect(b.mascotCustomPath, '/data/maskot_1.jpg');
+    });
+
+    test('paket gaya mengganti warna dasar, Klasik mengembalikannya', () {
+      C.isDark = false;
+      C.pack = 'classic';
+      final classicBg = C.bg;
+      C.pack = 'kuning';
+      expect(C.bg, const Color(0xFFFFD92E));
+      expect(C.carbon, const Color(0xFF14130A));
+      C.pack = 'merah';
+      expect(C.accent, const Color(0xFFE60012));
+      C.pack = 'classic';
+      expect(C.bg, classicBg);
+    });
+
+    test('Malam Biru dan Merah Panggung gelap, Kuning Ceria terang', () {
+      expect(kStylePacks['malam']!.dark, isTrue);
+      expect(kStylePacks['merah']!.dark, isTrue);
+      expect(kStylePacks['kuning']!.dark, isFalse);
+    });
+
+    test('pembaca jalur SVG menghasilkan bentuk yang benar', () {
+      final r = svgPath('M18 8h28v46l-5-4z').getBounds();
+      expect(r.left, closeTo(18, 0.01));
+      expect(r.right, closeTo(46, 0.01));
+      expect(r.top, closeTo(8, 0.01));
+      expect(r.bottom, closeTo(54, 0.01));
+      // garis berurutan setelah M dan huruf kecil relatif
+      final q = svgPath('M10 22h38M38 12l10 10-10 10').getBounds();
+      expect(q.right, closeTo(48, 0.01));
+      expect(q.bottom, closeTo(32, 0.01));
+      // busur
+      final a = svgPath('M32 32V10A22 22 0 0 1 54 32Z').getBounds();
+      expect(a.left, closeTo(32, 0.01));
+      expect(a.right, closeTo(54, 0.01));
+      expect(a.top, closeTo(10, 0.01));
+      // lingkaran dari dua busur relatif
+      final c = svgPath('M10 22a12 12 0 1 0 24 0a12 12 0 1 0 -24 0z')
+          .getBounds();
+      expect(c.width, closeTo(24, 0.5));
+      expect(c.height, closeTo(24, 0.5));
+    });
+
+    test('18 gambar maskot ada untuk 3 hewan x 6 suasana', () {
+      for (final skin in ['owl', 'fox', 'crow']) {
+        for (final m in MascotMood.values) {
+          expect(File(mascotAsset(skin, m)).existsSync(), isTrue,
+              reason: mascotAsset(skin, m));
+        }
+      }
+      expect(mascotAsset('owl', MascotMood.over), 'assets/mascots/owl_over.png');
     });
   });
 }

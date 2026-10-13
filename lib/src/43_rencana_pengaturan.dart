@@ -513,21 +513,23 @@ class AppearancePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SmallLabel('Tema'),
-                    const SizedBox(height: 8),
-                    Segmented<String>(
-                      values: const ['system', 'light', 'dark'],
-                      selected: s.themeMode,
-                      labelOf: (v) => switch (v) {
-                        'light' => 'Terang',
-                        'dark' => 'Gelap',
-                        _ => 'Ikut HP',
-                      },
-                      dense: true,
-                      onChanged: (v) =>
-                          store.updateSettings((x) => x.themeMode = v),
-                    ),
-                    const SizedBox(height: 16),
+                    if (s.stylePack == 'classic') ...[
+                      const SmallLabel('Tema'),
+                      const SizedBox(height: 8),
+                      Segmented<String>(
+                        values: const ['system', 'light', 'dark'],
+                        selected: s.themeMode,
+                        labelOf: (v) => switch (v) {
+                          'light' => 'Terang',
+                          'dark' => 'Gelap',
+                          _ => 'Ikut HP',
+                        },
+                        dense: true,
+                        onChanged: (v) =>
+                            store.updateSettings((x) => x.themeMode = v),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     const SmallLabel('Ukuran huruf'),
                     const SizedBox(height: 8),
                     Segmented<double>(
@@ -650,6 +652,77 @@ class AppearancePage extends StatelessWidget {
               const SizedBox(height: 12),
               AppCard(
                 onTap: () =>
+                    showSheet<void>(context, StylePickerSheet(store: store)),
+                child: Row(
+                  children: [
+                    Icon(Icons.auto_awesome_rounded, color: C.accentDark),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Gaya',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w800)),
+                          Text(
+                              s.stylePack == 'classic'
+                                  ? 'Klasik'
+                                  : kStylePacks[s.stylePack]!.name,
+                              style: TextStyle(fontSize: 12, color: C.muted)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: C.muted),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              AppCard(
+                onTap: () =>
+                    showSheet<void>(context, MascotPickerSheet(store: store)),
+                child: Row(
+                  children: [
+                    ValueListenableBuilder<String>(
+                      valueListenable: gMascotSkin,
+                      builder: (context, skin, _) => Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                            color: mascotBase(skin), shape: BoxShape.circle),
+                        alignment: Alignment.center,
+                        clipBehavior: Clip.antiAlias,
+                        child: mascotImage(skin, MascotMood.ok, 28,
+                            s.mascotCustomPath),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Maskot',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w800)),
+                          Text(
+                              switch (s.mascotSkin) {
+                                'owl' => 'Burung Hantu',
+                                'fox' => 'Rubah',
+                                'crow' => 'Gagak',
+                                'custom' => 'Gambar sendiri',
+                                _ => 'Klasik',
+                              },
+                              style: TextStyle(fontSize: 12, color: C.muted)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: C.muted),
+                  ],
+                ),
+              ),
+              if (s.stylePack == 'classic') ...[
+              const SizedBox(height: 12),
+              AppCard(
+                onTap: () =>
                     showSheet<void>(context, AccentPickerSheet(store: store)),
                 child: Row(
                   children: [
@@ -676,6 +749,7 @@ class AppearancePage extends StatelessWidget {
                   ],
                 ),
               ),
+              ],
               const SizedBox(height: 12),
               AppCard(
                 onTap: () => showSheet<void>(context, ProfileSheet(store: store)),

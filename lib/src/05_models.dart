@@ -489,6 +489,15 @@ class AppSettings {
   Map<String, String> spendKinds = {};
   int accentIndex = 0;
 
+  /// Paket gaya: 'classic' | 'malam' | 'kuning' | 'merah' (lihat [kStylePacks]).
+  String stylePack = 'classic';
+
+  /// Maskot di Beranda: 'classic' | 'owl' | 'fox' | 'crow' | 'custom'.
+  String mascotSkin = 'classic';
+
+  /// Gambar maskot pilihan sendiri (dipakai kalau [mascotSkin] == 'custom').
+  String? mascotCustomPath;
+
   /// Pilihan fitur yang berbeda dari bawaannya (lihat [kFeatureDefaults]).
   Map<String, bool> features = {};
 
@@ -601,6 +610,9 @@ class AppSettings {
         'homeCards': homeCards,
         if (spendKinds.isNotEmpty) 'spendKinds': spendKinds,
         'accentIndex': accentIndex,
+        if (stylePack != 'classic') 'stylePack': stylePack,
+        if (mascotSkin != 'classic') 'mascotSkin': mascotSkin,
+        if (mascotCustomPath != null) 'mascotCustomPath': mascotCustomPath,
         'iconStyle': iconStyle,
         if (features.isNotEmpty) 'features': features,
         if (splashMode != 'once') 'splashMode': splashMode,
@@ -681,6 +693,13 @@ class AppSettings {
     final tm = _s(j['themeMode']);
     s.themeMode = (tm == 'light' || tm == 'dark') ? tm! : 'system';
     s.accentIndex = _i(j['accentIndex'], 0).clamp(0, C.accents.length - 1);
+    final sp = _s(j['stylePack']);
+    s.stylePack = (sp != null && kStylePacks.containsKey(sp)) ? sp : 'classic';
+    final ms = _s(j['mascotSkin']);
+    s.mascotSkin = (ms == 'owl' || ms == 'fox' || ms == 'crow' || ms == 'custom')
+        ? ms!
+        : 'classic';
+    s.mascotCustomPath = _s(j['mascotCustomPath']);
     final isv = _s(j['iconStyle']);
     s.iconStyle =
         (isv == 'classic' || isv == 'mono' || isv == 'flat') ? isv! : 'cartoon';

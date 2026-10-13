@@ -21,4 +21,13 @@ if [ -f "$here/pubspec.lock" ]; then
 else
   echo "PERINGATAN: tool/pubspec.lock belum ada, dependensi tidak dikunci"
 fi
+# Daftarkan aset gambar (maskot) di pubspec.yaml hasil flutter create.
+python3 - <<'PY'
+p = open('pubspec.yaml').read()
+if 'assets/mascots/' not in p:
+    p = p.replace('uses-material-design: true',
+                  'uses-material-design: true\n\n  assets:\n    - assets/mascots/', 1)
+    open('pubspec.yaml', 'w').write(p)
+PY
+grep -q 'assets/mascots/' pubspec.yaml || { echo "Gagal mendaftarkan assets/mascots"; exit 1; }
 if [ "$platform" = android ]; then python3 tool/setup_android.py; fi

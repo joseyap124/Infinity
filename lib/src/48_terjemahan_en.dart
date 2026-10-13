@@ -1426,6 +1426,21 @@ const Map<String, String> kEnStrings = {
   'PDF tersimpan di Download/Infinity 📄': 'PDF saved in Download/Infinity 📄',
   'Gagal membuat PDF.': 'Could not create the PDF.',
   'Gagal menyimpan PDF.': 'Could not save the PDF.',
+  'Gaya': 'Style',
+  'Maskot': 'Mascot',
+  'Burung Hantu': 'Owl',
+  'Rubah': 'Fox',
+  'Gagak': 'Crow',
+  'Gambar sendiri': 'My own picture',
+  'Malam Biru': 'Blue Night',
+  'Kuning Ceria': 'Cheerful Yellow',
+  'Merah Panggung': 'Stage Red',
+  'Biru malam dengan garis neon cyan. Selalu gelap.': 'Midnight blue with cyan neon lines. Always dark.',
+  'Kuning cerah dengan garis hitam tebal. Selalu terang.': 'Bright yellow with thick black outlines. Always light.',
+  'Hitam dan merah tajam. Selalu gelap.': 'Sharp black and red. Always dark.',
+  'Tampilan bawaan Infinity. Ikut Terang atau Gelap dan warna utama pilihanmu.': 'The default Infinity look. Follows Light or Dark and your main colour.',
+  'Gaya selain Klasik mengatur warna, Terang atau Gelap, dan ikon pintasan sendiri. Pemasukan tetap hijau dan pengeluaran tetap merah.': 'Styles other than Classic set their own colours, Light or Dark, and shortcut icons. Income stays green and spending stays red.',
+  'Maskot berganti ekspresi sesuai sisa jatah harianmu. Gambar sendiri hanya tersimpan di HP ini dan dipakai untuk semua suasana, ditandai lewat warna cincin.': 'The mascot changes expression with your remaining daily allowance. Your own picture is stored only on this phone and used for every mood, shown through the ring colour.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

@@ -897,21 +897,23 @@ class DashboardTab extends StatelessWidget {
 
   /// Pintasan bulat di bawah kartu utama. Yang fiturnya dimatikan tidak tampil.
   Widget _shortcuts(BuildContext context) {
-    final items = <(IconData, String, Color, VoidCallback)>[
+    final items = <(IconData, String, Color, VoidCallback, PackGlyph)>[
       (Icons.receipt_long_rounded, 'Tagihan', C.amberDark,
-          () => _push(context, RecurringPage(store: store))),
+          () => _push(context, RecurringPage(store: store)), PackGlyph.bill),
       (Icons.track_changes_rounded, 'Anggaran', C.redDark,
-          () => _push(context, BudgetPage(store: store))),
+          () => _push(context, BudgetPage(store: store)), PackGlyph.budget),
       if (store.feature('patungan'))
         (Icons.groups_rounded, 'Patungan', C.blueDark,
-            () => showSheet<void>(context, PatunganSheet(store: store))),
+            () => showSheet<void>(context, PatunganSheet(store: store)),
+            PackGlyph.split),
       if (store.feature('utang'))
         (Icons.handshake_rounded, 'Utang', C.income,
-            () => _push(context, DebtsPage(store: store))),
+            () => _push(context, DebtsPage(store: store)), PackGlyph.debt),
     ];
+    final themed = C.pack != 'classic';
     return Row(
       children: [
-        for (final (icon, label, color, onTap) in items)
+        for (final (icon, label, color, onTap, glyph) in items)
           Expanded(
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
@@ -921,15 +923,18 @@ class DashboardTab extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.13),
-                          shape: BoxShape.circle),
-                      alignment: Alignment.center,
-                      child: ArtIcon(icon, color: color, size: 24),
-                    ),
+                    if (themed)
+                      PackIcon(glyph: glyph, size: 52)
+                    else
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.13),
+                            shape: BoxShape.circle),
+                        alignment: Alignment.center,
+                        child: ArtIcon(icon, color: color, size: 24),
+                      ),
                     const SizedBox(height: 5),
                     Text(label,
                         maxLines: 1,

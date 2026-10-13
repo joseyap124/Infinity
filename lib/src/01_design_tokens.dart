@@ -8,12 +8,80 @@ part of '../main.dart';
 const String kAppVersion =
     String.fromEnvironment('APP_VERSION', defaultValue: 'dev');
 
+/// Paket gaya pilihan user (v5.1). Mengganti warna dasar, aksen, dan ikon
+/// pintasan sekaligus. 'classic' = tampilan lama (ikut Terang/Gelap + aksen).
+class StylePack {
+  const StylePack(this.id, this.name, this.desc, this.dark, this.bg,
+      this.surface, this.carbon, this.muted, this.line, this.accent,
+      this.accentDark, this.toast);
+  final String id;
+  final String name;
+  final String desc;
+
+  /// Paket ini selalu gelap atau selalu terang (mengabaikan pilihan Tema).
+  final bool dark;
+  final Color bg;
+  final Color surface;
+  final Color carbon;
+  final Color muted;
+  final Color line;
+  final Color accent;
+  final Color accentDark;
+  final Color toast;
+}
+
+const Map<String, StylePack> kStylePacks = {
+  'malam': StylePack(
+      'malam',
+      'Malam Biru',
+      'Biru malam dengan garis neon cyan. Selalu gelap.',
+      true,
+      Color(0xFF050D1F),
+      Color(0xFF0B1B3A),
+      Color(0xFFE6F6FF),
+      Color(0xFF8FB4D9),
+      Color(0xFF1B3A6E),
+      Color(0xFF1EA7FF),
+      Color(0xFF0B6FBF),
+      Color(0xFF16305C)),
+  'kuning': StylePack(
+      'kuning',
+      'Kuning Ceria',
+      'Kuning cerah dengan garis hitam tebal. Selalu terang.',
+      false,
+      Color(0xFFFFD92E),
+      Color(0xFFFFF4B8),
+      Color(0xFF14130A),
+      Color(0xFF4A4630),
+      Color(0xFFB89B00),
+      Color(0xFF14130A),
+      Color(0xFF14130A),
+      Color(0xFF14130A)),
+  'merah': StylePack(
+      'merah',
+      'Merah Panggung',
+      'Hitam dan merah tajam. Selalu gelap.',
+      true,
+      Color(0xFF0A0A0A),
+      Color(0xFF1A1A1A),
+      Color(0xFFFFFFFF),
+      Color(0xFFB8B8B8),
+      Color(0xFF3A3A3A),
+      Color(0xFFE60012),
+      Color(0xFFE60012),
+      Color(0xFF3A3A3A)),
+};
+
 class C {
   /// Diatur oleh InfinityApp sesuai pilihan tema (Terang/Gelap/Ikut sistem).
   static bool isDark = false;
 
   /// Indeks warna aksen pilihan user (lihat [accents]).
   static int accentIndex = 0;
+
+  /// Paket gaya aktif ('classic' atau kunci di [kStylePacks]).
+  static String pack = 'classic';
+  static StylePack? get _sp => kStylePacks[pack];
 
   /// (nama, aksen terang, aksen tua mode terang, aksen mode gelap).
   /// Aksen tua dipakai untuk tombol bertulisan putih dan teks berwarna.
@@ -40,8 +108,9 @@ class C {
       accents[accentIndex.clamp(0, accents.length - 1)];
 
   /// Warna merek (header, tombol, navigasi). Bisa diganti di Tampilan.
-  static Color get accent => _acc.$2;
-  static Color get accentDark => isDark ? _acc.$4 : _acc.$3;
+  static Color get accent => _sp?.accent ?? _acc.$2;
+  static Color get accentDark =>
+      _sp?.accentDark ?? (isDark ? _acc.$4 : _acc.$3);
 
   // Warna arti (tetap, tidak ikut aksen): pemasukan hijau, pengeluaran merah.
   static const Color green = Color(0xFF00AA13);
@@ -64,19 +133,24 @@ class C {
 
   // Netral.
   static Color get carbon =>
-      isDark ? const Color(0xFFECEDEF) : const Color(0xFF1C1C1C);
+      _sp?.carbon ??
+      (isDark ? const Color(0xFFECEDEF) : const Color(0xFF1C1C1C));
   static Color get bg =>
-      isDark ? const Color(0xFF121316) : const Color(0xFFF8F9FA);
+      _sp?.bg ?? (isDark ? const Color(0xFF121316) : const Color(0xFFF8F9FA));
   static Color get surface =>
-      isDark ? const Color(0xFF1E2024) : const Color(0xFFFFFFFF);
+      _sp?.surface ??
+      (isDark ? const Color(0xFF1E2024) : const Color(0xFFFFFFFF));
   static Color get muted =>
-      isDark ? const Color(0xFFA3A9B4) : const Color(0xFF5B6270);
+      _sp?.muted ??
+      (isDark ? const Color(0xFFA3A9B4) : const Color(0xFF5B6270));
   static Color get line =>
-      isDark ? const Color(0xFF2E3137) : const Color(0xFFE9ECEF);
+      _sp?.line ??
+      (isDark ? const Color(0xFF2E3137) : const Color(0xFFE9ECEF));
 
   /// Latar gelap untuk teks putih (snackbar, tombol "=", segmen terpilih).
   static Color get toast =>
-      isDark ? const Color(0xFF3A3D44) : const Color(0xFF1C1C1C);
+      _sp?.toast ??
+      (isDark ? const Color(0xFF3A3D44) : const Color(0xFF1C1C1C));
 }
 
 const List<int> kPalette = [
