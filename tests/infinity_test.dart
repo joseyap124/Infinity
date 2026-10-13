@@ -2764,6 +2764,14 @@ void main() {
       expect(p.type, TxType.income);
     });
 
+    test('Financial Diary myBCA berbahasa Inggris: "You received IDR 1,496,000.00" = uang masuk', () {
+      final p = parseReceipt(
+          'Financial Diary\nYou received IDR 1,496,000.00 from **NY ****ADI at Account Transfer category.',
+          setup());
+      expect(p.amount, 1496000);
+      expect(p.type, TxType.income);
+    });
+
     test('pengeluaran myBCA tetap pengeluaran', () {
       final p = parseReceipt('Pengeluaran sebesar IDR 25,000.00 di KOPI KENANGAN.', setup());
       expect(p.amount, 25000);

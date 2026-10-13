@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.5.2)
+## Berikutnya (v5.5.3)
+
+### Diperbaiki
+- **Notifikasi uang masuk berbahasa Inggris dibaca sebagai pengeluaran.** Teks seperti "You received IDR 1,496,000.00 from ..." (Financial Diary myBCA di HP berbahasa Inggris) sekarang dikenali sebagai uang masuk, bukan pengeluaran. Kata lain yang ikut dikenali: "incoming transfer", "money received", "funds received", dan "credited".
+
+## v5.5.2 (13 Okt 2026)
 
 ### Diperbaiki
 - **Layar "Data belum bisa dibuka" saat membuka dari widget.** Gagal membaca kunci data sering hanya sesaat, jadi sekarang Infinity mencoba lagi sendiri sampai tiga kali (tiap 2,5 detik) sebelum menyerah, dan pembacaan kunci di awal dicoba empat kali dengan jeda makin panjang. Kalau tetap gagal, layar itu menampilkan baris kecil "Kode: ..." berisi penyebab teknisnya (mis. secure storage kosong atau dekripsi gagal) supaya masalahnya bisa dilacak. Datamu tidak diubah atau dihapus oleh langkah ini.

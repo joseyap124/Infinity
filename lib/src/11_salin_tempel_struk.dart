@@ -206,6 +206,10 @@ ParsedReceipt parseReceipt(String text, AppStore store) {
     // "Dana Rp ... masuk ke rek. ..." (Livin by Mandiri).
     'pemasukan', 'masuk ke rek', 'telah masuk', 'menerima dana',
     'menerima transfer',
+    // Notifikasi berbahasa Inggris (HP berbahasa Inggris): "You received
+    // IDR 1,496,000.00 from ... at Account Transfer category."
+    'you received', 'received idr', 'received rp', 'incoming transfer',
+    'money received', 'funds received', 'credited',
   ];
   final type = isTopUp
       ? TxType.transfer
