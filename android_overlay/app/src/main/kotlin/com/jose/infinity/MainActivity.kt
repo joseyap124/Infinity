@@ -115,6 +115,11 @@ class MainActivity : FlutterFragmentActivity() {
                         result.success(null)
                     }
                     "isListenerEnabled" -> result.success(isListenerEnabled())
+                    "captureHealth" -> result.success(CaptureStore.health(this))
+                    "rebindListener" -> {
+                        NotificationCaptureService.rebind(this)
+                        result.success(null)
+                    }
                     "openListenerSettings" -> {
                         startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                         result.success(null)

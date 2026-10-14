@@ -20,12 +20,23 @@ class NotificationCaptureService : NotificationListenerService() {
      * Sebagian HP (Oppo/Realme/Vivo, dan setelah update app) memutus layanan
      * ini tanpa memberi tahu. Minta Android menyambungkannya lagi.
      */
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        connected = true
+        CaptureStore.markConnected(this)
+    }
+
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
+        connected = false
         rebind(this)
     }
 
     companion object {
+        /** True selama Android menyambungkan layanan ini (per proses). */
+        @Volatile
+        var connected = false
+
         fun rebind(ctx: Context) {
             try {
                 if (android.os.Build.VERSION.SDK_INT >= 24) {
@@ -39,6 +50,7 @@ class NotificationCaptureService : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
+        CaptureStore.markSeen(this, sbn.packageName)
         if (sbn.packageName == packageName) return
         val n = sbn.notification ?: return
         // Lewati ringkasan grup supaya tidak dobel.
@@ -55,6 +67,7 @@ class NotificationCaptureService : NotificationListenerService() {
             .put("text", text)
             .put("time", sbn.postTime)
         CaptureStore.add(this, item)
+        CaptureStore.markMoney(this, sbn.packageName)
         try {
             CaptureAlert.show(this, item)
         } catch (_: Exception) {
@@ -97,6 +110,41 @@ object CaptureStore {
     private fun newQid(): String {
         counter++
         return "${System.currentTimeMillis()}_${System.nanoTime()}_$counter"
+    }
+
+    // ---- Kesehatan layanan: kapan tersambung, dan notifikasi terakhir yang diterima ----
+
+    private var lastSeenWrite = 0L
+
+    fun markConnected(ctx: Context) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putLong("connectedAt", System.currentTimeMillis()).apply()
+    }
+
+    /** Dicatat paling sering sekali per 3 detik supaya tidak membebani penyimpanan. */
+    fun markSeen(ctx: Context, pkg: String) {
+        val now = System.currentTimeMillis()
+        if (now - lastSeenWrite < 3000) return
+        lastSeenWrite = now
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putLong("lastSeen", now).putString("lastSeenPkg", pkg).apply()
+    }
+
+    fun markMoney(ctx: Context, pkg: String) {
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putLong("lastMoney", System.currentTimeMillis()).putString("lastMoneyPkg", pkg).apply()
+    }
+
+    fun health(ctx: Context): String {
+        val p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return JSONObject()
+            .put("connected", NotificationCaptureService.connected)
+            .put("connectedAt", p.getLong("connectedAt", 0L))
+            .put("lastSeen", p.getLong("lastSeen", 0L))
+            .put("lastSeenPkg", p.getString("lastSeenPkg", "") ?: "")
+            .put("lastMoney", p.getLong("lastMoney", 0L))
+            .put("lastMoneyPkg", p.getString("lastMoneyPkg", "") ?: "")
+            .toString()
     }
 
     @Synchronized

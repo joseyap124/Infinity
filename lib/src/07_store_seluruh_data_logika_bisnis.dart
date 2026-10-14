@@ -163,12 +163,57 @@ class AppStore extends ChangeNotifier {
       // Tulis ulang selama masih ada perubahan baru selama menulis.
       while (_dirty) {
         _dirty = false;
+        if (_useFile && DataFile.changedByOther) await _mergeForeign();
         ok = await _write(jsonEncode(toJson()));
       }
       lastSaveOk = ok;
       return ok;
     });
     return _saving;
+  }
+
+  /// File data ternyata diubah jendela/proses lain sejak kita membacanya
+  /// (mis. dua jendela Infinity terbuka). Jangan menimpa diam-diam: simpan
+  /// salinannya, lalu gabungkan data yang belum ada di sini (menurut id).
+  Future<void> _mergeForeign() async {
+    try {
+      await DataFile.keepForeignCopy();
+      final raw = await DataFile.read();
+      if (raw == null) return;
+      final fj = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+      final merged = toJson();
+      var added = 0;
+      for (final k in const [
+        'accounts',
+        'categories',
+        'transactions',
+        'recurring',
+        'templates'
+      ]) {
+        final mine = _list(merged[k]);
+        final have = <String>{for (final x in mine) '${x['id']}'};
+        for (final x in _list(fj[k])) {
+          final id = x['id'];
+          if (id is String && have.add(id)) {
+            mine.add(x);
+            added++;
+          }
+        }
+        merged[k] = mine;
+      }
+      ErrorLog.record(
+          StateError('file data diubah pihak lain; $added item digabung'),
+          StackTrace.current,
+          source: 'simpan data');
+      if (added > 0) {
+        _applyJson(merged);
+        _migrateIcons();
+        _rev++;
+        notifyListeners();
+      }
+    } catch (e, st) {
+      ErrorLog.record(e, st, source: 'gabung data');
+    }
   }
 
   Future<bool> _write(String json) async {

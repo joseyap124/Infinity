@@ -1503,6 +1503,16 @@ const Map<String, String> kEnStrings = {
   'Rekap bulan': 'Month recap',
   'Rekap tahun': 'Year recap',
   'Ekspor': 'Export',
+  'Status layanan': 'Service status',
+  'Layanan penangkap notifikasi': 'Notification capture service',
+  'Tersambung': 'Connected',
+  'Belum tersambung': 'Not connected',
+  'Notifikasi terakhir yang diterima': 'Last notification received',
+  'Notifikasi berisi uang terakhir': 'Last notification with an amount',
+  'Belum ada': 'None yet',
+  'Sambungkan ulang': 'Reconnect',
+  'Menyambungkan...': 'Connecting...',
+  'Kalau tetap belum tersambung: matikan lalu nyalakan lagi akses notifikasi Infinity di pengaturan Android.': 'If it stays disconnected: turn Infinity\'s notification access off and on again in Android settings.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

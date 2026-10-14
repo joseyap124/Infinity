@@ -81,6 +81,9 @@ class _AutoCapturePageState extends State<AutoCapturePage>
     with WidgetsBindingObserver {
   AppStore get store => widget.store;
   bool? _enabled;
+  Map<String, dynamic> _health = const {};
+  bool _rebinding = false;
+  bool _autoRebound = false;
 
   @override
   void initState() {
@@ -103,7 +106,90 @@ class _AutoCapturePageState extends State<AutoCapturePage>
 
   Future<void> _refresh() async {
     final ok = await NativeBridge.isListenerEnabled();
-    if (mounted) setState(() => _enabled = ok);
+    var h = await NativeBridge.captureHealth();
+    // Izin aktif tapi layanan belum tersambung (sering terjadi setelah update
+    // atau di HP yang agresif mematikan app): minta Android menyambungkan.
+    if (ok && h['connected'] != true && !_autoRebound) {
+      _autoRebound = true;
+      await NativeBridge.rebindListener();
+      await Future<void>.delayed(const Duration(milliseconds: 1500));
+      h = await NativeBridge.captureHealth();
+    }
+    if (mounted) {
+      setState(() {
+        _enabled = ok;
+        _health = h;
+      });
+    }
+  }
+
+  Future<void> _rebind() async {
+    setState(() => _rebinding = true);
+    await NativeBridge.rebindListener();
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    final h = await NativeBridge.captureHealth();
+    if (mounted) {
+      setState(() {
+        _health = h;
+        _rebinding = false;
+      });
+    }
+  }
+
+  String _healthLine(Object? ms, Object? pkg) {
+    final v = ms is num ? ms.toInt() : 0;
+    if (v == 0) return 'Belum ada';
+    final when = DateFormat('d MMM HH:mm').format(DateTime.fromMillisecondsSinceEpoch(v));
+    final p = '${pkg ?? ''}';
+    return p.isEmpty ? when : '${appLabelForPackage(p)} ($p), $when';
+  }
+
+  Widget _healthRow(String label, String value) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 12, color: C.muted)),
+            SelectableText(value,
+                style: const TextStyle(
+                    fontSize: 13.5, fontWeight: FontWeight.w700)),
+          ],
+        ),
+      );
+
+  Widget _healthCard() {
+    final h = _health;
+    final conn = h['connected'] == true;
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SectionTitle('Status layanan'),
+          const SizedBox(height: 6),
+          _healthRow('Layanan penangkap notifikasi',
+              conn ? 'Tersambung' : 'Belum tersambung'),
+          _healthRow('Notifikasi terakhir yang diterima',
+              _healthLine(h['lastSeen'], h['lastSeenPkg'])),
+          _healthRow('Notifikasi berisi uang terakhir',
+              _healthLine(h['lastMoney'], h['lastMoneyPkg'])),
+          if (!conn) ...[
+            const SizedBox(height: 6),
+            Text(
+                'Kalau tetap belum tersambung: matikan lalu nyalakan lagi akses notifikasi Infinity di pengaturan Android.',
+                style: TextStyle(fontSize: 12, color: C.muted)),
+          ],
+          const SizedBox(height: 10),
+          OutlinedButton(
+            onPressed: _rebinding ? null : _rebind,
+            style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(46),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20))),
+            child: Text(_rebinding ? 'Menyambungkan...' : 'Sambungkan ulang'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _checkNow() async {
@@ -184,6 +270,10 @@ class _AutoCapturePageState extends State<AutoCapturePage>
                   ],
                 ),
               ),
+              if (enabled == true) ...[
+                const SizedBox(height: 12),
+                _healthCard(),
+              ],
               if (enabled != true) ...[
                 const SizedBox(height: 12),
                 AppCard(

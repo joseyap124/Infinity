@@ -3,7 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.5.3)
+## Berikutnya (v5.5.4)
+
+### Diperbaiki
+- **Transaksi bisa hilang diam-diam kalau dua jendela Infinity menulis bergantian.** Sebelum menyimpan, Infinity sekarang mengecek apakah file data diubah pihak lain sejak terakhir dibaca. Kalau ya, versi itu disimpan dulu sebagai salinan pengaman (3 terakhir), lalu transaksi, akun, kategori, aturan berulang, dan template yang belum ada di sini digabung berdasarkan id, baru disimpan. Kejadian ini tercatat di Log error ("file data diubah pihak lain").
+
+### Ditambah
+- **Status layanan di Catat Otomatis.** Kartu baru menampilkan apakah layanan penangkap notifikasi tersambung, kapan notifikasi terakhir diterima (beserta nama paket aplikasinya), dan kapan notifikasi berisi nominal terakhir masuk. Ada tombol "Sambungkan ulang", dan Infinity menyambungkan otomatis saat halaman dibuka kalau izin aktif tapi layanan belum tersambung. Ini untuk melacak kenapa notifikasi bank tidak tertangkap.
+
+## v5.5.3 (13 Okt 2026)
 
 ### Diperbaiki
 - **Gagal menyimpan data ("Cannot rename file ... .tmp: No such file or directory").** Dua penulis bersamaan (mis. dua jendela Infinity terbuka sekaligus, bisa terjadi saat membuka dari widget) memakai satu file sementara yang sama, jadi salah satunya gagal dan perubahannya tidak tersimpan. Sekarang tiap penyimpanan memakai file sementara dengan nama unik, mencoba sekali lagi kalau file itu hilang di tengah jalan, dan sisa file sementara lama dibersihkan saat app dibuka.

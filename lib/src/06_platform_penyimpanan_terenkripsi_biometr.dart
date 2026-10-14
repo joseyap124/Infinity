@@ -168,6 +168,26 @@ class NativeBridge {
     }
   }
 
+  /// Status layanan penangkap notifikasi: connected, connectedAt, lastSeen,
+  /// lastSeenPkg, lastMoney, lastMoneyPkg (waktu dalam milidetik).
+  static Future<Map<String, dynamic>> captureHealth() async {
+    try {
+      final s = await _ch.invokeMethod<String>('captureHealth');
+      if (s == null || s.isEmpty) return {};
+      final m = jsonDecode(s);
+      return m is Map ? Map<String, dynamic>.from(m) : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  /// Minta Android menyambungkan lagi layanan penangkap notifikasi.
+  static Future<void> rebindListener() async {
+    try {
+      await _ch.invokeMethod<void>('rebindListener');
+    } catch (_) {}
+  }
+
   static Future<void> openListenerSettings() async {
     try {
       await _ch.invokeMethod<void>('openListenerSettings');
@@ -437,7 +457,9 @@ class DataFile {
       throw const FormatException('Kunci data tidak ditemukan');
     }
     if (f == null || key == null || !f.existsSync()) return null;
+    final sigBefore = _statSig();
     final b = await f.readAsBytes();
+    _sig = sigBefore;
     if (b.length < 28) {
       lastFailure = 'file data terlalu pendek (${b.length} byte)';
       throw const FormatException('File data terlalu pendek');
@@ -462,6 +484,49 @@ class DataFile {
     }
   }
 
+  /// Ciri file (waktu ubah + ukuran) sejak terakhir kita baca atau tulis.
+  /// Kalau berbeda, ada jendela/proses lain yang menulis file ini.
+  static String? _sig;
+
+  static String? _statSig() {
+    try {
+      final f = _file;
+      if (f == null || !f.existsSync()) return null;
+      final st = f.statSync();
+      return '${st.modified.microsecondsSinceEpoch}:${st.size}';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// True kalau file diubah pihak lain sejak terakhir kita baca/tulis.
+  static bool get changedByOther {
+    final now = _statSig();
+    return now != null && now != _sig;
+  }
+
+  /// Simpan salinan file saat ini (versi dari pihak lain) sebelum ditimpa.
+  /// Hanya 3 salinan terbaru yang disimpan.
+  static Future<void> keepForeignCopy() async {
+    final f = _file;
+    if (f == null || !f.existsSync()) return;
+    try {
+      await f.copy('${f.path}.timpa_${DateTime.now().millisecondsSinceEpoch}');
+      final d = f.parent;
+      final keep = d
+          .listSync()
+          .whereType<File>()
+          .where((e) => e.path.split('/').last.startsWith('infinity_data.bin.timpa_'))
+          .toList()
+        ..sort((a, b) => b.path.compareTo(a.path));
+      for (final old in keep.skip(3)) {
+        try {
+          old.deleteSync();
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
   static int _wseq = 0;
 
   /// Tulis atomik: ke file sementara dulu, lalu ganti nama. Nama file
@@ -482,6 +547,7 @@ class DataFile {
       try {
         await tmp.writeAsBytes(bytes, flush: true);
         await tmp.rename(f.path);
+        _sig = _statSig();
         return;
       } on FileSystemException {
         // Berkas sementara hilang di tengah jalan: bersihkan lalu coba sekali
