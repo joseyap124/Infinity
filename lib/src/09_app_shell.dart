@@ -239,8 +239,10 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     await _ingestCaptures(quiet: true);
     unawaited(store.backupToDownloads());
     // Saat app terbuka, cek notifikasi bank/e-wallet baru setiap 20 detik.
-    _capturePoll = Timer.periodic(
-        const Duration(seconds: 20), (_) => _ingestCaptures());
+    _capturePoll = Timer.periodic(const Duration(seconds: 20), (_) {
+      unawaited(store.syncIfChangedElsewhere());
+      _ingestCaptures();
+    });
     _widgetSub = HomeWidgetBridge.clicks().listen(_handleWidgetUri);
     final launch = await HomeWidgetBridge.initialLaunch();
     if (!mounted) return;
@@ -443,6 +445,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
       final pausedAt = _pausedAt;
       _pausedAt = null;
       if (!store.loaded) return;
+      unawaited(store.syncIfChangedElsewhere());
       final created = store.processRecurring();
       _quickShown = null; // tampilkan ulang kalau sempat digeser hilang
       _scheduleNotifications();

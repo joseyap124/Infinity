@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.5.4)
+## Berikutnya (v5.5.5)
+
+### Diperbaiki
+- **Tampilan basi kalau ada dua jendela Infinity.** Saat Infinity kembali ke depan, dan tiap 20 detik saat terbuka, app mengecek apakah file data diubah jendela lain. Kalau ya, perubahannya langsung diambil, jadi transaksi yang tampak "hilang lalu muncul lagi" tidak menunggu penyimpanan berikutnya, dan jendela yang basi tidak menimpa data yang lebih baru.
+
+## v5.5.4 (14 Okt 2026)
 
 ### Diperbaiki
 - **Transaksi bisa hilang diam-diam kalau dua jendela Infinity menulis bergantian.** Sebelum menyimpan, Infinity sekarang mengecek apakah file data diubah pihak lain sejak terakhir dibaca. Kalau ya, versi itu disimpan dulu sebagai salinan pengaman (3 terakhir), lalu transaksi, akun, kategori, aturan berulang, dan template yang belum ada di sini digabung berdasarkan id, baru disimpan. Kejadian ini tercatat di Log error ("file data diubah pihak lain").

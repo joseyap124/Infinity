@@ -175,6 +175,17 @@ class AppStore extends ChangeNotifier {
   /// File data ternyata diubah jendela/proses lain sejak kita membacanya
   /// (mis. dua jendela Infinity terbuka). Jangan menimpa diam-diam: simpan
   /// salinannya, lalu gabungkan data yang belum ada di sini (menurut id).
+  /// Dipanggil saat app kembali ke depan dan berkala: kalau file data sudah
+  /// diubah jendela/proses lain, ambil perubahannya sekarang juga, jadi
+  /// tampilan yang basi tidak menunggu penyimpanan berikutnya.
+  Future<void> syncIfChangedElsewhere() async {
+    if (!loaded || dataLocked || !_useFile || !DataFile.changedByOther) return;
+    await _saving;
+    if (!DataFile.changedByOther) return;
+    await _mergeForeign();
+    await flush();
+  }
+
   Future<void> _mergeForeign() async {
     try {
       await DataFile.keepForeignCopy();
