@@ -3,7 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.5.5)
+## Berikutnya (v5.5.6)
+
+### Ditambah
+- **Jejak penyimpanan** di Lainnya, Laporan error: catatan singkat kapan data dimuat dan disimpan (sumber data, jumlah transaksi, nilai anggaran, ukuran file, folder data, dan kegagalan menulis), terbaru di atas, dengan tombol Salin. Untuk melacak kenapa perubahan kadang tidak bertahan setelah app dibuka ulang.
+
+### Diubah
+- **Laporan error sekarang terbaru di atas.** Sebelumnya entri terbaru ada di bagian paling bawah, jadi saat file dipotong karena terlalu panjang, yang hilang justru error terbaru.
+
+## v5.5.5 (14 Okt 2026)
 
 ### Diperbaiki
 - **Tampilan basi kalau ada dua jendela Infinity.** Saat Infinity kembali ke depan, dan tiap 20 detik saat terbuka, app mengecek apakah file data diubah jendela lain. Kalau ya, perubahannya langsung diambil, jadi transaksi yang tampak "hilang lalu muncul lagi" tidak menunggu penyimpanan berikutnya, dan jendela yang basi tidak menimpa data yang lebih baru.

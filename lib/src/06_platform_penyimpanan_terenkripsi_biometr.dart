@@ -419,6 +419,7 @@ class DataFile {
           // kunci baru (itu menimpa kunci lama dan data tidak akan terbuka
           // lagi): biarkan, dan tampilkan layar "Data tidak bisa dibuka".
           keyLost = true;
+          jot('kunci hilang, file ada');
           _key = null;
           lastFailure =
               'kunci tidak ditemukan; secure storage: ${_ssErr.isEmpty ? 'kosong' : _ssErr}; salinan kunci: tidak ada';
@@ -429,6 +430,7 @@ class DataFile {
       }
       keyLost = false;
       _key = SecretKey(base64Decode(k));
+      jot('init ok, folder=${_file!.parent.path}, file ada=${_file!.existsSync()}, kunci ${bak == null ? 'tanpa salinan' : (bak == k ? 'sama dgn salinan' : 'BEDA dgn salinan')}');
       if (bak != k) {
         try {
           await _keyBak!.writeAsString(k, flush: true);
@@ -439,6 +441,7 @@ class DataFile {
       _file = null;
       _key = null;
       lastFailure = 'init gagal: ${_short(e)}';
+      jot(lastFailure);
       return false;
     }
   }
@@ -527,6 +530,53 @@ class DataFile {
     } catch (_) {}
   }
 
+  // ---- Jejak penyimpanan: catatan singkat tiap muat/simpan, untuk melacak
+  // kenapa perubahan kadang tidak bertahan setelah app dibuka ulang.
+  static File? _jf;
+  static final List<String> _jmem = [];
+
+  static void jot(String msg) {
+    final t = DateTime.now();
+    String two(int n) => n.toString().padLeft(2, '0');
+    final line =
+        '${two(t.month)}-${two(t.day)} ${two(t.hour)}:${two(t.minute)}:${two(t.second)}.${t.millisecond.toString().padLeft(3, '0')} $msg\n';
+    try {
+      var f = _jf;
+      if (f == null) {
+        final d = _file?.parent;
+        if (d != null) f = _jf = File('${d.path}/infinity_persist.log');
+      }
+      if (f == null) {
+        _jmem.add(line);
+        if (_jmem.length > 80) _jmem.removeAt(0);
+        return;
+      }
+      if (_jmem.isNotEmpty) {
+        f.writeAsStringSync(_jmem.join(), mode: FileMode.append);
+        _jmem.clear();
+      }
+      f.writeAsStringSync(line, mode: FileMode.append);
+      if (f.lengthSync() > 30000) {
+        final all = f.readAsStringSync();
+        f.writeAsStringSync(all.substring(all.length - 15000));
+      }
+    } catch (_) {}
+  }
+
+  /// Jejak terbaru di atas, maksimal [max] baris.
+  static String journalText({int max = 120}) {
+    try {
+      final f = _jf;
+      final raw = (f != null && f.existsSync())
+          ? f.readAsStringSync()
+          : _jmem.join();
+      final lines = raw.split('\n').where((l) => l.trim().isNotEmpty).toList();
+      return lines.reversed.take(max).join('\n');
+    } catch (_) {
+      return '';
+    }
+  }
+
   static int _wseq = 0;
 
   /// Tulis atomik: ke file sementara dulu, lalu ganti nama. Nama file
@@ -548,8 +598,11 @@ class DataFile {
         await tmp.writeAsBytes(bytes, flush: true);
         await tmp.rename(f.path);
         _sig = _statSig();
+        final len = f.existsSync() ? f.lengthSync() : -1;
+        jot('tulis ok ${bytes.length}B, file $len B${len == bytes.length ? '' : ' (UKURAN BEDA)'}');
         return;
-      } on FileSystemException {
+      } on FileSystemException catch (e) {
+        jot('tulis GAGAL percobaan ${attempt + 1}: ${_short(e)}');
         // Berkas sementara hilang di tengah jalan: bersihkan lalu coba sekali
         // lagi dengan nama baru. Gagal lagi: lempar supaya tercatat.
         try {

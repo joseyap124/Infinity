@@ -109,8 +109,14 @@ class ErrorLogPage extends StatefulWidget {
 class _ErrorLogPageState extends State<ErrorLogPage> {
   @override
   Widget build(BuildContext context) {
-    final text = ErrorLog.read();
+    // Entri terbaru di atas, supaya yang terpotong saat dikirim adalah yang lama.
+    final entries = ErrorLog.read()
+        .split(RegExp(r'(?=^--- )', multiLine: true))
+        .where((e) => e.trim().isNotEmpty)
+        .toList();
+    final text = entries.reversed.join();
     final n = ErrorLog.count();
+    final trail = DataFile.journalText();
     return Scaffold(
       appBar: pageBar('Laporan error'),
       body: ListView(
@@ -180,11 +186,43 @@ class _ErrorLogPageState extends State<ErrorLogPage> {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Jejak penyimpanan',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                const SizedBox(height: 6),
+                Text(
+                    'Catatan teknis kapan data dimuat dan disimpan (terbaru di atas). Kalau perubahan hilang setelah app dibuka ulang, salin ini dan kirim.',
+                    style: TextStyle(fontSize: 12.5, color: C.muted)),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: trail.isEmpty
+                      ? null
+                      : () async {
+                          await Clipboard.setData(ClipboardData(text: trail));
+                          if (context.mounted) snack(context, 'Disalin');
+                        },
+                  icon: const Icon(Icons.copy_rounded),
+                  label: const Text('Salin jejak'),
+                ),
+                if (trail.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    trail.split('\n').take(25).join('\n'),
+                    style: const TextStyle(fontFamily: 'monospace', fontSize: 10.5),
+                  ),
+                ],
+              ],
+            ),
+          ),
           if (n > 0) ...[
             const SizedBox(height: 12),
             AppCard(
               child: SelectableText(
-                text.length > 6000 ? text.substring(text.length - 6000) : text,
+                text.length > 6000 ? text.substring(0, 6000) : text,
                 style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
               ),
             ),

@@ -93,6 +93,8 @@ class AppStore extends ChangeNotifier {
       }
     }
     _useFile = fileOk;
+    DataFile.jot(
+        'muat: fileOk=$fileOk sumber=${raw == null ? 'KOSONG' : (fromLegacy ? 'secure-storage lama' : 'file')} ${raw?.length ?? 0} karakter');
     if (raw == null) {
       _seedEmpty();
     } else {
@@ -119,6 +121,8 @@ class AppStore extends ChangeNotifier {
     _migrateIcons();
     processRecurring(notify: false);
     loaded = true;
+    DataFile.jot(
+        'dimuat: transaksi=${transactions.length} anggaran=${settings.globalBudget.round()}');
     await flush();
     if (fromLegacy && _useFile) {
       // Pindah ke file terenkripsi. Salinan lama baru dikosongkan setelah
@@ -146,7 +150,10 @@ class AppStore extends ChangeNotifier {
   /// ada jeda 0,4 detik; kalau app ditutup paksa di jeda itu (mis. saat
   /// update), perubahan terakhir bisa hilang.
   void _persist() {
-    if (!_storageOk) return;
+    if (!_storageOk) {
+      DataFile.jot('perubahan TIDAK disimpan: penyimpanan dinonaktifkan (_storageOk=false)');
+      return;
+    }
     _dirty = true;
     _saveTimer ??= Timer(Duration.zero, () => unawaited(flush()));
   }
@@ -190,6 +197,7 @@ class AppStore extends ChangeNotifier {
     try {
       await DataFile.keepForeignCopy();
       final raw = await DataFile.read();
+      DataFile.jot('file diubah pihak lain, digabung (transaksi di sini: ${transactions.length})');
       if (raw == null) return;
       final fj = Map<String, dynamic>.from(jsonDecode(raw) as Map);
       final merged = toJson();
@@ -229,6 +237,8 @@ class AppStore extends ChangeNotifier {
 
   Future<bool> _write(String json) async {
     try {
+      DataFile.jot(
+          'simpan: ${_useFile ? 'file' : 'SECURE-STORAGE LAMA'} transaksi=${transactions.length} anggaran=${settings.globalBudget.round()}');
       if (_useFile) {
         await DataFile.write(json);
       } else {
@@ -236,6 +246,7 @@ class AppStore extends ChangeNotifier {
       }
       return true;
     } catch (e, st) {
+      DataFile.jot('simpan GAGAL: ${e.runtimeType}');
       ErrorLog.record(e, st, source: 'simpan data');
       return false;
     }
