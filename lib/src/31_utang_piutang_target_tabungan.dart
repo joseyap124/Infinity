@@ -90,6 +90,7 @@ class Goal {
     this.accountId,
     this.saved = 0,
     this.deadline,
+    this.monthly,
     required this.color,
   });
 
@@ -103,6 +104,10 @@ class Goal {
   /// Progres manual kalau tidak terhubung ke akun.
   double saved;
   DateTime? deadline;
+
+  /// Rencana setoran tetap per bulan. Kalau diisi, tenggat tidak dipakai:
+  /// kapan tercapai dihitung dari setoran ini (lihat [goalEta]).
+  double? monthly;
   int color;
 
   Map<String, dynamic> toJson() => {
@@ -112,6 +117,7 @@ class Goal {
         'accountId': accountId,
         'saved': saved,
         'deadline': deadline?.toIso8601String(),
+        if (monthly != null) 'monthly': monthly,
         'color': color,
       };
 
@@ -122,6 +128,7 @@ class Goal {
         accountId: _s(j['accountId']),
         saved: _d(j['saved']),
         deadline: DateTime.tryParse(_s(j['deadline']) ?? ''),
+        monthly: _d(j['monthly']) > 0 ? _d(j['monthly']) : null,
         color: _i(j['color'], kPalette.first),
       );
 }
@@ -163,14 +170,40 @@ extension DebtsGoalsStore on AppStore {
     return math.max(0, g.saved);
   }
 
-  /// Setoran per bulan yang dibutuhkan supaya tercapai di tenggat. Null kalau
-  /// tidak ada tenggat atau sudah tercapai.
+  /// Jumlah bulan dari [now] sampai bulan [d] (minimal 1: tenggat di bulan ini
+  /// berarti semuanya harus masuk bulan ini).
+  static int monthsUntil(DateTime d, DateTime now) =>
+      math.max(1, (d.year - now.year) * 12 + d.month - now.month);
+
+  /// Setoran per bulan. Rencana setoran tetap dipakai apa adanya; kalau tidak
+  /// ada, dihitung dari sisa target dibagi bulan sampai tenggat. Null kalau
+  /// tidak ada rencana atau sudah tercapai.
   double? goalPerMonth(Goal g, DateTime now) {
-    final d = g.deadline;
     final left = g.target - goalProgress(g);
-    if (d == null || left <= 0) return null;
-    final months = (d.year - now.year) * 12 + d.month - now.month;
-    return left / math.max(1, months);
+    if (left <= 0) return null;
+    final m = g.monthly;
+    if (m != null && m > 0) return math.min(m, left);
+    final d = g.deadline;
+    if (d == null) return null;
+    return left / monthsUntil(d, now);
+  }
+
+  /// Bulan target tercapai: tenggat yang dipilih, atau perkiraan dari
+  /// rencana setoran tetap. Null kalau tidak ada rencana atau sudah tercapai.
+  DateTime? goalEta(Goal g, DateTime now) {
+    final left = g.target - goalProgress(g);
+    if (left <= 0) return null;
+    final m = g.monthly;
+    if (m != null && m > 0) {
+      return DateTime(now.year, now.month + (left / m).ceil());
+    }
+    return g.deadline;
+  }
+
+  /// Jumlah bulan sampai [goalEta].
+  int? goalMonthsLeft(Goal g, DateTime now) {
+    final e = goalEta(g, now);
+    return e == null ? null : monthsUntil(e, now);
   }
 
   void upsertGoal(Goal g) {
@@ -855,7 +888,11 @@ class GoalCard extends StatelessWidget {
     final p = store.goalProgress(goal);
     final ratio = goal.target <= 0 ? 0.0 : (p / goal.target).clamp(0.0, 1.0);
     final done = ratio >= 1;
-    final per = store.goalPerMonth(goal, DateTime.now());
+    final now = DateTime.now();
+    final per = store.goalPerMonth(goal, now);
+    final eta = store.goalEta(goal, now);
+    final nLeft = store.goalMonthsLeft(goal, now);
+    final byMonthly = goal.monthly != null && goal.monthly! > 0;
     final color = Color(goal.color);
     final acc = goal.accountId == null ? null : store.accountById(goal.accountId!);
     return AppCard(
@@ -901,17 +938,48 @@ class GoalCard extends StatelessWidget {
                 child: Text(tr('{0} dari {1}', [money(p), money(goal.target)]),
                     style: TextStyle(fontSize: 12.5, color: C.carbon)),
               ),
-              if (goal.deadline != null)
-                Text(DateFormat('MMM yyyy', gDateLoc).format(goal.deadline!),
+              if (eta != null && !done)
+                Text(DateFormat('MMM yyyy', gDateLoc).format(eta),
                     style: TextStyle(fontSize: 12, color: C.muted)),
             ],
           ),
-          if (!compact && per != null)
+          if (per != null && eta != null && nLeft != null)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                  tr('Perlu ±{0} per bulan supaya tercapai tepat waktu.', [money(per)]),
-                  style: TextStyle(fontSize: 12, color: C.muted)),
+              padding: const EdgeInsets.only(top: 8),
+              child: compact
+                  ? Text(tr('{0} / bulan', [money(per)]),
+                      style: TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w800, color: darken(color)))
+                  : Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(tr('{0} / bulan', [money(per)]),
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                  color: darken(color))),
+                          const SizedBox(height: 1),
+                          Text(
+                              byMonthly
+                                  ? tr('Estimasi tercapai {0} · {1} bulan lagi', [
+                                      DateFormat('MMM yyyy', gDateLoc).format(eta),
+                                      '$nLeft'
+                                    ])
+                                  : tr('Sampai {0} · {1} bulan lagi', [
+                                      DateFormat('MMM yyyy', gDateLoc).format(eta),
+                                      '$nLeft'
+                                    ]),
+                              style: TextStyle(fontSize: 12, color: C.carbon)),
+                        ],
+                      ),
+                    ),
             ),
           if (done)
             Padding(
@@ -994,8 +1062,11 @@ class GoalEditorSheet extends StatefulWidget {
 class _GoalEditorSheetState extends State<GoalEditorSheet> {
   final _name = TextEditingController();
   final _target = TextEditingController();
+  final _monthly = TextEditingController();
   String? _accountId;
   DateTime? _deadline;
+  // 'deadline' = tentukan tenggat, hitung setoran; 'monthly' = tentukan setoran, hitung kapan tercapai.
+  String _plan = 'deadline';
   late int _color;
   String? _error;
 
@@ -1007,15 +1078,41 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
     if (g != null) _target.text = amountToInput(g.target, 'IDR');
     _accountId = g?.accountId;
     _deadline = g?.deadline;
+    if (g?.monthly != null) {
+      _plan = 'monthly';
+      _monthly.text = amountToInput(g!.monthly!, 'IDR');
+    }
     _color = g?.color ?? kPalette[widget.store.goals.length % kPalette.length];
+    // Kartu hasil ikut berubah saat angka diketik.
+    _target.addListener(_refresh);
+    _monthly.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _name.dispose();
     _target.dispose();
+    _monthly.dispose();
     super.dispose();
   }
+
+  /// Target sementara dari isian saat ini, untuk pratinjau hasil hitungan.
+  Goal _draft() => Goal(
+        id: widget.goal?.id ?? 'draft',
+        name: _name.text,
+        target: parseAmount(_target.text),
+        accountId: _accountId,
+        saved: widget.goal?.saved ?? 0,
+        deadline: _plan == 'deadline' ? _deadline : null,
+        monthly: _plan == 'monthly' && parseAmount(_monthly.text) > 0
+            ? parseAmount(_monthly.text)
+            : null,
+        color: _color,
+      );
 
   void _save() {
     final name = _name.text.trim();
@@ -1028,6 +1125,11 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
       setState(() => _error = 'Target harus lebih dari 0.');
       return;
     }
+    final monthly = parseAmount(_monthly.text);
+    if (_plan == 'monthly' && monthly <= 0) {
+      setState(() => _error = 'Isi setoran per bulan, atau pilih Tentukan tenggat.');
+      return;
+    }
     final old = widget.goal;
     widget.store.upsertGoal(Goal(
       id: old?.id ?? widget.store.newId(),
@@ -1035,10 +1137,71 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
       target: target,
       accountId: _accountId,
       saved: old?.saved ?? 0,
-      deadline: _deadline,
+      // Dua mode saling menggantikan: yang tidak dipakai dikosongkan.
+      deadline: _plan == 'deadline' ? _deadline : null,
+      monthly: _plan == 'monthly' ? monthly : null,
       color: _color,
     ));
     Navigator.pop(context);
+  }
+
+  /// Kartu hasil hitungan dua arah, ikut berubah saat isian berubah.
+  Widget _planResult() {
+    final store = widget.store;
+    final g = _draft();
+    final now = DateTime.now();
+    final color = darken(Color(_color));
+    Widget box(List<Widget> kids) => AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Color(_color).withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: kids),
+        );
+    if (g.target <= 0) {
+      return box([
+        Text('Isi target dulu, hasil hitungan muncul di sini.',
+            style: TextStyle(fontSize: 12.5, color: C.muted)),
+      ]);
+    }
+    final have = store.goalProgress(g);
+    final left = g.target - have;
+    if (left <= 0) {
+      return box([
+        Text('Tercapai! 🎉',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
+      ]);
+    }
+    final per = store.goalPerMonth(g, now);
+    final eta = store.goalEta(g, now);
+    final n = store.goalMonthsLeft(g, now);
+    final String big;
+    final String sub;
+    if (per == null || eta == null || n == null) {
+      big = '-';
+      sub = _plan == 'monthly'
+          ? 'Isi setoran per bulan untuk melihat kapan tercapai.'
+          : 'Pilih tenggat untuk melihat setoran per bulan.';
+    } else if (_plan == 'monthly') {
+      big = tr('Tercapai {0}', [DateFormat('MMM yyyy', gDateLoc).format(eta)]);
+      sub = tr('Dengan {0} per bulan, {1} bulan lagi.', [money(per), '$n']);
+    } else {
+      big = tr('Perlu {0} per bulan', [money(per)]);
+      sub = tr('{0} bulan sampai {1}', [
+        '$n',
+        DateFormat('MMM yyyy', gDateLoc).format(eta),
+      ]);
+    }
+    return box([
+      Text(big, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
+      const SizedBox(height: 2),
+      Text(sub, style: TextStyle(fontSize: 12.5, color: C.carbon)),
+      const SizedBox(height: 8),
+      Text(tr('Terkumpul {0} · kurang {1}', [money(have), money(left)]),
+          style: TextStyle(fontSize: 12, color: C.muted)),
+    ]);
   }
 
   @override
@@ -1076,38 +1239,78 @@ class _GoalEditorSheetState extends State<GoalEditorSheet> {
             inputFormatters: [AmountFormatter(decimals: false)],
             decoration: fieldDeco('Target', icon: Icons.savings_rounded, prefix: 'Rp '),
           ),
-          const SizedBox(height: 4),
-          FormRow(
-            label: 'Tenggat',
-            accent: C.accentDark,
-            onTap: () async {
-              final v = await showDatePicker(
-                  context: context,
-                  initialDate:
-                      _deadline ?? DateTime.now().add(const Duration(days: 180)),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(2100));
-              if (v != null) setState(() => _deadline = v);
-            },
-            child: Row(
+          const SizedBox(height: 14),
+          const SmallLabel('Rencana menabung'),
+          const SizedBox(height: 8),
+          Segmented<String>(
+            values: const ['deadline', 'monthly'],
+            selected: _plan,
+            labelOf: (v) => v == 'monthly' ? 'Tentukan setoran' : 'Tentukan tenggat',
+            iconOf: (v) => v == 'monthly' ? Icons.payments_rounded : Icons.event_rounded,
+            dense: true,
+            onChanged: (v) => setState(() => _plan = v),
+          ),
+          const SizedBox(height: 10),
+          if (_plan == 'deadline') ...[
+            FormRow(
+              label: 'Tenggat',
+              accent: C.accentDark,
+              onTap: () async {
+                final v = await showDatePicker(
+                    context: context,
+                    initialDate:
+                        _deadline ?? DateTime.now().add(const Duration(days: 180)),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime(2100));
+                if (v != null) setState(() => _deadline = v);
+              },
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FormValue(
+                        _deadline == null
+                            ? null
+                            : DateFormat('d MMM yyyy', gDateLoc).format(_deadline!),
+                        placeholder: 'Opsional'),
+                  ),
+                  if (_deadline != null)
+                    IconButton(
+                      tooltip: tr('Hapus tenggat'),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => setState(() => _deadline = null),
+                      icon: Icon(Icons.close_rounded, size: 18, color: C.muted),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
               children: [
-                Expanded(
-                  child: FormValue(
-                      _deadline == null
-                          ? null
-                          : DateFormat('d MMM yyyy', gDateLoc).format(_deadline!),
-                      placeholder: 'Opsional'),
-                ),
-                if (_deadline != null)
-                  IconButton(
-                    tooltip: tr('Hapus tenggat'),
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () => setState(() => _deadline = null),
-                    icon: Icon(Icons.close_rounded, size: 18, color: C.muted),
+                for (final m in const [6, 12, 24])
+                  ActionChip(
+                    label: Text(m == 12
+                        ? '1 tahun'
+                        : m == 24
+                            ? '2 tahun'
+                            : '$m bulan'),
+                    onPressed: () {
+                      final n = DateTime.now();
+                      setState(() => _deadline = DateTime(n.year, n.month + m, n.day));
+                    },
                   ),
               ],
             ),
-          ),
+          ] else
+            TextField(
+              controller: _monthly,
+              keyboardType: TextInputType.number,
+              inputFormatters: [AmountFormatter(decimals: false)],
+              decoration:
+                  fieldDeco('Setoran per bulan', icon: Icons.payments_rounded, prefix: 'Rp '),
+            ),
+          const SizedBox(height: 10),
+          _planResult(),
           const SizedBox(height: 12),
           const SmallLabel('Progres dihitung dari'),
           const SizedBox(height: 6),

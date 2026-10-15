@@ -1,0 +1,23 @@
+# -*- coding: utf-8 -*-
+T = []
+def t(i, en, zh): T.append((i, en, zh))
+# 5.8.0: target tabungan hitung dua arah
+t('Rencana menabung', 'Savings plan', '储蓄计划')
+t('Tentukan tenggat', 'Set a deadline', '设定期限')
+t('Tentukan setoran', 'Set a deposit', '设定存款额')
+t('Setoran per bulan', 'Deposit per month', '每月存款')
+t('6 bulan', '6 months', '6 个月')
+t('1 tahun', '1 year', '1 年')
+t('2 tahun', '2 years', '2 年')
+t('Isi setoran per bulan, atau pilih Tentukan tenggat.', 'Enter a monthly deposit, or choose Set a deadline.', '请填写每月存款额，或选择"设定期限"。')
+t('Isi target dulu, hasil hitungan muncul di sini.', 'Enter the target first and the result will show here.', '请先填写目标，计算结果会显示在这里。')
+t('Isi setoran per bulan untuk melihat kapan tercapai.', 'Enter a monthly deposit to see when you will reach it.', '填写每月存款额即可查看何时达成。')
+t('Pilih tenggat untuk melihat setoran per bulan.', 'Pick a deadline to see the monthly deposit.', '选择期限即可查看每月存款额。')
+t('Tercapai {0}', 'Reached {0}', '达成于 {0}')
+t('Dengan {0} per bulan, {1} bulan lagi.', 'At {0} per month, {1} months to go.', '每月存 {0}，还需 {1} 个月。')
+t('Perlu {0} per bulan', 'Need {0} per month', '每月需存 {0}')
+t('{0} bulan sampai {1}', '{0} months until {1}', '到 {1} 还有 {0} 个月')
+t('Terkumpul {0} · kurang {1}', 'Saved {0} · {1} to go', '已存 {0} · 还差 {1}')
+t('{0} / bulan', '{0} / month', '{0} / 月')
+t('Estimasi tercapai {0} · {1} bulan lagi', 'Estimated to be reached {0} · {1} months to go', '预计 {0} 达成 · 还有 {1} 个月')
+t('Sampai {0} · {1} bulan lagi', 'Until {0} · {1} months to go', '截至 {0} · 还有 {1} 个月')

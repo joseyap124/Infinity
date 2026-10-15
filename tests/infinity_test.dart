@@ -386,6 +386,43 @@ void main() {
       expect(s.goalPerMonth(manual, DateTime(2026, 10, 8)), closeTo(600000, 0.01));
     });
 
+    test('v5.8.0 mode setoran: perkiraan tercapai dihitung dari setoran tetap', () {
+      final s = storeWith([acc('a')]);
+      final now = DateTime(2026, 10, 8);
+      final g = Goal(id: 'g', name: 'Laptop', target: 10000000, color: 0, saved: 1000000, monthly: 2000000);
+      // sisa 9 juta / 2 juta = 4,5 jadi dibulatkan ke atas: 5 bulan
+      expect(s.goalPerMonth(g, now), 2000000);
+      expect(s.goalEta(g, now), DateTime(2027, 3));
+      expect(s.goalMonthsLeft(g, now), 5);
+    });
+
+    test('v5.8.0 setoran lebih besar dari sisa dibatasi sisa; sudah tercapai tidak ada hitungan', () {
+      final s = storeWith([acc('a')]);
+      final now = DateTime(2026, 10, 8);
+      final almost = Goal(id: 'g', name: 'A', target: 1000000, color: 0, saved: 900000, monthly: 500000);
+      expect(s.goalPerMonth(almost, now), 100000);
+      expect(s.goalMonthsLeft(almost, now), 1);
+      final done = Goal(id: 'g2', name: 'B', target: 1000000, color: 0, saved: 1000000, monthly: 500000);
+      expect(s.goalPerMonth(done, now), isNull);
+      expect(s.goalEta(done, now), isNull);
+    });
+
+    test('v5.8.0 tanpa tenggat dan tanpa setoran: tidak ada hitungan', () {
+      final s = storeWith([acc('a')]);
+      final g = Goal(id: 'g', name: 'C', target: 1000000, color: 0);
+      expect(s.goalPerMonth(g, DateTime(2026, 10, 8)), isNull);
+      expect(s.goalEta(g, DateTime(2026, 10, 8)), isNull);
+      expect(s.goalMonthsLeft(g, DateTime(2026, 10, 8)), isNull);
+    });
+
+    test('v5.8.0 setoran tetap tersimpan lewat JSON; data lama tanpa monthly tetap terbaca', () {
+      final g = Goal(id: 'g', name: 'D', target: 5000000, color: 1, monthly: 750000);
+      expect(Goal.fromJson(g.toJson()).monthly, 750000);
+      final lama = Goal(id: 'g2', name: 'E', target: 5000000, color: 1);
+      expect(lama.toJson().containsKey('monthly'), isFalse);
+      expect(Goal.fromJson(lama.toJson()).monthly, isNull);
+    });
+
     test('tersimpan dan terbaca ulang lewat JSON', () {
       final s = storeWith([acc('a')]);
       s.debts = [Debt(id: 'd', person: 'Ani', theyOwe: false, amount: 50000, date: DateTime(2026, 10, 1), payments: [DebtPayment(date: DateTime(2026, 10, 2), amount: 10000)])];

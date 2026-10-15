@@ -3,7 +3,16 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.7.0)
+## Berikutnya (v5.8.0)
+
+### Ditambah
+- **Target Tabungan bisa dihitung dua arah.** Di editor target ada pilihan "Rencana menabung": *Tentukan tenggat* (aplikasi hitung berapa yang perlu disetor per bulan) atau *Tentukan setoran* (isi setoran tetap per bulan, aplikasi hitung kapan target tercapai, dibulatkan ke atas). Ada kartu hasil yang ikut berubah saat angka diketik, plus tombol cepat tenggat 6 bulan, 1 tahun, 2 tahun.
+
+### Diubah
+- Kartu target sekarang menampilkan "Rp X / bulan" dengan jelas, lengkap dengan perkiraan bulan tercapai dan sisa bulan, bukan lagi teks abu-abu kecil. Di Beranda tampil versi ringkas.
+- Ringkasan "Setoran target tabungan bulan ini" di Aman dibelanjakan ikut memakai setoran tetap kalau dipilih.
+
+## v5.7.0 (15 Okt 2026)
 
 ### Ditambah
 - **Jenis akun baru: Tabungan dan Dana Darurat.** Keduanya otomatis dihitung sebagai tabungan: transfer ke akun ini dari akun harian masuk golongan Tabungan di statistik, dan saldonya tidak ikut "Aman dibelanjakan" (tidak perlu menyalakan saklar lagi). Saklar tetap ada untuk e-wallet, tunai, dan rekening bank yang dipakai menabung. Impor dari Money Manager sekarang memetakan akun bernama "tabung..." ke jenis Tabungan (sebelumnya Investasi).
