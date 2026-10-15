@@ -1712,6 +1712,31 @@ void main() {
       expect(acc('bca').isSavings, isFalse);
     });
 
+    test('jenis Tabungan dan Dana Darurat dihitung tabungan, dan keluar dari aman dibelanjakan', () {
+      const tab = Account(
+          id: 'tab',
+          name: 'Tabungan',
+          type: AccountType.savings,
+          color: 0xFF000000);
+      const dar = Account(
+          id: 'dar',
+          name: 'Dana Darurat',
+          type: AccountType.emergency,
+          color: 0xFF000000);
+      final s = withCats([acc('bca', initial: 5000000), tab, dar], [
+        tx('1', TxType.transfer, 400000, 'bca', to: 'tab', date: DateTime(2026, 10, 2)),
+        tx('2', TxType.transfer, 250000, 'bca', to: 'dar', date: DateTime(2026, 10, 3)),
+      ]);
+      expect(s.spendByKind(oct)[SpendKind.save], 650000);
+      expect(tab.isSavings, isTrue);
+      expect(dar.isSavings, isTrue);
+      expect(AccountType.savings.isSavingsType, isTrue);
+      expect(AccountType.bank.isSavingsType, isFalse);
+      // Jenis baru bisa disimpan dan dibaca lagi dari backup.
+      expect(Account.fromJson(tab.toJson()).type, AccountType.savings);
+      expect(Account.fromJson(dar.toJson()).type, AccountType.emergency);
+    });
+
     test('transfer biasa antar akun harian tidak dihitung tabungan', () {
       final s = withCats([acc('bca', initial: 100000), acc('gopay')], [
         tx('1', TxType.transfer, 50000, 'bca', to: 'gopay', date: DateTime(2026, 10, 2)),

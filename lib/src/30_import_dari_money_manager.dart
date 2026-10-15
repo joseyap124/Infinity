@@ -238,7 +238,8 @@ extension MoneyManagerImport on AppStore {
           lower.contains('flip') ||
           lower.contains('wepay');
       final isCash = lower.contains('cash') || lower.contains('tunai') || lower.contains('dompet');
-      final isInvest = lower.contains('emas') || lower.contains('reksa') || lower.contains('saham') || lower.contains('tabung');
+      final isInvest = lower.contains('emas') || lower.contains('reksa') || lower.contains('saham');
+      final isSaving = lower.contains('tabung');
       final a = Account(
         id: 'mm_acc_${newId()}',
         name: name,
@@ -248,7 +249,9 @@ extension MoneyManagerImport on AppStore {
                 ? AccountType.cash
                 : isInvest
                     ? AccountType.investment
-                    : AccountType.bank,
+                    : isSaving
+                        ? AccountType.savings
+                        : AccountType.bank,
         currency: currency,
         color: kPalette[colorIdx++ % kPalette.length],
       );

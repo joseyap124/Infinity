@@ -516,8 +516,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
               ],
             ),
           ],
-          if (_type != AccountType.credit &&
-              _type != AccountType.investment) ...[
+          if (_type != AccountType.credit && !_type.isSavingsType) ...[
             const SizedBox(height: 6),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
@@ -530,10 +529,10 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ),
           ],
-          if (_type == AccountType.investment) ...[
+          if (_type.isSavingsType) ...[
             const SizedBox(height: 6),
             Text(
-                'Akun Investasi otomatis dihitung sebagai tabungan: transfer ke sini dari akun harian masuk golongan Tabungan di statistik, dan saldonya tidak ikut "Aman dibelanjakan".',
+                'Akun tabungan, dana darurat, dan investasi otomatis dihitung sebagai tabungan: transfer ke sini dari akun harian masuk golongan Tabungan di statistik, dan saldonya tidak ikut "Aman dibelanjakan".',
                 style: TextStyle(fontSize: 12, color: C.muted)),
           ],
           const SizedBox(height: 14),

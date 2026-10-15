@@ -24,6 +24,8 @@ enum AccountType {
   ewallet('E-Wallet', Icons.account_balance_wallet_rounded),
   cash('Tunai', Icons.payments_rounded),
   bank('Rekening Bank', Icons.account_balance_rounded),
+  savings('Tabungan', Icons.savings_rounded),
+  emergency('Dana Darurat', Icons.health_and_safety_rounded),
   credit('Kartu Kredit', Icons.credit_card_rounded),
   investment('Investasi', Icons.trending_up_rounded);
 
@@ -31,11 +33,18 @@ enum AccountType {
   final String label;
   final IconData icon;
 
+  /// Jenis akun untuk menyimpan, bukan belanja harian. Transfer ke akun
+  /// seperti ini dihitung sebagai Tabungan di statistik.
+  bool get isSavingsType =>
+      this == savings || this == emergency || this == investment;
+
   /// Kunci ikon kartun (lihat 45_ikon_kartun.dart).
   String get art => switch (this) {
         AccountType.ewallet => 'dompet',
         AccountType.cash => 'cash',
         AccountType.bank => 'bank',
+        AccountType.savings => 'saving',
+        AccountType.emergency => 'saving',
         AccountType.credit => 'card',
         AccountType.investment => 'invest',
       };

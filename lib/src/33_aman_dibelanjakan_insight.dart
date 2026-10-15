@@ -144,7 +144,9 @@ extension InsightStore on AppStore {
         if (a.type == AccountType.credit || a.type == AccountType.investment) {
           continue;
         }
-        if (a.excludeSafe) {
+        if (a.excludeSafe ||
+            a.type == AccountType.savings ||
+            a.type == AccountType.emergency) {
           skipped += toIDR(balanceOf(a.id), a.currency);
           continue;
         }

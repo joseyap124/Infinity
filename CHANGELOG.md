@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.6.2)
+## Berikutnya (v5.7.0)
+
+### Ditambah
+- **Jenis akun baru: Tabungan dan Dana Darurat.** Keduanya otomatis dihitung sebagai tabungan: transfer ke akun ini dari akun harian masuk golongan Tabungan di statistik, dan saldonya tidak ikut "Aman dibelanjakan" (tidak perlu menyalakan saklar lagi). Saklar tetap ada untuk e-wallet, tunai, dan rekening bank yang dipakai menabung. Impor dari Money Manager sekarang memetakan akun bernama "tabung..." ke jenis Tabungan (sebelumnya Investasi).
+
+## v5.6.2 (15 Okt 2026)
 
 ### Diperbaiki
 - **Transaksi baru bisa tertimpa kalau dua salinan Infinity berjalan bersamaan.** Terbukti dari Jejak penyimpanan: dua salinan menulis ke file yang sama dalam selisih 2 milidetik, dan salinan yang datanya lebih lama menulis terakhir. Sekarang kedua salinan menggabungkan datanya secara tiga arah (berdasarkan id, dibandingkan dengan keadaan terakhir yang sama-sama diketahui): tambahan dan perubahan dari kedua sisi bertahan, dan hapusan dari satu salinan ikut ke yang lain. Pengaturan digabung per kolom. Pengecekan dilakukan sebelum dan sesudah tiap penyimpanan, dan tiap 5 detik saat app terbuka. Kejadiannya tercatat di Jejak penyimpanan ("file diubah salinan lain").
