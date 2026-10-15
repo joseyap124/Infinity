@@ -1,0 +1,265 @@
+Resolving dependencies...
+Downloading packages...
+  archive 4.3.0 (4.5.2 available)
+  code_assets 1.2.1 (2.1.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  dbus 0.7.15 (0.8.0 available)
+  flutter_local_notifications 22.3.1 (22.3.2 available)
+  flutter_local_notifications_linux 8.0.1 (8.0.2 available)
+  hooks 2.0.2 (2.2.0 available)
+  image_picker_ios 0.8.13+9 (0.8.13+12 available)
+  local_auth_android 2.2.0 (2.3.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.2 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.12 (0.7.15 available)
+  timezone 0.11.1 (0.11.2 available)
+  vector_math 2.4.0 (2.4.3 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+19 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+
+::group::✅ Passing tests
+✅ /home/runner/work/Infinity/Infinity/test/pdf_render_test.dart: laporan PDF contoh dibuat dan valid
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Saldo pemasukan, pengeluaran, transfer
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Saldo transfer beda mata uang memakai jumlah diterima
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Saldo excludeTxId mengabaikan transaksi yang sedang diedit
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Saldo penyesuaian saldo dicatat sebagai transaksi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Akun urutkan akun (aturan ReorderableListView)
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Akun hapus akun ikut menghapus transaksinya
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Akun akun utama dipakai sebagai bawaan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Catat otomatis notifikasi baru langsung dicatat
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Catat otomatis notifikasi sebelum saldo diubah manual tidak mengubah saldo
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi Keluar mencatat pengeluaran
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi Masuk mencatat pemasukan walau teksnya tidak jelas
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi Abaikan tidak mencatat, dan tidak diproses dua kali
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi pilihan yang sama dua kali hanya dicatat sekali
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi pilihan menggantikan item di "Dari Notifikasi"
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi akun yang tidak dikenal memakai akun utama
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi isi saldo e-wallet tetap menunggu dicek, bukan jadi pengeluaran
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi keputusan tak dikenal atau tanpa nominal dilewati
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi pengaturan native: nyala hanya kalau mode bukan mati dan saklar aktif
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.3 tombol notifikasi saklar tersimpan di pengaturan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.4 pilih banyak ubah kategori: hanya yang jenisnya sama, transfer dan jenis lain dilewati
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.4 pilih banyak ubah kategori menggantikan pembagian (split)
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.4 pilih banyak ubah kategori ke kategori yang sama tidak dihitung berubah
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.4 pilih banyak jenis kategori dari pilihan: transfer diabaikan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.4 pilih banyak ubah akun: saldo ikut pindah; transfer dan beda mata uang dilewati
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.4 pilih banyak hapus massal dan urungkan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.4 pilih banyak urungkan ubah kategori mengembalikan isi semula
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Utang & target cicilan utang dan lunas
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Utang & target lewat tenggat
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Utang & target target ikut saldo akun atau manual
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Utang & target v5.8.0 mode setoran: perkiraan tercapai dihitung dari setoran tetap
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Utang & target v5.8.0 setoran lebih besar dari sisa dibatasi sisa; sudah tercapai tidak ada hitungan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Utang & target v5.8.0 tanpa tenggat dan tanpa setoran: tidak ada hitungan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Utang & target v5.8.0 setoran tetap tersimpan lewat JSON; data lama tanpa monthly tetap terbaca
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Utang & target tersimpan dan terbaca ulang lewat JSON
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Ekspor Excel ekspor lalu impor ulang menghasilkan transaksi yang sama
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Ekspor Excel ringkasan bulan ini vs bulan lalu (hari yang sama)
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Struk (OCR) total di baris yang sama, abaikan subtotal & total item
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Struk (OCR) angka total di baris berikutnya
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Struk (OCR) tanpa kata total = null
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat 25rb kopi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat 25 rbu nasgor
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat kopi 25.000
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat 1,5jt hp
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat 2 jta motor
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat 12k ojek
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat 15000 parkir
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat 25 nasgor
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Teks cepat tanpa angka = null
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Saran ketikan awal kata, paling sering di atas
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Import Money Manager kunci nama mengabaikan emoji, spasi, kurung
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Import Money Manager rencana import: akun baru, transfer, anti-dobel
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Import Money Manager baca xlsx (shared strings + tanggal seri Excel)
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Backup terenkripsi enkripsi lalu buka kembali
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Backup terenkripsi kata sandi salah ditolak
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Notifikasi GoPay & cocokkan saldo nominal bukan angka saldo, isi saldo = transfer
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Notifikasi GoPay & cocokkan saldo pembayaran dengan sisa saldo
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Notifikasi GoPay & cocokkan saldo email BCA berbahasa Inggris: "IDR 263,000.00" = 263000
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Notifikasi GoPay & cocokkan saldo format angka Indonesia dan Inggris dibaca benar
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Notifikasi GoPay & cocokkan saldo promo diabaikan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Notifikasi GoPay & cocokkan saldo isi saldo masuk antrean sebagai transfer bank → GoPay
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Notifikasi GoPay & cocokkan saldo saldo cocok setelah isi saldo dicatat
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Notifikasi GoPay & cocokkan saldo saldo beda lalu disamakan pada waktu notifikasi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Aman dibelanjakan & insight dari saldo: dibagi sisa hari, belanja hari ini terpisah
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Aman dibelanjakan & insight langganan terdeteksi dari 3 bulan berturut
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Aman dibelanjakan & insight pengeluaran tidak biasa: 7 hari > 2x rata-rata
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Splash hanya saat pertama kali dibuka
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Template edit template tidak membuat template baru
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Riwayat akun saldo berjalan per akun, transfer masuk dan keluar
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Riwayat akun AUD tersedia dengan kurs awal
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kurs & tabungan kurs basi diingatkan hanya kalau ada akun asing
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kurs & tabungan akun tabungan tidak dihitung di aman dibelanjakan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kurs & tabungan v5.9.0 sisihkan sebagian: hanya nominalnya yang tidak dihitung, sisanya boleh dipakai
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kurs & tabungan v5.9.0 saldo di bawah nominal sisihan: semua disisihkan, saldo minus tidak disisihkan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kurs & tabungan v5.9.0 sisihan sebagian tersimpan di JSON; akun lama tetap terbaca; bukan akun tabungan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Patungan bagi rata dalam rupiah bulat, sisa ke bagian pertama
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Patungan saldo turun penuh, pengeluaran hanya bagianku, teman jadi piutang
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kekayaan bersih saldo akhir tiap bulan, kartu kredit minus, akun asing dikurs
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Acara total acara, tandai otomatis, hapus acara melepas tanda
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Perkiraan akhir bulan saldo sekarang + jadwal berulang yang belum tercatat
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Catatan error error dicatat dan bisa dihapus
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kesehatan data & backup dobel dan kategori hilang terdeteksi, kategori bisa diperbaiki
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kesehatan data & backup backup diverifikasi sebelum disimpan
+::endgroup::
+::group::✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Data besar 20.000 transaksi 5 tahun tetap cepat dan saldo konsisten
+20k tx: saldo x300 17ms, insight 33ms, total 105ms
+::endgroup::
+::group::✅ Passing tests
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kalender & rekap tahunan tanggal 31, 29 Februari, dan pergantian tahun
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Kalender & rekap tahunan rekap tahun: total, bulan paling boros, kekayaan awal-akhir
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Rekap & saran bulanan 7 tingkat menabung
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Rekap & saran bulanan boros: tekor, kategori naik, belum ada anggaran, dana darurat kurang
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Rekap & saran bulanan bulan berjalan: pengeluaran besar di awal bulan tidak meledakkan perkiraan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Rekap & saran bulanan hemat: dipuji
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Rekap & saran bulanan v4.5: saran bulanan ikut bahasa yang dipilih
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.1 parseRate gaya Indonesia
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.1 hapus piutang patungan merapikan Talangan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.2 sidik backup: abaikan waktu backup, berubah kalau data berubah
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.2 antrean Perlu dicek: maksimal 300, yang terbuang dihitung
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.2 status backup: tersembunyi, lama, di luar HP, aman
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.2 agoLabel
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.3 periode gajian: label dan rentang
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.3 anggaran dan rekap ikut tanggal gajian
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.3 kategori pintar dari kebiasaan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.3 pencarian: semua kata, nominal, jenis, waktu
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.4 bagi kategori: saldo satu transaksi, statistik per kategori
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.4 bagi kategori: simpan, buka lagi, ekspor
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.4 bagi kategori: kategori terhapus ikut diperbaiki
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.4 v4.5: tombol widget ikut bahasa
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.4 widget menampilkan aman dibelanjakan dengan tanggal
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.4 v5.0 widget: suasana maskot dan cincin
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.4 ukuran huruf tersimpan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.5 kartu Beranda: bawaan ringkas, urutan tersimpan, id asing dibuang
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.5 insight dibagi: Beranda vs Rencana
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.5.3 semua koleksi dan saldo pulih sama persis
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.5.3 tampilan dan profil ikut pulih, keamanan tetap milik HP ini
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.5.3 backup lama tanpa kunci tampilan memakai nilai HP ini, bukan bawaan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.5.3 reset tetap mempertahankan tampilan dan keamanan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.5.3 ringkasan isi backup untuk pratinjau
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.5.3 ukuran huruf selalu ditulis di backup
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.6 golongan pengeluaran golongan bawaan: kategori sendiri, lalu induk, lalu belum digolongkan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.6 golongan pengeluaran pilihan user menang, anak mengikuti induk, bisa dikembalikan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.6 golongan pengeluaran total per golongan: biasa, dibagi, transfer ke akun tabungan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.6 golongan pengeluaran transfer ke akun bertipe Investasi dihitung tabungan, tanpa saklar
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.6 golongan pengeluaran jenis Tabungan dan Dana Darurat dihitung tabungan, dan keluar dari aman dibelanjakan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.6 golongan pengeluaran transfer biasa antar akun harian tidak dihitung tabungan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.6 golongan pengeluaran pilihan golongan ikut backup dan pulih
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.6 golongan pengeluaran jumlah transaksi periode ini untuk kartu Beranda
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.6.2 gabung dua salinan tambahan dari dua sisi sama-sama bertahan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.6.2 gabung dua salinan hapusan dari salinan lain ikut, tidak dihidupkan lagi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.6.2 gabung dua salinan perubahan sendiri menang atas versi lama di file
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.6.2 gabung dua salinan pengaturan: anggaran dari salinan lain ikut kalau tidak diubah di sini
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.6.2 gabung dua salinan hasil gabungan identik dengan isi file tidak perlu ditulis ulang
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun setiap kunci ikon Material punya gambar kartun, dan sebaliknya
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun setiap ikon Material di kFnArt mengarah ke gambar yang ada
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun instans bytes dipakai ulang supaya cache gambar kena
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun semua kategori bawaan memakai kunci ikon yang dikenal
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun gaya ikon: bawaan kartun, ikut tersimpan di backup
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun backup lama tanpa iconStyle tidak mengubah gaya di HP ini
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun ikon bawaan lama dipindah ke ikon baru sekali saja
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun ikon yang sudah diganti user tidak disentuh
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun setelah dipindah, ikon yang dipilih ulang user tidak dipindah lagi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun txArt: kategori ada kuncinya, transfer pakai ikon transfer
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7 ikon kartun setiap tipe akun punya gambar kartun
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7.2 kategori yang disarankan belum ada riwayat: tidak ada saran
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7.2 kategori yang disarankan kategori yang paling sering dipakai menang
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7.2 kategori yang disarankan transaksi lebih dari 90 hari lalu dan tipe lain diabaikan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7.2 kategori yang disarankan kategori yang sudah dihapus tidak disarankan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v3.7.2 kategori yang disarankan logo tersedia sebagai gambar
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar tanpa riwayat: diisi kategori tanpa sub-kategori, maksimal 7
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar pemasukan: semua kategori pemasukan bawaan muat
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar urut dari yang paling sering, seri dipecah yang terbaru
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar yang dipin selalu di depan dan tidak bergeser
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar pin kategori jenis lain atau yang sudah dihapus diabaikan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar pin maksimal 7
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar disembunyikan dilewati, tapi pin menampilkannya lagi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar kategori yang sedang dipilih selalu ikut tampil
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar jumlah pemakaian 90 hari
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar pin dan sembunyi ikut tersimpan di JSON
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.0 catat satu layar nama pendek untuk kotak kategori
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa bahasa Indonesia: teks apa adanya, isian {0} diisi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa English dan 中文 memakai terjemahan, yang belum ada kembali ke Indonesia
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa isian bisa dipakai lebih dari sekali dan urutannya bebas
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa pola untuk teks berangka
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa kamus English dan 中文 punya kunci yang sama dan isian yang sama
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa nama kategori bawaan punya terjemahan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa format tanggal mengikuti bahasa
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa v4.5: English tidak menulis "1 days" atau "11 days" salah
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v4.2 bahasa bahasa tersimpan di pengaturan, backup lama tanpa bahasa tetap Indonesia
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) total dibagi tenor, sisa pembulatan masuk cicilan terakhir
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) jatuh tempo tanggal 31 dipotong ke akhir bulan pendek
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) sisa dan lunas mengikuti jumlah yang sudah dibayar
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) Tandai dibayar mencatat pengeluaran, Urungkan membatalkannya
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) Aman dibelanjakan menyisihkan cicilan yang jatuh tempo tanggal 1
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) cicilan yang lewat jatuh tempo dan belum dibayar tetap disisihkan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) backup: tersimpan, terbaca, dan ikut terhapus bersama akunnya
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) kekayaan bersih setelah kewajiban: sisa cicilan dan utang dikurangkan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: Cicilan 0% (v4.6) pengingat cicilan masuk daftar notifikasi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme suasana maskot mengikuti sisa jatah hari ini
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme maskot ngantuk setelah 3 hari tanpa catatan, mengalahkan yang lain
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme transaksi terakhir mengabaikan yang terjadwal di masa depan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme saklar fitur: bawaan, tersimpan, dan hanya menyimpan yang beda
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme cicilan dimatikan: tidak dihitung, data tetap ada
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme mode animasi pembuka tersimpan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme bentuk grafik kategori tersimpan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme gaya ikon: flat dan mono diterima, yang aneh jadi kartun
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme ritme: bagian periode berjalan dan penanda kategori
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme kalimat ritme
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 maskot, fitur, ritme perkiraan uang habis
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 kalender peta panas tingkat warna dari pengeluaran harian
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 kalender peta panas total bulan, hari paling boros, dan titik jatuh tempo
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 kalender peta panas hari paling boros tidak ditandai kalau pengeluaran hanya satu hari
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 rekap cerita angka dasar: tersisa, hari terboros, bulan lalu
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 rekap cerita akhir pekan dibanding hari kerja
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 rekap cerita tanpa data atau tanpa bulan lalu
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 rekap cerita teks pembantu
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 tunda beli sisa hari menunggu
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 tunda beli tersimpan lewat JSON, termasuk keputusan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 tunda beli hanya tampil kalau fiturnya menyala, dan total batal bulan ini
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 tunda beli keputusan jadi beli atau batal tersimpan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 tunda beli pengingat sekali setelah masa tunggu lewat
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 ikon Flat semua ikon Flat punya padanan Kartun dan berupa PNG
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0 ikon Flat gaya Flat memakai gambar Flat, gaya lain tidak
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.3 log tangkapan dicatat otomatis: tercatat dengan nama akun
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.3 log tangkapan promo dan tanpa nominal dicatat sebagai dibuang
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.3 log tangkapan mode bukan auto: masuk antrean dengan alasan mode
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.3 log tangkapan mirip transaksi yang sudah ada: antrean dengan alasan dup
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.3 log tangkapan hanya 40 terakhir, dan alasan punya teks
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.3 log tangkapan log ikut penyimpanan HP, tidak ikut backup, dan tidak hilang saat impor
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.3 laporan PDF buildImagePdf: struktur dan daftar offset valid
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.3 laporan PDF MonthReportData: ringkasan, kategori terurut, transaksi terurut tanggal
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.4 format notifikasi BCA dan Mandiri Catatan Finansial myBCA: "Pemasukan sebesar IDR 100,000.00" = uang masuk 100000
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.4 format notifikasi BCA dan Mandiri Financial Diary myBCA berbahasa Inggris: "You received IDR 1,496,000.00" = uang masuk
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.4 format notifikasi BCA dan Mandiri pengeluaran myBCA tetap pengeluaran
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.4 format notifikasi BCA dan Mandiri Livin by Mandiri: "Dana Rp 1.000,00 masuk ke rek." = uang masuk 1000
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.4 format notifikasi BCA dan Mandiri titik di akhir kalimat tidak ikut jadi angka
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.4 format notifikasi BCA dan Mandiri notifikasi myBCA dicatat otomatis sebagai pemasukan ke akun BCA
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.5 judul dari notifikasi myBCA berbahasa Inggris: "at Account Transfer"
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.5 judul dari notifikasi myBCA berbahasa Indonesia: "di KOPI KENANGAN" dirapikan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.5 judul dari notifikasi GoPay dan Mandiri
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.5 judul dari notifikasi judul lama "Pembayaran ke X" tidak ikut nominal dan kalimat berikutnya
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.5 judul dari notifikasi nama disamarkan bank atau tanpa tujuan tidak dijadikan judul
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.0.5 judul dari notifikasi judul tujuan dipakai untuk menebak kategori dari kebiasaan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.1.0 gaya dan maskot pilihan gaya dan maskot tersimpan dan terbaca lagi
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.1.0 gaya dan maskot nilai gaya atau maskot yang tidak dikenal kembali ke Klasik
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.1.0 gaya dan maskot gambar sendiri menyimpan lokasi berkasnya
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.1.0 gaya dan maskot paket gaya mengganti warna dasar, Klasik mengembalikannya
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.1.0 gaya dan maskot Malam Biru dan Merah Kafe gelap, Kuning Ceria terang
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.1.0 gaya dan maskot pembaca jalur SVG menghasilkan bentuk yang benar
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.1.0 gaya dan maskot 18 gambar maskot ada untuk 3 hewan x 6 suasana
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.4.0 motif dan ikon per gaya motif latar menyala bawaan dan tersimpan kalau dimatikan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.4.0 motif dan ikon per gaya Merah Kafe bernama dan berwarna baru
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.4.0 motif dan ikon per gaya semua bentuk ikon terbaca dan muat di kanvas 64
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.4.0 motif dan ikon per gaya kunci ikon kategori bawaan punya bentuk bertema
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.5.0 widget ikut gaya dan maskot widgetData membawa gaya dan maskot pilihan
+✅ /home/runner/work/Infinity/Infinity/test/infinity_test.dart: v5.5.0 widget ikut gaya dan maskot jalur gambar sendiri hanya dikirim untuk maskot custom
+::endgroup::
+
+🎉 232 tests passed.
