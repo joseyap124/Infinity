@@ -1536,6 +1536,11 @@ const Map<String, String> kEnStrings = {
   '{0} / bulan': '{0} / month',
   'Estimasi tercapai {0} · {1} bulan lagi': 'Estimated to be reached {0} · {1} months to go',
   'Sampai {0} · {1} bulan lagi': 'Until {0} · {1} months to go',
+  'Seluruh saldo': 'Whole balance',
+  'Sebagian saja': 'Part only',
+  'Nominal yang disisihkan': 'Amount to set aside',
+  'Sisanya tetap dihitung sebagai saldo yang boleh dipakai.': 'The rest still counts as money you can spend.',
+  'Isi nominal yang disisihkan, atau pilih Seluruh saldo.': 'Enter the amount to set aside, or choose Whole balance.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

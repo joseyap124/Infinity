@@ -23,6 +23,7 @@ class Account {
     this.creditLimit = 0,
     this.dueDay = 25,
     this.excludeSafe = false,
+    this.reserve = 0,
   });
 
   final String id;
@@ -32,10 +33,23 @@ class Account {
   /// Tidak ikut dihitung di "Aman dibelanjakan" (mis. tabungan, dana darurat).
   final bool excludeSafe;
 
+  /// Kalau > 0 (dan [excludeSafe] menyala): hanya sebesar ini yang disisihkan
+  /// dari "Aman dibelanjakan", sisanya boleh dipakai. 0 = seluruh saldo
+  /// disisihkan. Dalam mata uang akun.
+  final double reserve;
+
   /// Akun untuk menyimpan, bukan belanja harian: bertipe Tabungan, Dana
   /// Darurat, atau Investasi, atau akun yang ditandai "jangan hitung di Aman dibelanjakan". Transfer ke akun
   /// seperti ini dihitung sebagai Tabungan di statistik.
-  bool get isSavings => excludeSafe || type.isSavingsType;
+  bool get isSavings => (excludeSafe && reserve <= 0) || type.isSavingsType;
+
+  /// Bagian saldo [balance] yang disisihkan dari "Aman dibelanjakan"
+  /// (mata uang akun). Saldo minus tidak pernah disisihkan.
+  double heldOf(double balance) {
+    if (!excludeSafe || balance <= 0) return 0;
+    if (reserve <= 0) return balance;
+    return reserve < balance ? reserve : balance;
+  }
   final String currency;
 
   /// Saldo awal. Saldo berjalan selalu dihitung ulang dari saldo awal + semua
@@ -57,6 +71,7 @@ class Account {
         'creditLimit': creditLimit,
         'dueDay': dueDay,
         if (excludeSafe) 'excludeSafe': true,
+        if (excludeSafe && reserve > 0) 'reserve': reserve,
       };
 
   factory Account.fromJson(Map<String, dynamic> j) => Account(
@@ -69,6 +84,7 @@ class Account {
         creditLimit: _d(j['creditLimit']),
         dueDay: _i(j['dueDay'], 25),
         excludeSafe: j['excludeSafe'] == true,
+        reserve: _d(j['reserve']),
       );
 }
 

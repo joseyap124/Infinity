@@ -3,7 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.8.0)
+## Berikutnya (v5.9.0)
+
+### Ditambah
+- **Sisihkan sebagian saldo dari "Aman dibelanjakan".** Saat saklar "Jangan hitung di Aman dibelanjakan" menyala, ada pilihan *Seluruh saldo* atau *Sebagian saja*. Dengan Sebagian saja kamu isi nominal (mis. BCA Rp 500 ribu): hanya nominal itu yang disisihkan, sisanya dihitung sebagai saldo yang boleh dipakai. Kalau saldo turun di bawah nominal itu, semuanya disisihkan.
+
+### Diubah
+- Akun dengan sisihan sebagian dianggap akun harian, jadi transfer ke akun itu tidak dihitung sebagai Tabungan di statistik (hanya akun yang disisihkan seluruh saldonya yang dihitung begitu).
+
+## v5.8.0 (15 Okt 2026)
 
 ### Ditambah
 - **Target Tabungan bisa dihitung dua arah.** Di editor target ada pilihan "Rencana menabung": *Tentukan tenggat* (aplikasi hitung berapa yang perlu disetor per bulan) atau *Tentukan setoran* (isi setoran tetap per bulan, aplikasi hitung kapan target tercapai, dibulatkan ke atas). Ada kartu hasil yang ikut berubah saat angka diketik, plus tombol cepat tenggat 6 bulan, 1 tahun, 2 tahun.

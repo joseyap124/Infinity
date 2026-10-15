@@ -186,6 +186,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
   final _nameCtrl = TextEditingController();
   final _balanceCtrl = TextEditingController();
   final _limitCtrl = TextEditingController();
+  final _reserveCtrl = TextEditingController();
   late AccountType _type;
   late String _currency;
   late int _color;
@@ -199,6 +200,9 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
   /// Jangan dihitung di "Aman dibelanjakan".
   bool _excludeSafe = false;
 
+  /// true = hanya sebagian saldo yang disisihkan (nominal di [_reserveCtrl]).
+  bool _partial = false;
+
   bool get _editing => widget.account != null;
 
   @override
@@ -210,6 +214,10 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     _color = a?.color ?? kPalette[store.accounts.length % kPalette.length];
     _dueDay = a?.dueDay ?? 25;
     _excludeSafe = a?.excludeSafe ?? false;
+    if (a != null && a.excludeSafe && a.reserve > 0) {
+      _partial = true;
+      _reserveCtrl.text = amountToInput(a.reserve, a.currency);
+    }
     _nameCtrl.text = a?.name ?? '';
     if (a != null) {
       // Saat edit, yang ditampilkan saldo SEKARANG (seperti Money Manager).
@@ -228,6 +236,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
     _nameCtrl.dispose();
     _balanceCtrl.dispose();
     _limitCtrl.dispose();
+    _reserveCtrl.dispose();
     super.dispose();
   }
 
@@ -297,6 +306,10 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
       return;
     }
     final dec = hasDecimals(_currency);
+    if (_excludeSafe && _partial && parseAmount(_reserveCtrl.text, decimals: dec) <= 0) {
+      setState(() => _error = 'Isi nominal yang disisihkan, atau pilih Seluruh saldo.');
+      return;
+    }
     final raw = parseAmount(_balanceCtrl.text, decimals: dec);
     // Kolom hanya menerima angka positif; tanda minus diatur saklar terpisah.
     final input = _negative ? -raw : raw;
@@ -331,6 +344,9 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
       creditLimit: isCredit ? parseAmount(_limitCtrl.text, decimals: dec) : 0,
       dueDay: _dueDay,
       excludeSafe: _excludeSafe,
+      reserve: _excludeSafe && _partial
+          ? parseAmount(_reserveCtrl.text, decimals: dec)
+          : 0,
     );
     store.upsertAccount(acc);
     if (adjust != 0) store.addBalanceAdjustment(acc, adjust);
@@ -528,6 +544,28 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
                   'Untuk tabungan atau dana darurat. Transfer ke akun ini dari akun harian juga dihitung sebagai Tabungan di statistik.',
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ),
+            if (_excludeSafe) ...[
+              const SizedBox(height: 4),
+              Segmented<bool>(
+                values: const [false, true],
+                selected: _partial,
+                labelOf: (v) => v ? 'Sebagian saja' : 'Seluruh saldo',
+                dense: true,
+                onChanged: (v) => setState(() => _partial = v),
+              ),
+              if (_partial) ...[
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _reserveCtrl,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [AmountFormatter(decimals: hasDecimals(_currency))],
+                  decoration: fieldDeco('Nominal yang disisihkan',
+                          icon: Icons.lock_outline_rounded, prefix: '${currencySymbol(_currency)} ')
+                      .copyWith(
+                          helperText: tr('Sisanya tetap dihitung sebagai saldo yang boleh dipakai.')),
+                ),
+              ],
+            ],
           ],
           if (_type.isSavingsType) ...[
             const SizedBox(height: 6),

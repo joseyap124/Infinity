@@ -1535,4 +1535,9 @@ const Map<String, String> kZhStrings = {
   '{0} / bulan': '{0} / 月',
   'Estimasi tercapai {0} · {1} bulan lagi': '预计 {0} 达成 · 还有 {1} 个月',
   'Sampai {0} · {1} bulan lagi': '截至 {0} · 还有 {1} 个月',
+  'Seluruh saldo': '全部余额',
+  'Sebagian saja': '仅一部分',
+  'Nominal yang disisihkan': '预留金额',
+  'Sisanya tetap dihitung sebagai saldo yang boleh dipakai.': '其余部分仍计入可用余额。',
+  'Isi nominal yang disisihkan, atau pilih Seluruh saldo.': '请填写预留金额，或选择"全部余额"。',
 };

@@ -809,6 +809,40 @@ void main() {
       final back = Account.fromJson(s.accounts[1].toJson());
       expect(back.excludeSafe, isTrue);
     });
+
+    test('v5.9.0 sisihkan sebagian: hanya nominalnya yang tidak dihitung, sisanya boleh dipakai', () {
+      final now = DateTime(2026, 10, 22, 10);
+      final s = storeWith([
+        const Account(id: 'bca', name: 'BCA', type: AccountType.bank, initialBalance: 1500000, color: 0, excludeSafe: true, reserve: 500000),
+      ]);
+      final r = s.safeToSpend(now);
+      expect(r.excluded, 500000);
+      expect(r.perDay, closeTo(100000, 0.01)); // (1,5 juta - 500 ribu) / 10 hari
+    });
+
+    test('v5.9.0 saldo di bawah nominal sisihan: semua disisihkan, saldo minus tidak disisihkan', () {
+      const a = Account(id: 'a', name: 'A', type: AccountType.bank, color: 0, excludeSafe: true, reserve: 500000);
+      expect(a.heldOf(300000), 300000);
+      expect(a.heldOf(500000), 500000);
+      expect(a.heldOf(2000000), 500000);
+      expect(a.heldOf(-100), 0);
+      const semua = Account(id: 'b', name: 'B', type: AccountType.bank, color: 0, excludeSafe: true);
+      expect(semua.heldOf(2000000), 2000000);
+      const biasa = Account(id: 'c', name: 'C', type: AccountType.bank, color: 0, reserve: 500000);
+      expect(biasa.heldOf(2000000), 0); // nominal tanpa saklar menyala diabaikan
+    });
+
+    test('v5.9.0 sisihan sebagian tersimpan di JSON; akun lama tetap terbaca; bukan akun tabungan', () {
+      const a = Account(id: 'a', name: 'A', type: AccountType.bank, color: 0, excludeSafe: true, reserve: 500000);
+      final back = Account.fromJson(a.toJson());
+      expect(back.reserve, 500000);
+      expect(back.excludeSafe, isTrue);
+      expect(a.isSavings, isFalse); // akun harian dengan sisihan, transfer ke sini bukan menabung
+      const lama = Account(id: 'b', name: 'B', type: AccountType.bank, color: 0, excludeSafe: true);
+      expect(lama.toJson().containsKey('reserve'), isFalse);
+      expect(Account.fromJson(lama.toJson()).reserve, 0);
+      expect(lama.isSavings, isTrue);
+    });
   });
 
   group('Patungan', () {

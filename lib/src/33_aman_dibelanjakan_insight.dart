@@ -144,13 +144,16 @@ extension InsightStore on AppStore {
         if (a.type == AccountType.credit || a.type == AccountType.investment) {
           continue;
         }
-        if (a.excludeSafe ||
-            a.type == AccountType.savings ||
-            a.type == AccountType.emergency) {
+        if (a.type == AccountType.savings || a.type == AccountType.emergency) {
           skipped += toIDR(balanceOf(a.id), a.currency);
           continue;
         }
-        liquid += toIDR(balanceOf(a.id), a.currency);
+        // Akun bertanda "jangan hitung": seluruh saldo, atau hanya nominal
+        // yang disisihkan (sisanya ikut jadi saldo yang boleh dipakai).
+        final bal = balanceOf(a.id);
+        final held = a.heldOf(bal);
+        skipped += toIDR(held, a.currency);
+        liquid += toIDR(bal - held, a.currency);
       }
       // Belanja hari ini dikembalikan dulu supaya jatah hari ini tidak ikut
       // mengecil karena belanja hari ini sendiri.
