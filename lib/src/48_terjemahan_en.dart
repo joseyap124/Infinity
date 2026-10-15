@@ -1515,6 +1515,7 @@ const Map<String, String> kEnStrings = {
   'Kalau tetap belum tersambung: matikan lalu nyalakan lagi akses notifikasi Infinity di pengaturan Android.': 'If it stays disconnected: turn Infinity\'s notification access off and on again in Android settings.',
   'Untuk tabungan atau dana darurat. Transfer ke akun ini dari akun harian juga dihitung sebagai Tabungan di statistik.': 'For savings or an emergency fund. Transfers to this account from everyday accounts also count as Savings in the stats.',
   'Akun Investasi otomatis dihitung sebagai tabungan: transfer ke sini dari akun harian masuk golongan Tabungan di statistik, dan saldonya tidak ikut "Aman dibelanjakan".': 'Investment accounts automatically count as savings: transfers here from everyday accounts go into the Savings group in the stats, and the balance is left out of "Safe to spend".',
+  'Perubahan terakhir GAGAL disimpan. Buka Lainnya, Laporan error, lalu kirim Jejak penyimpanan.': 'The last change FAILED to save. Open More, Error report, then send the Storage trail.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

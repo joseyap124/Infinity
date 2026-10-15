@@ -188,6 +188,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   DateTime? _pausedAt;
   Timer? _notifDebounce;
   Timer? _capturePoll;
+  DateTime? _lastSaveWarn;
   StreamSubscription<Uri?>? _widgetSub;
   TxType? _pendingWidgetAction;
   QuickAction? _pendingQuick;
@@ -230,6 +231,16 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     gMascotSkin.value = store.settings.mascotSkin;
     gMascotCustom.value = store.settings.mascotCustomPath;
     gLang.value = langOf(store.settings.lang);
+    store.onSaveFailed = () {
+      final now = DateTime.now();
+      final last = _lastSaveWarn;
+      if (!mounted || (last != null && now.difference(last).inSeconds < 30)) {
+        return;
+      }
+      _lastSaveWarn = now;
+      snack(context,
+          'Perubahan terakhir GAGAL disimpan. Buka Lainnya, Laporan error, lalu kirim Jejak penyimpanan.');
+    };
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
     store.addListener(_syncCaptureConfig);

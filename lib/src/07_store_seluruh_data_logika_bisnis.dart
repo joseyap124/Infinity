@@ -145,6 +145,9 @@ class AppStore extends ChangeNotifier {
   /// Hasil simpan terakhir; false kalau gagal menulis ke penyimpanan.
   bool lastSaveOk = true;
 
+  /// Dipanggil saat penyimpanan gagal, supaya UI memberi tahu (bukan diam).
+  void Function()? onSaveFailed;
+
   /// Simpan segera setelah perubahan (di akhir event yang sedang berjalan,
   /// jadi banyak perubahan beruntun tetap cukup sekali tulis). Sebelum v3.2
   /// ada jeda 0,4 detik; kalau app ditutup paksa di jeda itu (mis. saat
@@ -174,6 +177,7 @@ class AppStore extends ChangeNotifier {
         ok = await _write(jsonEncode(toJson()));
       }
       lastSaveOk = ok;
+      if (!ok) onSaveFailed?.call();
       return ok;
     });
     return _saving;
@@ -324,12 +328,23 @@ class AppStore extends ChangeNotifier {
     if (acc.isEmpty) throw const FormatException('Data tidak berisi akun.');
     final ids = acc.map((a) => a.id).toSet();
     final cats = _list(j['categories']).map(TxCategory.fromJson).toList();
-    final txs = _list(j['transactions'])
-        .map(Transaction.fromJson)
+    final allTxs = _list(j['transactions']).map(Transaction.fromJson).toList();
+    final txs = allTxs
         .where((t) =>
             ids.contains(t.accountId) &&
             (t.toAccountId == null || ids.contains(t.toAccountId)))
         .toList();
+    if (txs.length != allTxs.length) {
+      // Transaksi yang akunnya tidak ada tidak bisa ditampilkan. Jangan buang
+      // diam-diam: catat rinciannya supaya bisa dicatat ulang.
+      final lost = allTxs.where((t) => !txs.contains(t)).toList();
+      DataFile.jot('${lost.length} transaksi dibuang saat muat: akun tidak ada');
+      ErrorLog.record(
+          StateError(
+              '${lost.length} transaksi dibuang karena akunnya tidak ada:\n${lost.take(30).map((t) => '${t.date.toIso8601String()} ${t.type.name} ${t.amount} "${t.title}" akun=${t.accountId} ke=${t.toAccountId}').join('\n')}'),
+          StackTrace.current,
+          source: 'muat data');
+    }
     final rec = _list(j['recurring'])
         .map(RecurringRule.fromJson)
         .where((r) => ids.contains(r.accountId))

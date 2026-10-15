@@ -3,7 +3,13 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.6.0)
+## Berikutnya (v5.6.1)
+
+### Diperbaiki
+- **Gagal simpan tidak lagi diam-diam.** Kalau perubahan gagal ditulis ke file, muncul pesan di layar (tidak lebih sering dari sekali per 30 detik), dulu hanya terlihat kalau membuka Kesehatan data.
+- **Transaksi yang dibuang saat data dimuat sekarang tercatat.** Transaksi yang akunnya tidak ada di data tidak bisa ditampilkan dan sebelumnya dibuang tanpa jejak. Sekarang jumlahnya dan rinciannya (tanggal, jenis, nominal, judul) masuk Laporan error dan Jejak penyimpanan, supaya bisa dicatat ulang.
+
+## v5.6.0 (15 Okt 2026)
 
 ### Diperbaiki
 - **Transfer ke akun Investasi tidak dihitung sebagai tabungan di statistik.** Sebelumnya hanya akun yang memakai saklar "Jangan hitung di Aman dibelanjakan" yang dihitung, dan saklar itu tidak muncul untuk akun bertipe Investasi, jadi transfer ke akun Investasi tidak pernah masuk golongan Tabungan. Sekarang akun bertipe Investasi otomatis dihitung sebagai tabungan.
