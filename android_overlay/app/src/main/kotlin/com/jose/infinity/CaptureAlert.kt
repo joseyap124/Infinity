@@ -21,7 +21,13 @@ import org.json.JSONObject
  * [CaptureStore.setConfig], supaya satu sumber kebenaran dan ikut bahasa app.
  */
 object CaptureAlert {
-    private const val CHANNEL = "infinity_capture_alert"
+    // Channel lama (importance DEFAULT: bunyi, tapi tidak muncul melayang).
+    // Android tidak mengizinkan app menaikkan importance channel yang sudah
+    // ada, jadi dibuat channel baru ber-importance HIGH dan yang lama dihapus.
+    private const val OLD_CHANNEL = "infinity_capture_alert"
+    private const val CHANNEL = "infinity_capture_alert_v2"
+    // Konfirmasi singkat setelah tombol ditekan: tenang, tidak melayang.
+    private const val DONE_CHANNEL = "infinity_capture_done"
     const val ACTION = "com.jose.infinity.CAPTURE_DECIDE"
     private const val BASE_ID = 910000
     private const val DEDUPE_MS = 3 * 60 * 1000L
@@ -43,11 +49,19 @@ object CaptureAlert {
 
     private fun ensureChannel(ctx: Context, nm: NotificationManager, name: String) {
         if (Build.VERSION.SDK_INT < 26) return
-        if (nm.getNotificationChannel(CHANNEL) != null) return
-        val ch = NotificationChannel(CHANNEL, name, NotificationManager.IMPORTANCE_DEFAULT)
-        ch.setShowBadge(false)
-        ch.lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
-        nm.createNotificationChannel(ch)
+        if (nm.getNotificationChannel(OLD_CHANNEL) != null) nm.deleteNotificationChannel(OLD_CHANNEL)
+        if (nm.getNotificationChannel(CHANNEL) == null) {
+            val ch = NotificationChannel(CHANNEL, name, NotificationManager.IMPORTANCE_HIGH)
+            ch.setShowBadge(false)
+            ch.lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
+            nm.createNotificationChannel(ch)
+        }
+        if (nm.getNotificationChannel(DONE_CHANNEL) == null) {
+            val dn = NotificationChannel(DONE_CHANNEL, "$name (konfirmasi)", NotificationManager.IMPORTANCE_LOW)
+            dn.setShowBadge(false)
+            dn.lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
+            nm.createNotificationChannel(dn)
+        }
     }
 
     private fun appLabel(ctx: Context, pkg: String): String {
@@ -133,7 +147,7 @@ object CaptureAlert {
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setCategory(NotificationCompat.CATEGORY_EVENT)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(publicView)
             .setContentIntent(
@@ -155,8 +169,9 @@ object CaptureAlert {
         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         ensureChannel(ctx, nm, cfg.optString("channel", "Transaksi terdeteksi"))
         val head = if (decision == "income") cfg.optString("doneIn", "Pemasukan") else cfg.optString("doneOut", "Pengeluaran")
-        val n = NotificationCompat.Builder(ctx, CHANNEL)
+        val n = NotificationCompat.Builder(ctx, DONE_CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_infinity)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentTitle("$head $amount · ${appLabel(ctx, pkg)}".trim())
             .setContentText(cfg.optString("doneNote", "Dicatat saat Infinity dibuka."))
             .setAutoCancel(true)
