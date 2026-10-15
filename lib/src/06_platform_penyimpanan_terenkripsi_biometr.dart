@@ -571,6 +571,19 @@ class DataFile {
           ? f.readAsStringSync()
           : _jmem.join();
       final lines = raw.split('\n').where((l) => l.trim().isNotEmpty).toList();
+      // Catatan peluncuran dari sisi Android (jendela dibuat/ditutup) digabung
+      // berdasarkan jam, supaya urutannya terbaca bersama jejak simpan.
+      final dir = _file?.parent;
+      if (dir != null) {
+        final nf = File('${dir.path}/infinity_launch.log');
+        if (nf.existsSync()) {
+          lines.addAll(nf
+              .readAsStringSync()
+              .split('\n')
+              .where((l) => l.trim().isNotEmpty));
+          lines.sort();
+        }
+      }
       return lines.reversed.take(max).join('\n');
     } catch (_) {
       return '';

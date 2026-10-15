@@ -1,5 +1,6 @@
 package com.jose.infinity
 
+import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.ContentUris
 import android.content.ContentValues
@@ -22,9 +23,49 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Penjaga satu jendela: dua jendela Infinity yang hidup bersamaan
+        // membuka dua salinan data di memori dan saling menimpa file yang
+        // sama. Kalau sudah ada jendela yang hidup, jendela baru ini ditutup
+        // dan jendela lama dibawa ke depan (intent-nya diteruskan).
+        val other = live
+        val dup = other != null && other !== this && !other.isFinishing && !other.isDestroyed
+        note(
+            this,
+            "dibuat #${System.identityHashCode(this)} task=$taskId " +
+                "aksi=${intent?.action} data=${intent?.data} flags=0x${Integer.toHexString(intent?.flags ?: 0)} " +
+                "dari=${if (Build.VERSION.SDK_INT >= 22) referrer else null} " +
+                "hidup=${if (other == null) "-" else "#" + System.identityHashCode(other) + " task=" + other.taskId}" +
+                if (dup) " DUPLIKAT" else ""
+        )
+        if (dup && other != null) {
+            // Lifecycle: onCreate lalu langsung onDestroy, tanpa onStart, jadi
+            // mesin Flutter jendela ini tidak sempat menjalankan Dart.
+            finish()
+            super.onCreate(savedInstanceState)
+            try {
+                other.onNewIntent(intent)
+            } catch (_: Exception) {
+            }
+            try {
+                val am = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+                for (t in am.appTasks) {
+                    @Suppress("DEPRECATION")
+                    if (t.taskInfo.id == other.taskId) t.moveToFront()
+                }
+            } catch (_: Exception) {
+            }
+            return
+        }
+        live = this
         super.onCreate(savedInstanceState)
         // Layar aman diatur dari app (Keamanan > Mode layar aman), bawaan mati
         // supaya screenshot bisa.
+    }
+
+    override fun onDestroy() {
+        if (live === this) live = null
+        note(this, "dihancurkan #${System.identityHashCode(this)} selesai=$isFinishing")
+        super.onDestroy()
     }
 
     override fun onPause() {
@@ -98,6 +139,28 @@ class MainActivity : FlutterFragmentActivity() {
     companion object {
         private const val REQ_PICK = 4242
         private const val REQ_SAVE = 4243
+
+        /** Jendela Infinity yang sedang hidup di proses ini (satu saja). */
+        @Volatile
+        private var live: MainActivity? = null
+
+        /**
+         * Catatan peluncuran, dibaca Dart dan digabung ke "Jejak penyimpanan"
+         * (Laporan error), supaya kelihatan siapa yang membuka jendela kedua.
+         */
+        fun note(ctx: android.content.Context, msg: String) {
+            try {
+                val f = java.io.File(ctx.filesDir, "infinity_launch.log")
+                val ts = java.text.SimpleDateFormat("MM-dd HH:mm:ss.SSS", java.util.Locale.US)
+                    .format(java.util.Date())
+                f.appendText("$ts native: $msg\n")
+                if (f.length() > 12000) {
+                    val all = f.readText()
+                    f.writeText(all.substring(all.length - 6000))
+                }
+            } catch (_: Exception) {
+            }
+        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

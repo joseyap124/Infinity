@@ -3,7 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.9.1)
+## Berikutnya (v5.9.2)
+
+### Diperbaiki
+- **Penjaga satu jendela.** Kalau Infinity sudah terbuka lalu dibuka lagi dari luar (ikon, widget, notifikasi, pintasan), jendela baru langsung ditutup dan jendela lama dibawa ke depan, lengkap dengan aksi yang dibawa. Sebelumnya dua jendela bisa hidup sekaligus, masing-masing memegang salinan data sendiri, dan salinan yang lebih lama bisa menimpa yang baru. Ini bagian dari penyebab data yang kadang kembali ke kondisi lama. Perbaikan ini belum terbukti di HP: kalau penyebabnya ternyata dua proses, bukan dua jendela, penjaga ini tidak menolong.
+
+### Ditambah
+- **Catatan peluncuran di Jejak penyimpanan** (Lainnya > Laporan error). Tiap jendela Infinity yang dibuat atau dihancurkan tercatat bersama sumber pembukanya, jadi kalau data hilang lagi kelihatan siapa yang membuka jendela kedua.
+
+## v5.9.1 (15 Okt 2026)
 
 ### Diperbaiki
 - **Notifikasi "Transaksi terdeteksi" sekarang muncul melayang di atas layar.** Sebelumnya channel-nya berprioritas biasa, jadi hanya bunyi dan masuk ke panel notifikasi tanpa pop-up. Sekarang berprioritas tinggi, lengkap dengan tombol Keluar / Masuk / Abaikan. Konfirmasi setelah menekan tombol dibuat tenang (tidak ikut melayang). Android tidak mengizinkan app menaikkan prioritas channel yang sudah ada, jadi dibuat channel baru; pengaturan notifikasi lama untuk channel ini kembali ke bawaan.
