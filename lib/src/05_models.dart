@@ -31,6 +31,11 @@ class Account {
 
   /// Tidak ikut dihitung di "Aman dibelanjakan" (mis. tabungan, dana darurat).
   final bool excludeSafe;
+
+  /// Akun untuk menyimpan, bukan belanja harian: akun bertipe Investasi, atau
+  /// akun yang ditandai "jangan hitung di Aman dibelanjakan". Transfer ke akun
+  /// seperti ini dihitung sebagai Tabungan di statistik.
+  bool get isSavings => excludeSafe || type == AccountType.investment;
   final String currency;
 
   /// Saldo awal. Saldo berjalan selalu dihitung ulang dari saldo awal + semua

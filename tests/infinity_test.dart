@@ -1687,6 +1687,31 @@ void main() {
       expect(m.containsKey(SpendKind.duty), isFalse);
     });
 
+    test('transfer ke akun bertipe Investasi dihitung tabungan, tanpa saklar', () {
+      const inv = Account(
+          id: 'inv',
+          name: 'Bibit',
+          type: AccountType.investment,
+          color: 0xFF000000);
+      const sav = Account(
+          id: 'sav',
+          name: 'Tabungan',
+          type: AccountType.bank,
+          color: 0xFF000000,
+          excludeSafe: true);
+      final s = withCats([acc('bca', initial: 5000000), inv, sav], [
+        tx('1', TxType.transfer, 300000, 'bca', to: 'inv', date: DateTime(2026, 10, 2)),
+        // Dari tabungan ke investasi: sama-sama simpanan, tidak dihitung lagi.
+        tx('2', TxType.transfer, 100000, 'sav', to: 'inv', date: DateTime(2026, 10, 3)),
+        // Tarik dari investasi ke akun harian: bukan menabung.
+        tx('3', TxType.transfer, 50000, 'inv', to: 'bca', date: DateTime(2026, 10, 4)),
+      ]);
+      expect(s.spendByKind(oct)[SpendKind.save], 300000);
+      expect(inv.isSavings, isTrue);
+      expect(sav.isSavings, isTrue);
+      expect(acc('bca').isSavings, isFalse);
+    });
+
     test('transfer biasa antar akun harian tidak dihitung tabungan', () {
       final s = withCats([acc('bca', initial: 100000), acc('gopay')], [
         tx('1', TxType.transfer, 50000, 'bca', to: 'gopay', date: DateTime(2026, 10, 2)),

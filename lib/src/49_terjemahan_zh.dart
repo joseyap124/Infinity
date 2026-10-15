@@ -1512,4 +1512,6 @@ const Map<String, String> kZhStrings = {
   'Sambungkan ulang': '重新连接',
   'Menyambungkan...': '连接中...',
   'Kalau tetap belum tersambung: matikan lalu nyalakan lagi akses notifikasi Infinity di pengaturan Android.': '如果仍未连接:请在 Android 设置中关闭后再重新开启 Infinity 的通知访问。',
+  'Untuk tabungan atau dana darurat. Transfer ke akun ini dari akun harian juga dihitung sebagai Tabungan di statistik.': '适用于储蓄或应急资金。从日常账户转入此账户的金额也会在统计中计为储蓄。',
+  'Akun Investasi otomatis dihitung sebagai tabungan: transfer ke sini dari akun harian masuk golongan Tabungan di statistik, dan saldonya tidak ikut "Aman dibelanjakan".': '投资账户自动视为储蓄:从日常账户转入的金额会计入统计中的储蓄组,余额不计入“可安全花费”。',
 };

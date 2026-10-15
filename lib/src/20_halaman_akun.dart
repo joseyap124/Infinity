@@ -526,9 +526,15 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
               title: const Text('Jangan hitung di "Aman dibelanjakan"',
                   style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
               subtitle: Text(
-                  'Untuk tabungan atau dana darurat yang tidak untuk belanja harian.',
+                  'Untuk tabungan atau dana darurat. Transfer ke akun ini dari akun harian juga dihitung sebagai Tabungan di statistik.',
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ),
+          ],
+          if (_type == AccountType.investment) ...[
+            const SizedBox(height: 6),
+            Text(
+                'Akun Investasi otomatis dihitung sebagai tabungan: transfer ke sini dari akun harian masuk golongan Tabungan di statistik, dan saldonya tidak ikut "Aman dibelanjakan".',
+                style: TextStyle(fontSize: 12, color: C.muted)),
           ],
           const SizedBox(height: 14),
           const SmallLabel('Warna'),

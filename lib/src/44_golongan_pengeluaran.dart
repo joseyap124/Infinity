@@ -96,9 +96,9 @@ extension SpendKindStore on AppStore {
   }
 
   /// Total pengeluaran (Rupiah) per golongan di sebuah periode. Belanja yang
-  /// dibagi ke beberapa kategori dihitung per bagiannya. Transfer ke akun yang
-  /// tidak ikut "Aman dibelanjakan" (tabungan, dana darurat) dari akun yang
-  /// ikut dihitung sebagai Tabungan.
+  /// dibagi ke beberapa kategori dihitung per bagiannya. Transfer ke akun
+  /// tabungan (bertipe Investasi, atau ditandai "jangan hitung di Aman
+  /// dibelanjakan") dari akun harian dihitung sebagai Tabungan.
   Map<SpendKind, double> spendByKind(DateTimeRange r) {
     final m = <SpendKind, double>{};
     for (final t in transactions) {
@@ -111,7 +111,7 @@ extension SpendKindStore on AppStore {
       } else if (t.type == TxType.transfer) {
         final from = accountById(t.accountId);
         final to = accountById(t.toAccountId);
-        if (from != null && to != null && to.excludeSafe && !from.excludeSafe) {
+        if (from != null && to != null && to.isSavings && !from.isSavings) {
           m[SpendKind.save] = (m[SpendKind.save] ?? 0) + amountIDR(t);
         }
       }

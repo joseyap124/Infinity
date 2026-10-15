@@ -3,7 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.5.6)
+## Berikutnya (v5.6.0)
+
+### Diperbaiki
+- **Transfer ke akun Investasi tidak dihitung sebagai tabungan di statistik.** Sebelumnya hanya akun yang memakai saklar "Jangan hitung di Aman dibelanjakan" yang dihitung, dan saklar itu tidak muncul untuk akun bertipe Investasi, jadi transfer ke akun Investasi tidak pernah masuk golongan Tabungan. Sekarang akun bertipe Investasi otomatis dihitung sebagai tabungan.
+
+### Diubah
+- **Keterangan saklar tabungan di form akun.** Sekarang jelas bahwa transfer ke akun itu dari akun harian dihitung sebagai Tabungan di statistik. Akun bertipe Investasi menampilkan catatan yang sama.
+
+## v5.5.6 (14 Okt 2026)
 
 ### Ditambah
 - **Jejak penyimpanan** di Lainnya, Laporan error: catatan singkat kapan data dimuat dan disimpan (sumber data, jumlah transaksi, nilai anggaran, ukuran file, folder data, dan kegagalan menulis), terbaru di atas, dengan tombol Salin. Untuk melacak kenapa perubahan kadang tidak bertahan setelah app dibuka ulang.
