@@ -188,6 +188,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   DateTime? _pausedAt;
   Timer? _notifDebounce;
   Timer? _capturePoll;
+  Timer? _syncPoll;
   DateTime? _lastSaveWarn;
   StreamSubscription<Uri?>? _widgetSub;
   TxType? _pendingWidgetAction;
@@ -250,10 +251,11 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     await _ingestCaptures(quiet: true);
     unawaited(store.backupToDownloads());
     // Saat app terbuka, cek notifikasi bank/e-wallet baru setiap 20 detik.
-    _capturePoll = Timer.periodic(const Duration(seconds: 20), (_) {
-      unawaited(store.syncIfChangedElsewhere());
-      _ingestCaptures();
-    });
+    _capturePoll = Timer.periodic(
+        const Duration(seconds: 20), (_) => _ingestCaptures());
+    // Kalau ada salinan Infinity lain yang menulis, ambil perubahannya cepat.
+    _syncPoll = Timer.periodic(const Duration(seconds: 5),
+        (_) => unawaited(store.syncIfChangedElsewhere()));
     _widgetSub = HomeWidgetBridge.clicks().listen(_handleWidgetUri);
     final launch = await HomeWidgetBridge.initialLaunch();
     if (!mounted) return;
@@ -436,6 +438,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
   void dispose() {
     _notifDebounce?.cancel();
     _capturePoll?.cancel();
+    _syncPoll?.cancel();
     _widgetSub?.cancel();
     _quickSub?.cancel();
     store.removeListener(_syncTheme);

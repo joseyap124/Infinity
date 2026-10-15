@@ -118,6 +118,7 @@ class AppStore extends ChangeNotifier {
             'Data tersimpan tidak bisa dibaca. Salinannya sudah diamankan, aplikasi mulai dari data kosong.';
       }
     }
+    setMergeBase(toJson());
     _migrateIcons();
     processRecurring(notify: false);
     loaded = true;
@@ -170,11 +171,24 @@ class AppStore extends ChangeNotifier {
     _dirty = true;
     _saving = _saving.then((_) async {
       var ok = lastSaveOk;
-      // Tulis ulang selama masih ada perubahan baru selama menulis.
-      while (_dirty) {
+      var rounds = 0;
+      // Tulis ulang selama masih ada perubahan baru selama menulis, atau
+      // salinan Infinity lain menulis di sela-sela (lalu digabung).
+      while (_dirty && rounds < 6) {
+        rounds++;
         _dirty = false;
         if (_useFile && DataFile.changedByOther) await _mergeForeign();
-        ok = await _write(jsonEncode(toJson()));
+        final snap = toJson();
+        ok = await _write(jsonEncode(snap));
+        if (ok && _useFile) {
+          if (DataFile.changedByOther) {
+            // Salinan lain menulis tepat setelah kita: gabungkan dan tulis
+            // ulang kalau hasilnya berbeda dari isi file.
+            if (await _mergeForeign()) _dirty = true;
+          } else {
+            setMergeBase(snap);
+          }
+        }
       }
       lastSaveOk = ok;
       if (!ok) onSaveFailed?.call();
@@ -183,9 +197,6 @@ class AppStore extends ChangeNotifier {
     return _saving;
   }
 
-  /// File data ternyata diubah jendela/proses lain sejak kita membacanya
-  /// (mis. dua jendela Infinity terbuka). Jangan menimpa diam-diam: simpan
-  /// salinannya, lalu gabungkan data yang belum ada di sini (menurut id).
   /// Dipanggil saat app kembali ke depan dan berkala: kalau file data sudah
   /// diubah jendela/proses lain, ambil perubahannya sekarang juga, jadi
   /// tampilan yang basi tidak menunggu penyimpanan berikutnya.
@@ -193,49 +204,192 @@ class AppStore extends ChangeNotifier {
     if (!loaded || dataLocked || !_useFile || !DataFile.changedByOther) return;
     await _saving;
     if (!DataFile.changedByOther) return;
-    await _mergeForeign();
-    await flush();
+    if (await _mergeForeign()) {
+      _dirty = true;
+      await flush();
+    }
   }
 
-  Future<void> _mergeForeign() async {
+  // ---------------------------------------------------------- gabung salinan
+
+  static const List<String> _mergeLists = [
+    'accounts',
+    'categories',
+    'transactions',
+    'recurring',
+    'installments',
+    'waitItems',
+    'templates',
+    'debts',
+    'goals',
+    'events',
+  ];
+  static const List<String> _mergeSets = [
+    'pendingCaptures',
+    'seenCaptureKeys',
+    'captureLog',
+  ];
+
+  /// Keadaan data terakhir yang sama-sama diketahui file dan app ini
+  /// (id -> isi). Dasar untuk penggabungan tiga arah.
+  Map<String, Map<String, String>> _baseLists = {};
+  Map<String, Set<String>> _baseSets = {};
+  Map<String, String> _baseSettings = {};
+
+  /// Catat [j] (hasil [toJson]) sebagai keadaan dasar.
+  void setMergeBase(Map<String, dynamic> j) {
+    _baseLists = {};
+    for (final k in _mergeLists) {
+      final m = <String, String>{};
+      for (final x in _list(j[k])) {
+        final id = x['id'];
+        if (id is String) m[id] = jsonEncode(x);
+      }
+      _baseLists[k] = m;
+    }
+    _baseSets = {
+      for (final k in _mergeSets)
+        k: {
+          if (j[k] is List)
+            for (final x in j[k] as List) jsonEncode(x)
+        }
+    };
+    final st = j['settings'];
+    _baseSettings = st is Map
+        ? {for (final e in st.entries) '${e.key}': jsonEncode(e.value)}
+        : {};
+  }
+
+  /// Gabungan tiga arah: [ours] (isi app ini), [theirs] (isi file sekarang),
+  /// dan keadaan dasar. Yang diubah di sini menang; yang tidak diubah di sini
+  /// mengikuti file (termasuk hapusan dari salinan lain).
+  Map<String, dynamic> mergeThreeWay(
+      Map<String, dynamic> ours, Map<String, dynamic> theirs) {
+    final out = Map<String, dynamic>.from(ours);
+    for (final k in _mergeLists) {
+      final o = _list(ours[k]);
+      final t = _list(theirs[k]);
+      if (o.any((x) => x['id'] is! String) || t.any((x) => x['id'] is! String)) {
+        continue;
+      }
+      final base = _baseLists[k] ?? const <String, String>{};
+      final om = {for (final x in o) x['id'] as String: x};
+      final tm = {for (final x in t) x['id'] as String: x};
+      final ids = <String>[
+        ...om.keys,
+        ...tm.keys.where((i) => !om.containsKey(i)),
+      ];
+      final res = <Map<String, dynamic>>[];
+      for (final id in ids) {
+        final inO = om.containsKey(id);
+        final inB = base.containsKey(id);
+        final oursChanged =
+            inO ? (!inB || jsonEncode(om[id]) != base[id]) : inB;
+        if (oursChanged) {
+          if (inO) res.add(om[id]!);
+        } else {
+          final x = tm[id];
+          if (x != null) res.add(x);
+        }
+      }
+      out[k] = res;
+    }
+    for (final k in _mergeSets) {
+      final o = ours[k] is List ? ours[k] as List : const [];
+      final t = theirs[k] is List ? theirs[k] as List : const [];
+      final base = _baseSets[k] ?? const <String>{};
+      final oEnc = [for (final x in o) jsonEncode(x)];
+      final tEnc = [for (final x in t) jsonEncode(x)];
+      final oSet = oEnc.toSet();
+      final tSet = tEnc.toSet();
+      final res = <dynamic>[];
+      final seen = <String>{};
+      for (final e in [...oEnc, ...tEnc]) {
+        if (!seen.add(e)) continue;
+        final inO = oSet.contains(e);
+        final inB = base.contains(e);
+        final oursChanged = inO ? !inB : inB;
+        final keep = oursChanged ? inO : tSet.contains(e);
+        if (keep) res.add(jsonDecode(e));
+      }
+      if (res.isNotEmpty || ours.containsKey(k) || theirs.containsKey(k)) {
+        out[k] = res;
+      }
+    }
+    final os = ours['settings'];
+    final ts = theirs['settings'];
+    if (os is Map && ts is Map) {
+      final ms = <String, dynamic>{};
+      final keys = <String>{
+        for (final e in os.keys) '$e',
+        for (final e in ts.keys) '$e',
+      };
+      for (final key in keys) {
+        final inO = os.containsKey(key);
+        final oEnc = inO ? jsonEncode(os[key]) : null;
+        final oursChanged = oEnc != _baseSettings[key];
+        if (oursChanged) {
+          if (inO) ms[key] = os[key];
+        } else if (ts.containsKey(key)) {
+          ms[key] = ts[key];
+        }
+      }
+      out['settings'] = ms;
+    }
+    return out;
+  }
+
+  /// Bentuk baku untuk membandingkan dua isi data: tanpa waktu ekspor, dan
+  /// daftar ber-id diurutkan menurut id.
+  String _canon(Map<String, dynamic> m) {
+    final c = Map<String, dynamic>.from(m)..remove('exportedAt');
+    for (final k in _mergeLists) {
+      final l = c[k];
+      if (l is List) {
+        final items = [for (final x in l) jsonEncode(x)]..sort();
+        c[k] = items;
+      }
+    }
+    for (final k in _mergeSets) {
+      final l = c[k];
+      if (l is List) {
+        final items = [for (final x in l) jsonEncode(x)]..sort();
+        c[k] = items;
+      }
+    }
+    return jsonEncode(c);
+  }
+
+  /// File data diubah jendela/proses lain sejak kita membacanya (mis. dua
+  /// salinan Infinity berjalan bersamaan). Gabungkan tiga arah, simpan
+  /// salinan file itu dulu, dan perbarui tampilan. Mengembalikan true kalau
+  /// hasil gabungan berbeda dari isi file (perlu ditulis).
+  Future<bool> _mergeForeign() async {
     try {
       await DataFile.keepForeignCopy();
       final raw = await DataFile.read();
-      DataFile.jot('file diubah pihak lain, digabung (transaksi di sini: ${transactions.length})');
-      if (raw == null) return;
-      final fj = Map<String, dynamic>.from(jsonDecode(raw) as Map);
-      final merged = toJson();
-      var added = 0;
-      for (final k in const [
-        'accounts',
-        'categories',
-        'transactions',
-        'recurring',
-        'templates'
-      ]) {
-        final mine = _list(merged[k]);
-        final have = <String>{for (final x in mine) '${x['id']}'};
-        for (final x in _list(fj[k])) {
-          final id = x['id'];
-          if (id is String && have.add(id)) {
-            mine.add(x);
-            added++;
-          }
-        }
-        merged[k] = mine;
-      }
-      ErrorLog.record(
-          StateError('file data diubah pihak lain; $added item digabung'),
-          StackTrace.current,
-          source: 'simpan data');
-      if (added > 0) {
+      if (raw == null) return false;
+      final theirs = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+      final ours = toJson();
+      final merged = mergeThreeWay(ours, theirs);
+      final cm = _canon(merged);
+      final needWrite = cm != _canon(theirs);
+      final changesView = cm != _canon(ours);
+      DataFile.jot(
+          'file diubah salinan lain; transaksi: sini=${transactions.length} file=${_list(theirs['transactions']).length} gabungan=${_list(merged['transactions']).length}; tulis ulang=$needWrite');
+      if (changesView) {
         _applyJson(merged);
         _migrateIcons();
         _rev++;
+        gPeriodStartDay = settings.periodStartDay;
         notifyListeners();
       }
+      if (!needWrite) setMergeBase(merged);
+      return needWrite;
     } catch (e, st) {
+      DataFile.jot('gabung GAGAL: ${e.runtimeType}');
       ErrorLog.record(e, st, source: 'gabung data');
+      return false;
     }
   }
 

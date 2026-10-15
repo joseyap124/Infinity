@@ -1742,6 +1742,66 @@ void main() {
       expect(periodTxCount(s, oct), 2);
     });
   });
+  group('v5.6.2 gabung dua salinan', () {
+    Map<String, dynamic> j(AppStore s) => s.toJson();
+    List<String> ids(Map<String, dynamic> m, String k) =>
+        [for (final x in m[k] as List) (x as Map)['id'] as String]..sort();
+
+    AppStore pair(Map<String, dynamic> base, {List<Transaction>? txs}) {
+      final s = storeWith([acc('bca', initial: 1000)], txs ?? const []);
+      s.setMergeBase(base);
+      return s;
+    }
+
+    test('tambahan dari dua sisi sama-sama bertahan', () {
+      final t1 = tx('1', TxType.expense, 10, 'bca');
+      final base = j(storeWith([acc('bca', initial: 1000)], [t1]));
+      final a = pair(base, txs: [t1, tx('2', TxType.expense, 20, 'bca')]);
+      final b = pair(base, txs: [t1, tx('3', TxType.expense, 30, 'bca')]);
+      final merged = b.mergeThreeWay(j(b), j(a));
+      expect(ids(merged, 'transactions'), ['1', '2', '3']);
+    });
+
+    test('hapusan dari salinan lain ikut, tidak dihidupkan lagi', () {
+      final t1 = tx('1', TxType.expense, 10, 'bca');
+      final t2 = tx('2', TxType.expense, 20, 'bca');
+      final base = j(storeWith([acc('bca', initial: 1000)], [t1, t2]));
+      final a = pair(base, txs: [t1]); // hapus t2
+      final b = pair(base, txs: [t1, t2]); // belum tahu
+      final merged = b.mergeThreeWay(j(b), j(a));
+      expect(ids(merged, 'transactions'), ['1']);
+    });
+
+    test('perubahan sendiri menang atas versi lama di file', () {
+      final t1 = tx('1', TxType.expense, 10, 'bca');
+      final base = j(storeWith([acc('bca', initial: 1000)], [t1]));
+      final stale = pair(base, txs: [t1]);
+      final mine = pair(base, txs: [tx('1', TxType.expense, 99, 'bca')]);
+      final merged = mine.mergeThreeWay(j(mine), j(stale));
+      expect(((merged['transactions'] as List).first as Map)['amount'], 99);
+    });
+
+    test('pengaturan: anggaran dari salinan lain ikut kalau tidak diubah di sini', () {
+      final base = j(storeWith([acc('bca')]));
+      final a = pair(base);
+      a.settings.globalBudget = 5000000;
+      final b = pair(base);
+      b.settings.lang = 'en';
+      final merged = b.mergeThreeWay(j(b), j(a));
+      final st = merged['settings'] as Map;
+      expect(st['globalBudget'], 5000000);
+      expect(st['lang'], 'en');
+    });
+
+    test('hasil gabungan identik dengan isi file tidak perlu ditulis ulang', () {
+      final t1 = tx('1', TxType.expense, 10, 'bca');
+      final base = j(storeWith([acc('bca', initial: 1000)], [t1]));
+      final a = pair(base, txs: [t1, tx('2', TxType.expense, 20, 'bca')]);
+      final b = pair(base, txs: [t1]); // tidak punya apa-apa yang baru
+      final merged = b.mergeThreeWay(j(b), j(a));
+      expect(ids(merged, 'transactions'), ['1', '2']);
+    });
+  });
   group('v3.7 ikon kartun', () {
     Map<String, dynamic> backupWithOldIcons() {
       final s = AppStore()..clearAll();

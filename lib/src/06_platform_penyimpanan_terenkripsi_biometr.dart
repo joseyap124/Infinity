@@ -596,8 +596,13 @@ class DataFile {
           '${f.path}.${DateTime.now().microsecondsSinceEpoch}_${_wseq++}_$tag.tmp');
       try {
         await tmp.writeAsBytes(bytes, flush: true);
+        // Ciri file dihitung dari file sementara SEBELUM diganti nama (ganti
+        // nama tidak mengubah waktu ubah dan ukuran), supaya tulisan salinan
+        // lain tepat sesudahnya tidak terbaca sebagai tulisan kita sendiri.
+        final ts = tmp.statSync();
+        final mySig = '${ts.modified.microsecondsSinceEpoch}:${ts.size}';
         await tmp.rename(f.path);
-        _sig = _statSig();
+        _sig = mySig;
         final len = f.existsSync() ? f.lengthSync() : -1;
         jot('tulis ok ${bytes.length}B, file $len B${len == bytes.length ? '' : ' (UKURAN BEDA)'}');
         return;
