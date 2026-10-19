@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.0.0)
+## v6.0.0 (19 Okt 2026)
 
 Rilis penanda untuk rangkaian 5.11 sampai 5.14.1. Tidak ada perubahan kode dibanding 5.14.1; isinya sama persis, hanya nomornya yang naik supaya satu paket perubahan ini mudah disebut. Yang berubah sejak 5.10:
 
