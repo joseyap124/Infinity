@@ -1204,72 +1204,74 @@ class _TxFormSheetState extends State<TxFormSheet> {
     setState(() => _openParent = _openParent == c.id ? null : c.id);
   }
 
-  Widget _parentTile(TxCategory c, Color accent, {required bool sel}) {
-    final hasSubs = store.childrenOf(c.id).isNotEmpty;
+  /// Kategori sebagai chip teks (tanpa ikon): dua kolom sama lebar, tinggi
+  /// 44, nama sampai dua baris. [trailing] untuk penanda pin atau panah sub.
+  Widget _catChip(String label, Color accent,
+      {required bool sel,
+      required VoidCallback onTap,
+      VoidCallback? onLongPress,
+      Widget? trailing}) {
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () => _tapParent(c),
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      onLongPress: onLongPress,
       child: Semantics(
         button: true,
         selected: sel,
-        label: c.name,
+        label: label,
         excludeSemantics: true,
         child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: sel ? accent.withValues(alpha: 0.08) : null,
-            border: sel ? Border.all(color: accent, width: 1.6) : null,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: sel ? accent : C.line, width: sel ? 1.6 : 1),
           ),
-          padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
-          // Column langsung di sel grid: terpusat. (Dulu dibungkus Stack yang
-          // menaruh isinya di kiri atas, jadi ikon antar kolom tidak sejajar.)
-          child: Column(
+          child: Row(
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  CatIcon(
-                      icon: c.iconData,
-                      art: c.art,
-                      color: c.colorValue,
-                      size: 42),
-                  if (hasSubs)
-                    Positioned(
-                      right: -5,
-                      top: -4,
-                      child: Container(
-                        width: 18,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: C.surface,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: C.line),
-                        ),
-                        child: Icon(
-                            _openParent == c.id
-                                ? Icons.expand_less_rounded
-                                : Icons.expand_more_rounded,
-                            size: 14,
-                            color: C.muted),
-                      ),
-                    ),
-                ],
+              Expanded(
+                child: Text(label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 13,
+                        height: 1.15,
+                        fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                        color: sel ? accent : C.carbon)),
               ),
-              const SizedBox(height: 4),
-              Text(shortCategoryName(c.name),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 10.5,
-                      height: 1.15,
-                      fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
-                      color: sel ? accent : C.carbon)),
+              if (trailing != null) ...[const SizedBox(width: 4), trailing],
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// Baris-baris dua kolom dari [cells]; [panelAfter] menyisipkan panel (sub
+  /// kategori) tepat di bawah baris yang memuat kategori dengan id itu.
+  List<Widget> _chipRows(List<(String, Widget)> cells,
+      {String? panelId, Widget? panel}) {
+    final rows = <Widget>[];
+    for (var i = 0; i < cells.length; i += 2) {
+      final a = cells[i];
+      final b = i + 1 < cells.length ? cells[i + 1] : null;
+      rows.add(Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          children: [
+            Expanded(child: a.$2),
+            const SizedBox(width: 6),
+            Expanded(child: b?.$2 ?? const SizedBox.shrink()),
+          ],
+        ),
+      ));
+      if (panel != null && (a.$1 == panelId || b?.$1 == panelId)) {
+        rows.add(panel);
+      }
+    }
+    return rows;
   }
 
   /// Sub-kategori yang muncul tepat di bawah baris induknya.
@@ -1346,25 +1348,30 @@ class _TxFormSheetState extends State<TxFormSheet> {
   Widget _categoryArea(Color accent) {
     final tops = store.topCategories(_type);
     final selTop = _categoryId == null ? null : store.topCategoryId(_categoryId!);
-    final rows = <Widget>[];
-    for (var i = 0; i < tops.length; i += 4) {
-      final chunk = tops.sublist(i, math.min(i + 4, tops.length));
-      rows.add(GridView.count(
-        crossAxisCount: 4,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        mainAxisSpacing: 4,
-        crossAxisSpacing: 4,
-        childAspectRatio: 0.86,
-        children: [
-          for (final c in chunk) _parentTile(c, accent, sel: c.id == selTop),
-        ],
-      ));
-      for (final c in chunk) {
-        if (c.id == _openParent) rows.add(_subPanel(c, accent));
-      }
+    TxCategory? open;
+    for (final c in tops) {
+      if (c.id == _openParent) open = c;
     }
+    final parents = <(String, Widget)>[
+      for (final c in tops)
+        (
+          c.id,
+          _catChip(
+            shortCategoryName(c.name),
+            accent,
+            sel: c.id == selTop,
+            onTap: () => _tapParent(c),
+            trailing: store.childrenOf(c.id).isEmpty
+                ? null
+                : Icon(
+                    _openParent == c.id
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 18,
+                    color: C.muted),
+          )
+        ),
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1372,7 +1379,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
           children: [
             Text(tr('SERING DIPAKAI'),
                 style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.5,
                     color: C.muted)),
@@ -1381,17 +1388,18 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 style: TextStyle(fontSize: 12, color: C.muted)),
           ],
         ),
-        const SizedBox(height: 4),
-        _frequentGrid(accent, limit: 4, withAll: false),
         const SizedBox(height: 6),
+        ..._frequentRows(accent, limit: 4),
+        const SizedBox(height: 4),
         Text(tr('SEMUA KATEGORI'),
             style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.5,
                 color: C.muted)),
-        const SizedBox(height: 4),
-        ...rows,
+        const SizedBox(height: 6),
+        ..._chipRows(parents,
+            panelId: open?.id, panel: open == null ? null : _subPanel(open, accent)),
       ],
     );
   }
@@ -1544,108 +1552,29 @@ class _TxFormSheetState extends State<TxFormSheet> {
     setState(() {});
   }
 
-  Widget _frequentGrid(Color accent, {int? limit, bool withAll = true}) {
+  List<Widget> _frequentRows(Color accent, {int? limit}) {
     final ids = limit == null
         ? store.frequentCategories(_type, ensure: _categoryId)
         : store.frequentCategories(_type, ensure: _categoryId, limit: limit);
-    final cells = <Widget>[];
+    final cells = <(String, Widget)>[];
     for (final id in ids) {
       final c = store.categoryById(id);
       if (c == null) continue;
-      final sel = id == _categoryId;
-      cells.add(InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => _chooseCategory1(id),
-        onLongPress: () => _categoryMenu(id),
-        child: Semantics(
-          button: true,
-          selected: sel,
-          label: c.name,
-          excludeSemantics: true,
-          child: Container(
-            decoration: BoxDecoration(
-              color: sel ? accent.withValues(alpha: 0.08) : null,
-              border: sel ? Border.all(color: accent, width: 1.6) : null,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    CatIcon(icon: c.iconData, art: c.art, color: c.colorValue, size: 42),
-                    if (store.isPinned(id))
-                      Positioned(
-                        right: -4,
-                        top: -4,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                              color: C.surface,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: C.line)),
-                          child: Icon(Icons.push_pin_rounded,
-                              size: 11, color: accent),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(shortCategoryName(c.name),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 10.5,
-                        height: 1.15,
-                        fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
-                        color: sel ? accent : C.carbon)),
-              ],
-            ),
-          ),
-        ),
+      cells.add((
+        id,
+        _catChip(
+          shortCategoryName(c.name),
+          accent,
+          sel: id == _categoryId,
+          onTap: () => _chooseCategory1(id),
+          onLongPress: () => _categoryMenu(id),
+          trailing: store.isPinned(id)
+              ? Icon(Icons.push_pin_rounded, size: 14, color: accent)
+              : null,
+        )
       ));
     }
-    if (withAll) cells.add(InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: _pickCategory,
-      child: Semantics(
-        button: true,
-        label: 'Semua kategori',
-        excludeSemantics: true,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              CatIcon(
-                  icon: Icons.apps_rounded,
-                  art: 'other',
-                  color: C.muted,
-                  size: 42),
-              const SizedBox(height: 4),
-              Text('Semua',
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: C.carbon)),
-            ],
-          ),
-        ),
-      ),
-    ));
-    return GridView.count(
-      crossAxisCount: 4,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
-      mainAxisSpacing: 4,
-      crossAxisSpacing: 4,
-      childAspectRatio: 0.86,
-      children: cells,
-    );
+    return _chipRows(cells);
   }
 
   /// Foto struk (dipakai di layar detail).

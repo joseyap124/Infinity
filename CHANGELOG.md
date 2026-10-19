@@ -3,6 +3,14 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.2.4)
+
+### Diubah
+- **Kategori di form Catat tanpa ikon.** *Sering dipakai* dan *Semua kategori* sekarang chip teks dua kolom sama lebar (tinggi 44, nama sampai dua baris), bukan kotak berikon empat kolom. Lebih rapat, dan nama panjang terbaca utuh. Induk yang punya sub diberi panah kecil di kanan; ketuk untuk membuka sub-kategorinya tepat di bawah barisnya. Kategori yang dipin ditandai ikon pin kecil. Tekan-tahan di *Sering dipakai* tetap membuka menu pin.
+
+### Belum terbukti
+- Belum dilihat di HP.
+
 ## v6.2.3 (19 Okt 2026)
 
 ### Dirapikan
