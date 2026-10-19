@@ -80,8 +80,8 @@ Future<bool> openTxForm(
 
 /// Menyimpan hasil form transaksi baru, termasuk template dan peringatan
 /// anggaran. [announce] false kalau form masih terbuka (Simpan & lanjut).
-void _commitNewTx(BuildContext context, AppStore store, FormResult r,
-    {required bool announce}) {
+Transaction _commitNewTx(BuildContext context, AppStore store, FormResult r,
+    {required bool announce, bool undo = false}) {
   final before = store.budgetStatusNow();
   final t = r.draft.toTransaction(store.newId());
   store.upsertTransaction(t);
@@ -104,13 +104,75 @@ void _commitNewTx(BuildContext context, AppStore store, FormResult r,
             ? 'Buka Infinity untuk lihat sisa anggaran.'
             : 'Sisa ${money(st.globalBudget - spent)} dari ${money(st.globalBudget)}.'));
   }
+  // Catat cepat langsung simpan: beri kesempatan membatalkan.
+  final action = undo
+      ? SnackBarAction(
+          label: 'Batalkan',
+          onPressed: () => store.deleteTransaction(t.id),
+        )
+      : null;
   if (t.type == TxType.expense && status == BudgetStatus.broke) {
-    snack(context,
-        tr('{0} Anggaran {1} hampir habis.', [tr(BudgetStatus.broke.message), tr(store.settings.budgetPeriod.current)]));
+    snack(
+        context,
+        tr('{0} Anggaran {1} hampir habis.', [
+          tr(BudgetStatus.broke.message),
+          tr(store.settings.budgetPeriod.current)
+        ]),
+        action: action);
   } else if (announce) {
-    snack(context,
-        tr('{0} {1} tercatat ✅', [tr(t.type.label), money(t.amount, store.currencyOf(t.accountId))]));
+    snack(
+        context,
+        tr('{0} {1} tercatat ✅',
+            [tr(t.type.label), money(t.amount, store.currencyOf(t.accountId))]),
+        action: action);
   }
+  return t;
+}
+
+/// Alasan template tidak bisa disimpan tanpa form (null = bisa langsung).
+/// Cermin dari pemeriksaan di form supaya hasilnya sama.
+String? _quickSaveProblem(AppStore store, TxTemplate t) {
+  if (t.amount <= 0) return 'nominal kosong';
+  final acc = store.accountById(t.accountId);
+  if (acc == null) return 'akun hilang';
+  if (t.type == TxType.transfer) {
+    final to = store.accountById(t.toAccountId);
+    if (to == null || to.id == acc.id) return 'akun tujuan tidak valid';
+    if (to.currency != acc.currency && (t.toAmount ?? 0) <= 0) {
+      return 'jumlah diterima kosong';
+    }
+  } else {
+    if (t.categoryId == null || store.categoryById(t.categoryId) == null) {
+      return 'kategori hilang';
+    }
+  }
+  if (t.type != TxType.income) {
+    final bal = store.balanceOf(acc.id);
+    if (acc.type == AccountType.credit) {
+      if (acc.creditLimit > 0 && bal - t.amount < -acc.creditLimit - 0.001) {
+        return 'melebihi limit';
+      }
+    } else if (t.amount > bal + 0.001) {
+      return 'saldo kurang';
+    }
+  }
+  return null;
+}
+
+/// Ketuk template di Catat cepat: langsung tersimpan (tanggal = sekarang) dan
+/// muncul tombol Batalkan. Kalau template belum lengkap atau saldo tidak
+/// cukup, form dibuka seperti biasa supaya bisa dilengkapi. Mengembalikan
+/// true kalau ada transaksi tersimpan.
+Future<bool> quickSaveTemplate(
+    BuildContext context, AppStore store, TxTemplate t) async {
+  if (_quickSaveProblem(store, t) != null) {
+    return openTxForm(context, store, template: t);
+  }
+  final draft = TxDraft.fromTemplate(t);
+  if (draft.title.trim().isEmpty) draft.title = _defaultTitle(store, draft);
+  HapticFeedback.lightImpact();
+  _commitNewTx(context, store, FormResult(draft), announce: true, undo: true);
+  return true;
 }
 
 Future<void> editTx(BuildContext context, AppStore store, Transaction t) async {

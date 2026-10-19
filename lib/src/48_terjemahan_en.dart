@@ -1565,6 +1565,8 @@ const Map<String, String> kEnStrings = {
   'SEMUA KATEGORI': 'ALL CATEGORIES',
   'Biasanya di {0}:': 'Usually in {0}:',
   'Simpan & lanjut': 'Save & next',
+  'Batalkan': 'Undo',
+  'Ketuk untuk langsung catat, tahan untuk ubah dulu.': 'Tap to record right away, hold to edit first.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

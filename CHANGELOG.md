@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.12.0)
+## Berikutnya (v5.12.1)
+
+### Diubah
+- **Catat cepat langsung menyimpan.** Ketuk template di Beranda: transaksi langsung tersimpan dengan tanggal dan jam sekarang, lalu muncul "Batalkan" selama beberapa detik. Tekan-tahan template untuk membuka form dulu. Kalau template belum lengkap (nominal kosong, kategori atau akun sudah dihapus, jumlah diterima kosong untuk transfer beda mata uang) atau saldo/limit akun tidak cukup, form tetap dibuka seperti sebelumnya supaya bisa dilengkapi. Halaman Template tetap membuka form.
+
+## v5.12.0 (19 Okt 2026)
 
 ### Diubah
 - **Kategori langsung di form Catat transaksi.** Sheet "Semua kategori" tidak dipakai lagi di form ini. Baris atas tetap "Sering dipakai" (empat teratas, satu ketukan). Di bawahnya ada semua kategori induk; ketuk satu (mis. Kebutuhan Pokok) dan sub-kategorinya muncul tepat di bawah barisnya, ketuk sub untuk memilih. Induk tanpa sub langsung terpilih. Untuk kategori yang jarang dipakai ini 2 ketukan, sebelumnya 3 (Semua, induk, sub). Tekan-tahan untuk pin di "Sering dipakai" tetap ada.

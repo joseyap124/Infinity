@@ -1590,6 +1590,12 @@ class DashboardTab extends StatelessWidget {
             ],
           ],
         ),
+        if (list.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 2),
+            child: Text('Ketuk untuk langsung catat, tahan untuk ubah dulu.',
+                style: TextStyle(fontSize: 11.5, color: C.muted)),
+          ),
       ],
     );
   }
@@ -1600,7 +1606,8 @@ class DashboardTab extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => openTxForm(context, store, template: t),
+        onTap: () => quickSaveTemplate(context, store, t),
+        onLongPress: () => openTxForm(context, store, template: t),
         child: Container(
           constraints: const BoxConstraints(minHeight: 56),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

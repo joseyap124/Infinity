@@ -1564,4 +1564,6 @@ const Map<String, String> kZhStrings = {
   'SEMUA KATEGORI': '全部分类',
   'Biasanya di {0}:': '{0} 常见金额：',
   'Simpan & lanjut': '保存并继续',
+  'Batalkan': '撤销',
+  'Ketuk untuk langsung catat, tahan untuk ubah dulu.': '点按直接记账，长按先编辑。',
 };
