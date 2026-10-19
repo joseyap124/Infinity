@@ -1156,6 +1156,91 @@ class AppStore extends ChangeNotifier {
     return null;
   }
 
+  /// Jumlah transaksi per kategori (bagian pisah ikut dihitung sekali per
+  /// transaksi). Kategori yang tidak muncul = belum dipakai transaksi.
+  Map<String, int> categoryTxCounts() {
+    final out = <String, int>{};
+    for (final t in transactions) {
+      final ids = <String>{
+        if (t.categoryId != null) t.categoryId!,
+        for (final s in t.splits) s.categoryId,
+      };
+      for (final id in ids) {
+        out[id] = (out[id] ?? 0) + 1;
+      }
+    }
+    return out;
+  }
+
+  /// Gabungkan kategori [fromId] ke [toId]: transaksi, bagian pisah,
+  /// transaksi berulang, template, dan anggarannya pindah ke tujuan, lalu
+  /// kategori asal dihapus. Sub-kategori asal ikut pindah ke tujuan.
+  /// Mengembalikan pesan kalau tidak bisa, null kalau berhasil.
+  String? mergeCategory(String fromId, String toId) {
+    final from = categoryById(fromId);
+    final to = categoryById(toId);
+    if (from == null || to == null || fromId == toId) {
+      return tr('Pilih kategori tujuan yang berbeda.');
+    }
+    if (from.type != to.type) {
+      return tr('Kategori tujuan harus bertipe sama.');
+    }
+    if (to.parentId == fromId) {
+      return tr('Tujuan tidak boleh sub-kategori dari kategori ini.');
+    }
+    final kids = childrenOf(fromId);
+    if (kids.isNotEmpty && to.parentId != null) {
+      return tr('Kategori ini punya sub-kategori. Pilih kategori utama sebagai tujuan.');
+    }
+
+    List<TxSplit> moveSplits(List<TxSplit> parts) {
+      final sums = <String, double>{};
+      for (final p in parts) {
+        final id = p.categoryId == fromId ? toId : p.categoryId;
+        sums[id] = (sums[id] ?? 0) + p.amount;
+      }
+      return [for (final e in sums.entries) TxSplit(e.key, e.value)];
+    }
+
+    transactions = [
+      for (final t in transactions)
+        (t.categoryId == fromId || t.splits.any((s) => s.categoryId == fromId))
+            ? t.copyWith(
+                categoryId: t.categoryId == fromId ? toId : null,
+                splits: t.splits.isEmpty ? null : moveSplits(t.splits))
+            : t,
+    ];
+    recurring = [
+      for (final r in recurring)
+        r.categoryId == fromId ? r.withCategory(toId) : r,
+    ];
+    templates = [
+      for (final t in templates)
+        t.categoryId == fromId ? t.withCategory(toId) : t,
+    ];
+    for (var i = 0; i < categories.length; i++) {
+      final c = categories[i];
+      if (c.parentId == fromId) {
+        categories[i] = TxCategory(
+            id: c.id,
+            name: c.name,
+            type: c.type,
+            icon: c.icon,
+            color: c.color,
+            parentId: toId);
+      }
+    }
+    final budget = settings.categoryBudgets.remove(fromId);
+    if (budget != null) {
+      settings.categoryBudgets[toId] =
+          (settings.categoryBudgets[toId] ?? 0) + budget;
+    }
+    settings.spendKinds.remove(fromId);
+    categories.removeWhere((c) => c.id == fromId);
+    _commit();
+    return null;
+  }
+
   // ---------------------------------------------------------------- budget
 
   void setBudget(BudgetPeriod period, double global, Map<String, double> perCat) {

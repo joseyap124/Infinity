@@ -249,9 +249,16 @@ class _HistoryTabState extends State<HistoryTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Riwayat',
-                      style: TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.w900)),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('Riwayat',
+                            style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.w900)),
+                      ),
+                      if (!searching) _viewToggle(),
+                    ],
+                  ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _searchCtrl,
@@ -273,21 +280,6 @@ class _HistoryTabState extends State<HistoryTab> {
                             ),
                     ),
                   ),
-                  if (!searching) ...[
-                    const SizedBox(height: 12),
-                    Segmented<HistoryView>(
-                      values: HistoryView.values,
-                      selected: _view,
-                      labelOf: (v) =>
-                          v == HistoryView.list ? 'Daftar' : 'Kalender',
-                      iconOf: (v) => v == HistoryView.list
-                          ? Icons.view_list_rounded
-                          : Icons.calendar_month_rounded,
-                      colorOf: (_) => C.toast,
-                      dense: true,
-                      onChanged: (v) => setState(() => _view = v),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -331,6 +323,48 @@ class _HistoryTabState extends State<HistoryTab> {
     );
   }
 
+  /// Dua ikon di sebelah judul: daftar atau kalender.
+  Widget _viewToggle() {
+    Widget btn(HistoryView v, IconData icon, String tip) {
+      final on = _view == v;
+      return Semantics(
+        button: true,
+        selected: on,
+        label: tr(tip),
+        child: Tooltip(
+          message: tr(tip),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => setState(() => _view = v),
+            child: Container(
+              width: 44,
+              height: 36,
+              decoration: BoxDecoration(
+                color: on ? C.toast : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, size: 20, color: on ? Colors.white : C.muted),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+          color: C.surface, borderRadius: BorderRadius.circular(17)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          btn(HistoryView.list, Icons.view_list_rounded, 'Tampilan daftar'),
+          btn(HistoryView.calendar, Icons.calendar_month_rounded,
+              'Tampilan kalender'),
+        ],
+      ),
+    );
+  }
+
   List<Widget> _listBody(BuildContext context) {
     final range = _filter.range(DateTime.now());
     final list = range == null
@@ -365,7 +399,7 @@ class _HistoryTabState extends State<HistoryTab> {
               child: _SummaryBox(
                   label: 'Pengeluaran',
                   value: expense,
-                  color: C.redDark,
+                  color: C.carbon,
                   icon: Icons.north_east_rounded)),
         ],
       ),
@@ -543,7 +577,7 @@ class _HistoryTabState extends State<HistoryTab> {
               child: Row(
                 children: [
                   total('Uang masuk', cal.totalIn, C.income),
-                  total('Uang keluar', cal.totalOut, C.redDark),
+                  total('Uang keluar', cal.totalOut, C.carbon),
                 ],
               ),
             ),
@@ -650,7 +684,7 @@ class _SummaryBox extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: TextStyle(fontSize: 11, color: C.muted)),
+                    style: TextStyle(fontSize: 12, color: C.muted)),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,

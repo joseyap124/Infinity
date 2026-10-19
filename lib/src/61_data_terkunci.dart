@@ -113,7 +113,7 @@ class _DataLockedScreenState extends State<DataLockedScreen> {
             if (DataFile.lastFailure.isNotEmpty) ...[
               const SizedBox(height: 14),
               SelectableText('Kode: ${DataFile.lastFailure}',
-                  style: TextStyle(fontSize: 11.5, height: 1.35, color: C.muted)),
+                  style: TextStyle(fontSize: 12, height: 1.35, color: C.muted)),
             ],
             const SizedBox(height: 24),
             PrimaryButton(

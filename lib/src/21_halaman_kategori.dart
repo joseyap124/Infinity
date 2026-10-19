@@ -56,19 +56,21 @@ class CategoriesPage extends StatelessWidget {
 
   Widget _list(BuildContext context, TxType type) {
     final tops = store.topCategories(type);
+    final counts = store.categoryTxCounts();
     return ListView(
       padding: EdgeInsets.fromLTRB(
           16, 12, 16, 100 + MediaQuery.viewPaddingOf(context).bottom),
       children: [
         for (final c in tops) ...[
-          _row(context, c, false),
-          for (final s in store.childrenOf(c.id)) _row(context, s, true),
+          _row(context, c, false, counts[c.id] ?? 0),
+          for (final s in store.childrenOf(c.id))
+            _row(context, s, true, counts[s.id] ?? 0),
         ],
       ],
     );
   }
 
-  Widget _row(BuildContext context, TxCategory c, bool isChild) {
+  Widget _row(BuildContext context, TxCategory c, bool isChild, int uses) {
     return Padding(
       padding: EdgeInsets.only(bottom: 8, left: isChild ? 28 : 0),
       child: AppCard(
@@ -86,9 +88,20 @@ class CategoriesPage extends StatelessWidget {
             CatIcon(icon: c.iconData, art: c.art, color: c.colorValue, size: 36),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(c.name,
-                  style: TextStyle(
-                      fontWeight: isChild ? FontWeight.w600 : FontWeight.w800)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(c.name,
+                      style: TextStyle(
+                          fontWeight:
+                              isChild ? FontWeight.w600 : FontWeight.w800)),
+                  Text(
+                      uses == 0
+                          ? tr('Belum dipakai')
+                          : tr('{0} transaksi', [uses]),
+                      style: TextStyle(fontSize: 12, color: C.muted)),
+                ],
+              ),
             ),
             Icon(Icons.edit_rounded, size: 18, color: C.muted),
           ],
@@ -165,6 +178,41 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
       setState(() => _error = err);
       return;
     }
+    Navigator.of(context).pop();
+  }
+
+  /// Pilih kategori tujuan, konfirmasi, lalu gabungkan.
+  Future<void> _merge() async {
+    final from = widget.category!;
+    final hasKids = store.childrenOf(from.id).isNotEmpty;
+    final counts = store.categoryTxCounts();
+    final options = <TxCategory>[
+      for (final c in store.topCategories(from.type)) ...[
+        if (c.id != from.id) c,
+        if (!hasKids)
+          for (final k in store.childrenOf(c.id))
+            if (k.id != from.id) k,
+      ],
+    ];
+    final to = await showSheet<TxCategory>(
+        context,
+        _MergeTargetSheet(
+            from: from, options: options, counts: counts, store: store));
+    if (to == null || !mounted) return;
+    final ok = await confirmDialog(context,
+        title: 'Gabungkan kategori?',
+        message: tr(
+            'Semua transaksi, template, dan transaksi berulang di "{0}" pindah ke "{1}", lalu "{0}" dihapus. Backup harian di HP tetap ada kalau perlu memulihkan.',
+            [from.name, to.name]),
+        confirmLabel: 'Gabungkan',
+        destructive: true);
+    if (!ok || !mounted) return;
+    final err = store.mergeCategory(from.id, to.id);
+    if (err != null) {
+      setState(() => _error = err);
+      return;
+    }
+    snack(context, tr('"{0}" digabung ke "{1}"', [from.name, to.name]));
     Navigator.of(context).pop();
   }
 
@@ -288,12 +336,78 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
           if (_editing) ...[
             const SizedBox(height: 8),
             TextButton.icon(
+              onPressed: _merge,
+              icon: const Icon(Icons.merge_type_rounded),
+              label: const Text('Gabungkan ke...'),
+            ),
+            TextButton.icon(
               onPressed: _delete,
               style: TextButton.styleFrom(foregroundColor: C.redDark),
               icon: const Icon(Icons.delete_rounded),
               label: const Text('Hapus kategori'),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Daftar tujuan untuk menggabungkan sebuah kategori.
+class _MergeTargetSheet extends StatelessWidget {
+  const _MergeTargetSheet(
+      {required this.from,
+      required this.options,
+      required this.counts,
+      required this.store});
+  final TxCategory from;
+  final List<TxCategory> options;
+  final Map<String, int> counts;
+  final AppStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    return SheetFrame(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(tr('Gabungkan "{0}" ke mana?', [from.name]),
+              style:
+                  const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 4),
+          Text(
+              tr('{0} transaksi akan pindah ke kategori yang kamu pilih.',
+                  [counts[from.id] ?? 0]),
+              style: TextStyle(fontSize: 12, color: C.muted)),
+          const SizedBox(height: 10),
+          for (final c in options)
+            InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => Navigator.of(context).pop(c),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                    c.parentId == null ? 4 : 28, 8, 4, 8),
+                child: Row(
+                  children: [
+                    CatIcon(
+                        icon: c.iconData,
+                        art: c.art,
+                        color: c.colorValue,
+                        size: 32),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(c.name,
+                          style: TextStyle(
+                              fontWeight: c.parentId == null
+                                  ? FontWeight.w800
+                                  : FontWeight.w600)),
+                    ),
+                    Text('${counts[c.id] ?? 0}',
+                        style: TextStyle(fontSize: 12, color: C.muted)),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

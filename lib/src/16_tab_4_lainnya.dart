@@ -36,8 +36,10 @@ class MoreTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 14)),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: color == C.redDark ? C.redDark : null)),
                   if (subtitle != null)
                     Text(subtitle,
                         style: TextStyle(fontSize: 12, color: C.muted)),
@@ -109,7 +111,7 @@ class MoreTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          const SmallLabel('Kelola data'),
+          const SmallLabel('Data saya'),
           const SizedBox(height: 6),
           AppCard(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -141,6 +143,23 @@ class MoreTab extends StatelessWidget {
                         tr('{0} aktif', [store.recurring.where((r) => r.active).length]),
                     onTap: () => _push(context, RecurringPage(store: store))),
                 _tile(context,
+                    icon: Icons.upload_file_rounded,
+                    color: Colors.redAccent,
+                    title: 'Impor dari Money Manager',
+                    subtitle: 'Dari file Excel hasil ekspor',
+                    onTap: () => _push(
+                        context, MoneyManagerImportPage(store: store))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          const SmallLabel('Alat bantu'),
+          const SizedBox(height: 6),
+          AppCard(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Column(
+              children: [
+                _tile(context,
                     icon: Icons.insights_rounded,
                     color: C.accentDark,
                     title: 'Tinjauan minggu lalu',
@@ -164,13 +183,6 @@ class MoreTab extends StatelessWidget {
                           ? 'Mis. trip, Lebaran: total & anggaran per acara'
                           : '${store.events.length} acara',
                       onTap: () => _push(context, EventsPage(store: store))),
-                _tile(context,
-                    icon: Icons.upload_file_rounded,
-                    color: Colors.redAccent,
-                    title: 'Impor dari Money Manager',
-                    subtitle: 'Dari file Excel hasil ekspor',
-                    onTap: () => _push(
-                        context, MoneyManagerImportPage(store: store))),
               ],
             ),
           ),

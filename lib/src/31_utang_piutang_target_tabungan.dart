@@ -411,7 +411,7 @@ class _DebtsPageState extends State<DebtsPage> {
                             color: d.settled ? C.muted : color)),
                     if (!d.settled && d.paid > 0)
                       Text(tr('dari {0}', [money(d.amount)]),
-                          style: TextStyle(fontSize: 11, color: C.muted)),
+                          style: TextStyle(fontSize: 12, color: C.muted)),
                   ],
                 ),
               ],

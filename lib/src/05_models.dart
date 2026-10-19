@@ -290,6 +290,23 @@ class RecurringRule {
 
   DateTime get nextDate => occurrence(start, frequency, generated);
 
+  /// Salinan dengan kategori diganti (dipakai saat kategori digabung).
+  RecurringRule withCategory(String? categoryId) => RecurringRule(
+        id: id,
+        title: title,
+        amount: amount,
+        toAmount: toAmount,
+        type: type,
+        categoryId: categoryId,
+        accountId: accountId,
+        toAccountId: toAccountId,
+        note: note,
+        frequency: frequency,
+        start: start,
+        generated: generated,
+        active: active,
+      );
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -345,6 +362,19 @@ class TxTemplate {
   final String accountId;
   final String? toAccountId;
   final String note;
+
+  /// Salinan dengan kategori diganti (dipakai saat kategori digabung).
+  TxTemplate withCategory(String? categoryId) => TxTemplate(
+        id: id,
+        title: title,
+        amount: amount,
+        toAmount: toAmount,
+        type: type,
+        categoryId: categoryId,
+        accountId: accountId,
+        toAccountId: toAccountId,
+        note: note,
+      );
 
   Map<String, dynamic> toJson() => {
         'id': id,

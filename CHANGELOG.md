@@ -11,6 +11,16 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 - Tombol **Kalau...** di Statistik diganti **Simulasi**, sama dengan judul halamannya.
 - Daftar kategori di Statistik tidak lagi mengulang *ketuk untuk rincian* di tiap baris; baris yang punya rincian diberi panah.
 
+- **Lainnya dikelompokkan**: *Data saya* (akun, kategori, template, transaksi berulang, impor), *Alat bantu* (tinjauan minggu lalu, tunda beli, acara), lalu *Bantuan*. *Reset semua data* berjudul merah dan terpisah.
+- **Rencana** tidak lagi mengulang judul: satu tautan per tab (*Semua tagihan*, *Semua cicilan*, dst.), dan judul *Anggaran* ganda dihapus.
+- **Kartu anggaran**: bar sekarang terisi sesuai yang terpakai (sama dengan kartu di Beranda), dengan persen *terpakai* dan chip status pendek (*Aman*, *Mulai seret*, *Jebol*) menggantikan kalimat panjang berikon.
+- **Riwayat**: judul dan pilihan Daftar/Kalender sekarang satu baris (dua ikon), jadi kontrol di atas daftar tinggal pencarian dan filter periode.
+- **Nominal pengeluaran biasa berwarna netral** di Riwayat, Beranda, detail, transaksi berulang, dan template. Merah dipakai hanya untuk peringatan (anggaran jebol, saldo minus). Pemasukan tetap hijau.
+- Teks bantu berukuran 11 sampai 11,5 dinaikkan ke 12 di tempat yang aman (keterangan, subjudul, catatan kaki).
+
+### Ditambah
+- **Gabungkan kategori**: di editor kategori, *Gabungkan ke...* memindahkan semua transaksi (termasuk bagian split), transaksi berulang, template, dan batas anggaran ke kategori lain, lalu menghapus kategori asal. Total tidak berubah. Daftar kategori kini menampilkan jumlah transaksi per kategori dan *Belum dipakai* untuk yang kosong.
+
 ### Untuk melacak
 - Jejak penyimpanan sekarang memuat penanda proses dan salinan di tiap baris, supaya terlihat apakah dua penulis yang menyimpan bersamaan itu dua objek di app yang sama atau dua proses terpisah.
 

@@ -71,7 +71,7 @@ class RecurringPage extends StatelessWidget {
                                     style: TextStyle(
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.w700,
-                                        color: r.type.color)),
+                                        color: r.type.amountColor)),
                                 Text(
                                     r.active
                                         ? tr('Berikutnya {0}', [DateFormat('EEE, d MMM yyyy', gDateLoc).format(r.nextDate)])

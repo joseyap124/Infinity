@@ -209,7 +209,7 @@ class SpendKindCard extends StatelessWidget {
                                 fontWeight: FontWeight.w700, fontSize: 14)),
                         if (delta(k).isNotEmpty)
                           Text(delta(k),
-                              style: TextStyle(fontSize: 11.5, color: C.muted)),
+                              style: TextStyle(fontSize: 12, color: C.muted)),
                       ],
                     ),
                   ),
@@ -255,7 +255,7 @@ class SpendKindCard extends StatelessWidget {
               byIncome
                   ? 'Persen dari pemasukan periode ini. Transfer ke akun yang tidak ikut Aman dibelanjakan dihitung sebagai tabungan. Setoran Target belum dihitung.'
                   : 'Belum ada pemasukan di periode ini, jadi persen dihitung dari total pengeluaran.',
-              style: TextStyle(fontSize: 11.5, color: C.muted)),
+              style: TextStyle(fontSize: 12, color: C.muted)),
         ],
       ),
     );

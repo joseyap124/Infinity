@@ -128,7 +128,7 @@ class _StatsTabState extends State<StatsTab> {
           child: Column(
             crossAxisAlignment: al,
             children: [
-              Text(label, style: TextStyle(fontSize: 11, color: C.muted)),
+              Text(label, style: TextStyle(fontSize: 12, color: C.muted)),
               const SizedBox(height: 2),
               FittedBox(
                 fit: BoxFit.scaleDown,
@@ -423,7 +423,7 @@ class _StatsTabState extends State<StatsTab> {
                                 children: [
                                   Text('Total',
                                       style: TextStyle(
-                                          fontSize: 11, color: C.muted)),
+                                          fontSize: 12, color: C.muted)),
                                   FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Text(money(total),
@@ -526,7 +526,7 @@ class _StatsTabState extends State<StatsTab> {
                               Text(
                                   '≈ ${money(store.toIDR(store.balanceOf(a.id), a.currency))}',
                                   style: TextStyle(
-                                      fontSize: 11, color: C.muted)),
+                                      fontSize: 12, color: C.muted)),
                           ],
                         ),
                       ],

@@ -132,7 +132,7 @@ class NetWorthCard extends StatelessWidget {
           ],
           Text(
               'Total saldo semua akun di akhir tiap bulan (kartu kredit dihitung minus), pakai kurs sekarang.',
-              style: TextStyle(fontSize: 11, color: C.muted)),
+              style: TextStyle(fontSize: 12, color: C.muted)),
         ],
       ),
     );

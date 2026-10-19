@@ -72,7 +72,7 @@ class TemplatesPage extends StatelessWidget {
                         Text(money(t.amount, store.currencyOf(t.accountId)),
                             style: TextStyle(
                                 fontWeight: FontWeight.w900,
-                                color: t.type.color)),
+                                color: t.type.amountColor)),
                         PopupMenuButton<String>(
                           tooltip: tr('Pilihan'),
                           icon: Icon(Icons.more_vert_rounded, color: C.muted),

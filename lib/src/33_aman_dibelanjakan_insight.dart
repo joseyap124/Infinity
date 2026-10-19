@@ -726,7 +726,7 @@ class SafeSpendCard extends StatelessWidget {
                                   : ''),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11.5, color: C.muted)),
+                      style: TextStyle(fontSize: 12, color: C.muted)),
                 ],
               ),
             ),

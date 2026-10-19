@@ -13,6 +13,14 @@ enum TxType {
   final String label;
   final IconData icon;
 
+  /// Warna nominal di daftar dan detail. Pengeluaran biasa netral supaya
+  /// merah hanya muncul untuk peringatan (anggaran jebol, saldo minus).
+  Color get amountColor => switch (this) {
+        TxType.expense => C.carbon,
+        TxType.income => C.income,
+        TxType.transfer => C.blueDark,
+      };
+
   Color get color => switch (this) {
         TxType.expense => C.redDark,
         TxType.income => C.income,
@@ -91,6 +99,13 @@ enum BudgetStatus {
 
   const BudgetStatus(this.message);
   final String message;
+
+  /// Label pendek untuk chip di kartu anggaran.
+  String get shortLabel => switch (this) {
+        BudgetStatus.safe => 'Aman',
+        BudgetStatus.tight => 'Mulai seret',
+        BudgetStatus.broke => 'Jebol',
+      };
 
   Color get color => switch (this) {
         BudgetStatus.safe => C.income,

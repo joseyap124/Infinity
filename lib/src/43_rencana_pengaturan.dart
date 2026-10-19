@@ -212,6 +212,12 @@ class _PlanTabState extends State<PlanTab> {
         ),
       );
 
+  /// Satu tautan di bawah tab, tanpa mengulang judul yang sudah ada di tab.
+  Widget _linkRow(String action, VoidCallback onAction) => Align(
+        alignment: Alignment.centerRight,
+        child: TextButton(onPressed: onAction, child: Text(action)),
+      );
+
   Widget _empty(BuildContext context, IconData icon, String text,
           String button, VoidCallback onTap) =>
       AppCard(
@@ -328,9 +334,8 @@ class _PlanTabState extends State<PlanTab> {
     switch (sub) {
       case _PlanSub.tagihan:
         body = [
-          _section(context, 'Tagihan & langganan',
-              action: 'Semua',
-              onAction: () => _pushPage(context, RecurringPage(store: store))),
+          _linkRow('Semua tagihan',
+              () => _pushPage(context, RecurringPage(store: store))),
           if (soon.isEmpty)
             _empty(context, Icons.event_repeat_rounded,
                 'Belum ada tagihan atau langganan rutin 30 hari ke depan.',
@@ -344,9 +349,11 @@ class _PlanTabState extends State<PlanTab> {
         ];
       case _PlanSub.cicilan:
         body = [
-          _section(context, 'Cicilan',
-              action: store.installments.isEmpty ? null : 'Semua',
-              onAction: () => _pushPage(context, InstallmentsPage(store: store))),
+          if (store.installments.isEmpty)
+            const SizedBox(height: 8)
+          else
+            _linkRow('Semua cicilan',
+                () => _pushPage(context, InstallmentsPage(store: store))),
           if (store.activeInstallments.isEmpty)
             _empty(context, Icons.credit_score_rounded,
                 'Belum ada cicilan 0%. Misalnya SPayLater atau Kredivo.',
@@ -356,9 +363,11 @@ class _PlanTabState extends State<PlanTab> {
         ];
       case _PlanSub.target:
         body = [
-          _section(context, 'Target tabungan',
-              action: store.goals.isEmpty ? null : 'Semua',
-              onAction: () => _pushPage(context, GoalsPage(store: store))),
+          if (store.goals.isEmpty)
+            const SizedBox(height: 8)
+          else
+            _linkRow('Semua target',
+                () => _pushPage(context, GoalsPage(store: store))),
           if (store.goals.isEmpty)
             _empty(context, Icons.savings_rounded,
                 'Belum ada target. Misalnya dana darurat atau liburan.',
@@ -372,9 +381,8 @@ class _PlanTabState extends State<PlanTab> {
         ];
       case _PlanSub.utang:
         body = [
-          _section(context, 'Utang & piutang',
-              action: 'Buka',
-              onAction: () => _pushPage(context, DebtsPage(store: store))),
+          _linkRow('Buka utang & piutang',
+              () => _pushPage(context, DebtsPage(store: store))),
           if (owedToMe <= 0 && iOwe <= 0)
             _empty(context, Icons.handshake_rounded,
                 'Tidak ada utang atau piutang yang belum lunas.', 'Catat',
@@ -399,9 +407,7 @@ class _PlanTabState extends State<PlanTab> {
                 daysLeft
               ]),
               style: TextStyle(fontSize: 12.5, color: C.muted)),
-          _section(context, 'Anggaran',
-              action: 'Atur',
-              onAction: () => _pushPage(context, BudgetPage(store: store))),
+          const SizedBox(height: 14),
           home._budgetCard(context),
           if (tipCount > 0) ...[
             const SizedBox(height: 10),

@@ -124,7 +124,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
                       parseRate(e.value.text) > 0
                           ? tr('Terbaca: 1 {0} = Rp {1}', [e.key, rateToInput(parseRate(e.value.text))])
                           : 'Kosong: pakai kurs bawaan',
-                      style: TextStyle(fontSize: 11.5, color: C.muted),
+                      style: TextStyle(fontSize: 12, color: C.muted),
                     ),
                   ),
                 ],

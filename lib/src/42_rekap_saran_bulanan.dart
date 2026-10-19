@@ -775,7 +775,7 @@ class _MonthRecapPageState extends State<MonthRecapPage> {
             const SizedBox(height: 10),
             Text(
                 'Saran dihitung otomatis dari datamu dengan aturan umum (50/30/20, dana darurat 3–6 bulan, dibanding rata-rata 3 bulan). Bukan nasihat keuangan profesional.',
-                style: TextStyle(fontSize: 11.5, color: C.muted)),
+                style: TextStyle(fontSize: 12, color: C.muted)),
           ],
         ],
       ),

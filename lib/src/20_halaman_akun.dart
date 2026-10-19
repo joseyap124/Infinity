@@ -70,7 +70,7 @@ class AccountsPage extends StatelessWidget {
                   if (a.currency != 'IDR')
                     Text(
                         '≈ ${money(store.toIDR(store.balanceOf(a.id), a.currency))}',
-                        style: TextStyle(fontSize: 11, color: C.muted)),
+                        style: TextStyle(fontSize: 12, color: C.muted)),
                 ],
               ),
               IconButton(

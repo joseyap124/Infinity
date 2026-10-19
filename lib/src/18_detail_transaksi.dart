@@ -59,7 +59,7 @@ class TransactionDetailSheet extends StatelessWidget {
               style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
-                  color: t.type.color)),
+                  color: t.type.amountColor)),
           if (cur != 'IDR')
             Text('≈ ${money(store.amountIDR(t))}',
                 textAlign: TextAlign.center,
@@ -165,7 +165,7 @@ class TransactionDetailSheet extends StatelessWidget {
           const SizedBox(height: 6),
           Text('Tip: geser item ke kiri di riwayat untuk hapus cepat.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11.5, color: C.muted)),
+              style: TextStyle(fontSize: 12, color: C.muted)),
         ],
       ),
     );

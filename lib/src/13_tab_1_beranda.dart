@@ -775,7 +775,7 @@ class DashboardTab extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                     color: C.muted,
-                                    fontSize: 11.5,
+                                    fontSize: 12,
                                     height: 1.25)),
                           ],
                         ),
@@ -1140,7 +1140,7 @@ class DashboardTab extends StatelessWidget {
                   height: 8),
               const SizedBox(height: 4),
               Text(tr('Hari ke-{0} dari {1}', [day.clamp(1, total), total]),
-                  style: TextStyle(fontSize: 11.5, color: C.muted)),
+                  style: TextStyle(fontSize: 12, color: C.muted)),
             ],
           ),
         ),
@@ -1347,7 +1347,7 @@ class DashboardTab extends StatelessWidget {
                           children: [
                             Text('Tagihan',
                                 style:
-                                    TextStyle(fontSize: 11, color: C.muted)),
+                                    TextStyle(fontSize: 12, color: C.muted)),
                             Text(money(debt, a.currency),
                                 style: TextStyle(
                                     fontWeight: FontWeight.w900,
@@ -1368,7 +1368,7 @@ class DashboardTab extends StatelessWidget {
                       Text(
                           tr('Sisa limit {0} dari {1}', [money(a.creditLimit - debt, a.currency), money(a.creditLimit, a.currency)]),
                           style:
-                              TextStyle(fontSize: 11.5, color: C.muted)),
+                              TextStyle(fontSize: 12, color: C.muted)),
                     ],
                     if (debt > 0)
                       Align(
@@ -1400,6 +1400,7 @@ class DashboardTab extends StatelessWidget {
     final hasBudget = s.globalBudget > 0;
     final remaining = s.globalBudget - spent;
     final ratio = hasBudget ? remaining / s.globalBudget : 0.0;
+    final used = hasBudget ? spent / s.globalBudget : 0.0;
     final status = hasBudget ? BudgetStatus.of(ratio) : null;
     final elapsed = periodElapsed(range, now);
     final catRows = s.categoryBudgets.entries
@@ -1468,25 +1469,54 @@ class DashboardTab extends StatelessWidget {
                     ],
                   ),
                 ),
-                Text('${(ratio.clamp(0.0, 1.0) * 100).toStringAsFixed(0)}%',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: status.color)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('${(used.clamp(0.0, 1.0) * 100).round()}%',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: status.color)),
+                    Text(tr('terpakai'),
+                        style: TextStyle(fontSize: 12, color: C.muted)),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),
-            PaceBar(value: ratio, color: status.color, marker: 1 - elapsed),
+            PaceBar(
+                value: used.clamp(0.0, 1.0).toDouble(),
+                color: status.color,
+                marker: elapsed),
             const SizedBox(height: 6),
-            Text(paceSentence(spent, s.globalBudget, elapsed),
-                style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                    color: C.carbon)),
+            Wrap(
+              spacing: 8,
+              runSpacing: 2,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: status.color.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(tr(status.shortLabel),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: status.color)),
+                ),
+                Text(paceSentence(spent, s.globalBudget, elapsed),
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: C.carbon)),
+              ],
+            ),
             const SizedBox(height: 2),
             Text(
-                tr('Terpakai {0} dari {1} · {2}',
-                    [money(spent), money(s.globalBudget), tr(status.message)]),
+                tr('Terpakai {0} dari {1}', [money(spent), money(s.globalBudget)]),
                 style: TextStyle(fontSize: 12, color: C.muted)),
           ],
           if (catRows.isNotEmpty) ...[
@@ -1529,7 +1559,7 @@ class DashboardTab extends StatelessWidget {
                     ),
                     Text('${money(spent)} / ${money(limit)}',
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: st == BudgetStatus.broke
                                 ? C.redDark
@@ -1537,7 +1567,7 @@ class DashboardTab extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text('${tag.symbol} ${tr(tag.label)}',
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             fontWeight: FontWeight.w800,
                             color: tag.color)),
                   ],
@@ -1606,7 +1636,7 @@ class DashboardTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 2),
             child: Text('Ketuk untuk langsung catat, tahan untuk ubah dulu.',
-                style: TextStyle(fontSize: 11.5, color: C.muted)),
+                style: TextStyle(fontSize: 12, color: C.muted)),
           ),
       ],
     );
@@ -1645,7 +1675,7 @@ class DashboardTab extends StatelessWidget {
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: t.type.color)),
+                      color: t.type.amountColor)),
             ],
           ),
         ),
@@ -1703,7 +1733,7 @@ class DashboardTab extends StatelessWidget {
                       style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 13,
-                          color: r.type.color)),
+                          color: r.type.amountColor)),
                 ],
               ),
             ),

@@ -1321,7 +1321,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                     color: C.muted)),
             const Spacer(),
             Text(tr('tahan untuk pin'),
-                style: TextStyle(fontSize: 11, color: C.muted)),
+                style: TextStyle(fontSize: 12, color: C.muted)),
           ],
         ),
         const SizedBox(height: 4),

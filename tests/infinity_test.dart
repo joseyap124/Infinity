@@ -3539,5 +3539,133 @@ void main() {
       expect(HistoryFilter.week.label, 'Minggu ini');
       expect(HistoryFilter.month.label, 'Bulan ini');
     });
+
+    test('nominal pengeluaran netral, pemasukan hijau, transfer biru', () {
+      expect(TxType.expense.amountColor, C.carbon);
+      expect(TxType.income.amountColor, C.income);
+      expect(TxType.transfer.amountColor, C.blueDark);
+    });
+
+    test('status anggaran punya label pendek untuk chip', () {
+      expect(BudgetStatus.safe.shortLabel, 'Aman');
+      expect(BudgetStatus.tight.shortLabel, 'Mulai seret');
+      expect(BudgetStatus.broke.shortLabel, 'Jebol');
+    });
+  });
+
+  group('Gabungkan kategori (v6.2)', () {
+    TxCategory cat(String id, {String? parent, TxType type = TxType.expense}) =>
+        TxCategory(
+            id: id,
+            name: id,
+            type: type,
+            icon: 'other',
+            color: 0xFF000000,
+            parentId: parent);
+
+    AppStore withCats() {
+      final s = storeWith([acc('a')], [
+        tx('1', TxType.expense, 10000, 'a', cat: 'makan'),
+        tx('2', TxType.expense, 20000, 'a', cat: 'cafe'),
+        tx('3', TxType.expense, 30000, 'a', cat: 'cafe'),
+      ]);
+      s.categories = [
+        cat('pokok'),
+        cat('makan', parent: 'pokok'),
+        cat('hiburan'),
+        cat('cafe', parent: 'hiburan'),
+        cat('gaji', type: TxType.income),
+      ];
+      return s;
+    }
+
+    test('hitung transaksi per kategori', () {
+      final c = withCats().categoryTxCounts();
+      expect(c['makan'], 1);
+      expect(c['cafe'], 2);
+      expect(c.containsKey('pokok'), false);
+    });
+
+    test('semua transaksi pindah dan total tidak berubah', () {
+      final s = withCats();
+      final before = s.transactions.fold<double>(0, (a, t) => a + t.amount);
+      expect(s.mergeCategory('cafe', 'makan'), isNull);
+      expect(s.categoryById('cafe'), isNull);
+      expect(s.transactions.every((t) => t.categoryId == 'makan'), true);
+      expect(s.transactions.fold<double>(0, (a, t) => a + t.amount), before);
+      expect(s.categoryTxCounts()['makan'], 3);
+    });
+
+    test('transaksi dibagi: bagian yang sama dijumlahkan', () {
+      final s = withCats();
+      s.transactions = [
+        Transaction(
+            id: 'sp',
+            title: 'bagi',
+            amount: 10000,
+            type: TxType.expense,
+            categoryId: 'cafe',
+            accountId: 'a',
+            date: DateTime(2026, 10, 2),
+            splits: const [TxSplit('cafe', 6000), TxSplit('makan', 4000)]),
+      ];
+      expect(s.mergeCategory('cafe', 'makan'), isNull);
+      final t = s.transactions.single;
+      expect(t.categoryId, 'makan');
+      expect(t.splits.length, 1);
+      expect(t.splits.single.categoryId, 'makan');
+      expect(t.splits.single.amount, 10000);
+    });
+
+    test('berulang, template, anggaran, dan golongan ikut pindah', () {
+      final s = withCats();
+      s.recurring = [
+        RecurringRule(
+            id: 'r',
+            title: 'kopi',
+            amount: 1000,
+            type: TxType.expense,
+            categoryId: 'cafe',
+            accountId: 'a',
+            frequency: Frequency.monthly,
+            start: DateTime(2026, 1, 1),
+            generated: 3),
+      ];
+      s.templates = [
+        const TxTemplate(
+            id: 't',
+            title: 'kopi',
+            amount: 1000,
+            type: TxType.expense,
+            categoryId: 'cafe',
+            accountId: 'a'),
+      ];
+      s.settings.categoryBudgets = {'cafe': 100000, 'makan': 50000};
+      s.settings.spendKinds['cafe'] = 'want';
+      expect(s.mergeCategory('cafe', 'makan'), isNull);
+      expect(s.recurring.single.categoryId, 'makan');
+      expect(s.recurring.single.generated, 3);
+      expect(s.templates.single.categoryId, 'makan');
+      expect(s.settings.categoryBudgets, {'makan': 150000});
+      expect(s.settings.spendKinds.containsKey('cafe'), false);
+    });
+
+    test('kategori utama pindah bersama sub-kategorinya', () {
+      final s = withCats();
+      expect(s.mergeCategory('hiburan', 'pokok'), isNull);
+      expect(s.categoryById('hiburan'), isNull);
+      expect(s.categoryById('cafe')!.parentId, 'pokok');
+    });
+
+    test('gabungan yang tidak masuk akal ditolak dan data tidak berubah', () {
+      final s = withCats();
+      expect(s.mergeCategory('cafe', 'cafe'), isNotNull);
+      expect(s.mergeCategory('cafe', 'gaji'), isNotNull);
+      expect(s.mergeCategory('hiburan', 'cafe'), isNotNull);
+      expect(s.mergeCategory('hiburan', 'makan'), isNotNull);
+      expect(s.mergeCategory('tidak-ada', 'makan'), isNotNull);
+      expect(s.categories.length, 5);
+      expect(s.categoryTxCounts()['cafe'], 2);
+    });
   });
 }
