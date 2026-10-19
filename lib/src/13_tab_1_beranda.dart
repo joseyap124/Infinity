@@ -798,8 +798,9 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
-  /// Kartu utama (v5.0): cincin sisa jatah hari ini dengan maskot yang
-  /// suasananya mengikuti kondisi, jatah per hari, dan total saldo.
+  /// Kartu utama (v5.11): sisa jatah hari ini dengan bar, jatah per hari, dan
+  /// total saldo. Di bawahnya baris dua kartu: Maskot dan Ritme (bisa
+  /// dimatikan lewat Atur Beranda).
   Widget _heroCard(BuildContext context) {
     final hide = store.settings.hideBalance;
     final now = DateTime.now();
@@ -818,16 +819,9 @@ class DashboardTab extends StatelessWidget {
     final netWorth = store.netWorthIDR;
     void openDetail() =>
         showSheet<void>(context, SafeSpendSheet(store: store));
-    final String line = hide
-        ? 'Ketuk untuk rincian'
-        : sleepy
-            ? (lastTx == null
-                ? 'Belum ada catatan. Ketuk maskot untuk mulai'
-                : tr('Belum mencatat {0} hari. Ketuk maskot untuk mulai',
-                    [now.difference(lastTx).inDays]))
-            : tr('{0}/hari · {1} hari lagi', [money(s.perDay), s.daysLeft]);
     final motif = store.settings.packMotif && C.pack != 'classic';
-    return Container(
+    final barColor = over ? C.redDark : C.accentDark;
+    final main = Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: C.surface,
@@ -839,15 +833,6 @@ class DashboardTab extends StatelessWidget {
           if (motif) const Positioned.fill(child: PackCardMotif()),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-        children: [
-          InkWell(
-            customBorder: const CircleBorder(),
-            onTap: sleepy ? () => openTxForm(context, store) : openDetail,
-            child: MascotRing(mood: mood, progress: over ? 1.0 : ratio),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -868,24 +853,46 @@ class DashboardTab extends StatelessWidget {
                         child: Text(
                             hide ? 'Rp ••••••' : money(over ? -left : left),
                             style: TextStyle(
-                                fontSize: 28,
+                                fontSize: 32,
                                 fontWeight: FontWeight.w900,
                                 color: over ? C.redDark : C.carbon)),
                       ),
-                      Text(line,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 12.5, color: C.muted, height: 1.25)),
+                      const SizedBox(height: 10),
+                      FunProgressBar(
+                          value: over ? 1.0 : ratio, color: barColor, height: 8),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                                hide
+                                    ? tr('Ketuk untuk rincian')
+                                    : tr('Terpakai {0}',
+                                        [money(s.spentToday)]),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style:
+                                    TextStyle(fontSize: 12, color: C.muted)),
+                          ),
+                          if (!hide)
+                            Text(
+                                tr('Jatah {0} · {1} hari lagi',
+                                    [money(s.perDay), s.daysLeft]),
+                                maxLines: 1,
+                                style:
+                                    TextStyle(fontSize: 12, color: C.muted)),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
+                Divider(height: 1, color: C.line),
                 InkWell(
                   borderRadius: BorderRadius.circular(12),
                   onTap: () => _push(context, AccountsPage(store: store)),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.only(top: 10),
                     child: Row(
                       children: [
                         Text('Total saldo ',
@@ -896,7 +903,7 @@ class DashboardTab extends StatelessWidget {
                             alignment: Alignment.centerLeft,
                             child: Text(hide ? 'Rp ••••••••' : money(netWorth),
                                 style: TextStyle(
-                                    fontSize: 13.5,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w800,
                                     color: C.carbon)),
                           ),
@@ -912,8 +919,224 @@ class DashboardTab extends StatelessWidget {
           ),
         ],
       ),
+    );
+    final st = store.settings;
+    final tiles = <Widget>[
+      if (st.homeMaskot)
+        Expanded(
+            flex: 5,
+            child: _maskotTile(context, mood, sleepy, openDetail)),
+      if (st.homeMaskot && st.homeRitme) const SizedBox(width: 10),
+      if (st.homeRitme) Expanded(flex: 6, child: _ritmeTile(context)),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        main,
+        if (tiles.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          IntrinsicHeight(
+            child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: tiles),
           ),
         ],
+      ],
+    );
+  }
+
+  /// Warna titik status maskot. Teks di bawahnya tetap menjelaskan kondisinya,
+  /// jadi status tidak bergantung pada warna.
+  Color _moodDot(MascotMood m) => switch (m) {
+        MascotMood.happy || MascotMood.ok => C.accentDark,
+        MascotMood.warn => C.amberDark,
+        MascotMood.danger || MascotMood.over => C.redDark,
+        MascotMood.sleepy => C.muted,
+      };
+
+  String _moodLine(MascotMood m) => switch (m) {
+        MascotMood.happy => tr('Keuangan aman terkendali.'),
+        MascotMood.ok => tr('Pengeluaran masih wajar.'),
+        MascotMood.warn => tr('Jatah hari ini mulai menipis.'),
+        MascotMood.danger => tr('Jatah hari ini hampir habis.'),
+        MascotMood.over => tr('Sudah lewat jatah hari ini.'),
+        MascotMood.sleepy => tr('Belum mencatat. Ketuk untuk mulai.'),
+      };
+
+  /// Kartu Maskot: emoji untuk Owl/Rubah/Gagak; maskot klasik dan gambar
+  /// sendiri tetap memakai gambarnya.
+  Widget _maskotTile(BuildContext context, MascotMood mood, bool sleepy,
+      VoidCallback openDetail) {
+    final skin = store.settings.mascotSkin;
+    final (emoji, name) = switch (skin) {
+      'owl' => ('🦉', 'Owl'),
+      'fox' => ('🦊', tr('Rubah')),
+      'crow' => ('🐦\u200D⬛', tr('Gagak')),
+      _ => (null, tr('Maskot')),
+    };
+    return Material(
+      color: C.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: sleepy ? () => openTxForm(context, store) : openDetail,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: C.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(tr('Status {0}', [name]),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: C.muted)),
+                  ),
+                  Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                          color: _moodDot(mood), shape: BoxShape.circle)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: emoji != null
+                    ? Text(emoji,
+                        style: const TextStyle(fontSize: 36, height: 1.2))
+                    : MascotView(mood: mood, size: 44),
+              ),
+              const SizedBox(height: 8),
+              Text(_moodLine(mood),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: C.carbon,
+                      height: 1.25)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Kartu Ritme: berapa persen anggaran terpakai dibanding posisi hari di
+  /// periode. Tanpa batas anggaran, kartu mengajak mengisinya.
+  Widget _ritmeTile(BuildContext context) {
+    final s = store.settings;
+    final now = DateTime.now();
+    final range = s.budgetPeriod.range(now);
+    final hasBudget = s.globalBudget > 0;
+    void open() => _push(context, BudgetPage(store: store));
+    if (!hasBudget) {
+      return Material(
+        color: C.surface,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: open,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: C.line),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(tr('Ritme anggaran'),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: C.muted)),
+                const SizedBox(height: 8),
+                Text(tr('Isi anggaran untuk melihat ritme pengeluaran.'),
+                    style: TextStyle(
+                        fontSize: 12.5, color: C.carbon, height: 1.3)),
+                const SizedBox(height: 8),
+                Text(tr('Atur'),
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: C.accentDark)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    final spent = store.sumIDR(TxType.expense, range);
+    final used = spent / s.globalBudget;
+    final elapsed = periodElapsed(range, now);
+    final tag = paceTagFor(spent, s.globalBudget, elapsed);
+    final start = DateTime(range.start.year, range.start.month, range.start.day);
+    final end = DateTime(range.end.year, range.end.month, range.end.day);
+    final total = end.difference(start).inDays;
+    final day = dayOnly(now).difference(start).inDays + 1;
+    final barColor = used > 1 ? C.redDark : C.accentDark;
+    return Material(
+      color: C.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: open,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: C.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(tr('Ritme anggaran'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: C.muted)),
+                  ),
+                  Text('${tag.symbol} ${tr(tag.label)}',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: tag.color)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text('${(used * 100).round()}%',
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: C.carbon)),
+              Text(tr('anggaran terpakai'),
+                  style: TextStyle(fontSize: 12, color: C.muted)),
+              const SizedBox(height: 8),
+              PaceBar(
+                  value: used.clamp(0.0, 1.0).toDouble(),
+                  color: barColor,
+                  marker: elapsed,
+                  height: 8),
+              const SizedBox(height: 4),
+              Text(tr('Hari ke-{0} dari {1}', [day.clamp(1, total), total]),
+                  style: TextStyle(fontSize: 11.5, color: C.muted)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1328,7 +1551,7 @@ class DashboardTab extends StatelessWidget {
   /// Catat Cepat: satu baris chip kecil yang bisa digeser (v3.6), supaya
   /// Beranda tetap fokus ke info dan transaksi terakhir.
   Widget _templatesCard(BuildContext context) {
-    final list = store.templates.take(8).toList();
+    final list = store.templates.take(3).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1359,61 +1582,51 @@ class DashboardTab extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        SizedBox(
-          height: 38,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, i) => _templateButton(context, list[i]),
-          ),
+        // Satu baris, tiga kolom.
+        Row(
+          children: [
+            for (var i = 0; i < 3; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(
+                  child: i < list.length
+                      ? _templateButton(context, list[i])
+                      : const SizedBox.shrink()),
+            ],
+          ],
         ),
       ],
     );
   }
 
   Widget _templateButton(BuildContext context, TxTemplate t) {
-    final color = t.type == TxType.transfer
-        ? C.blue
-        : (store.categoryById(t.categoryId)?.colorValue ?? t.type.color);
-    final icon = t.type == TxType.transfer
-        ? Icons.swap_horiz_rounded
-        : (store.categoryById(t.categoryId)?.iconData ?? Icons.bolt_rounded);
     return Material(
       color: C.surface,
-      borderRadius: BorderRadius.circular(19),
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        borderRadius: BorderRadius.circular(19),
+        borderRadius: BorderRadius.circular(14),
         onTap: () => openTxForm(context, store, template: t),
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 190),
-          padding: const EdgeInsets.fromLTRB(6, 0, 12, 0),
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(19),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(color: C.line),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CatIcon(
-                  icon: icon,
-                  art: t.type == TxType.transfer
-                      ? 'transfer'
-                      : store.categoryById(t.categoryId)?.art,
-                  color: color,
-                  size: 26),
-              const SizedBox(width: 7),
-              Flexible(
-                child: Text(t.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12.5,
-                        color: C.carbon)),
-              ),
-              const SizedBox(width: 6),
-              Text(compactMoney(t.amount),
+              Text(t.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12.5,
+                      color: C.carbon)),
+              const SizedBox(height: 2),
+              Text(money(t.amount),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,

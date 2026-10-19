@@ -448,7 +448,22 @@ class _HistoryTabState extends State<HistoryTab> {
                         fontSize: 13,
                         fontWeight: isToday || peak ? FontWeight.w900 : FontWeight.w700,
                         color: C.carbon)),
-                const Spacer(),
+                // Jumlah pengeluaran hari itu, ringkas (mis. "25 rb").
+                Expanded(
+                  child: Center(
+                    child: (e > 0 && !hide)
+                        ? FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(compactMoney(e),
+                                maxLines: 1,
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: C.carbon)),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ),
                 SizedBox(
                   height: 8,
                   child: Row(

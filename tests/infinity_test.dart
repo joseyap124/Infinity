@@ -263,6 +263,16 @@ void main() {
       final a = AppSettings()..captureButtons = false;
       expect(AppSettings.fromJson(a.toJson()).captureButtons, false);
       expect(AppSettings.fromJson(<String, dynamic>{}).captureButtons, true);
+      // v5.11: kartu Maskot dan Ritme di Beranda, nyala bawaan.
+      final b = AppSettings()
+        ..homeMaskot = false
+        ..homeRitme = false;
+      final b2 = AppSettings.fromJson(b.toJson());
+      expect(b2.homeMaskot, false);
+      expect(b2.homeRitme, false);
+      final d = AppSettings.fromJson(<String, dynamic>{});
+      expect(d.homeMaskot, true);
+      expect(d.homeRitme, true);
     });
   });
 

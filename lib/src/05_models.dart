@@ -497,6 +497,10 @@ class AppSettings {
   String? pin;
   bool hideBalance = false;
 
+  /// Kartu Maskot dan Ritme di bawah kartu utama Beranda (v5.11).
+  bool homeMaskot = true;
+  bool homeRitme = true;
+
   /// 'system' | 'light' | 'dark'
   String themeMode = 'system';
 
@@ -629,6 +633,8 @@ class AppSettings {
         'rates': rates,
         if (includeSecrets) 'pin': pin,
         'hideBalance': hideBalance,
+        if (!homeMaskot) 'homeMaskot': false,
+        if (!homeRitme) 'homeRitme': false,
         'themeMode': themeMode,
         'textScale': textScale,
         'homeCards': homeCards,
@@ -701,6 +707,8 @@ class AppSettings {
     s.rates['IDR'] = 1;
     s.pin = _s(j['pin']);
     s.hideBalance = j['hideBalance'] == true;
+    s.homeMaskot = j['homeMaskot'] != false;
+    s.homeRitme = j['homeRitme'] != false;
     s.textScale = _d(j['textScale'] ?? 1.0).clamp(0.85, 1.3);
     if (j['homeCards'] is List) {
       s.homeCards = (j['homeCards'] as List)

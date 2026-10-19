@@ -121,9 +121,28 @@ class _SpendCalendarState extends State<SpendCalendar> {
             border: Border.all(
                 color: selected ? C.carbon : Colors.transparent, width: 2),
           ),
-          child: Text('${d.day}',
-              style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w800, color: fg)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('${d.day}',
+                  style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w800, color: fg)),
+              // Jumlah pengeluaran hari itu, ringkas (mis. "25 rb").
+              if (!future && (st?.total ?? 0) > 0 && !widget.store.settings.hideBalance)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(compactMoney(st!.total),
+                        maxLines: 1,
+                        style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: fg)),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

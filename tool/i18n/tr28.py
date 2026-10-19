@@ -1,0 +1,22 @@
+# -*- coding: utf-8 -*-
+T = []
+def t(i, en, zh): T.append((i, en, zh))
+# 5.11.0: Beranda dua kartu (Maskot dan Ritme), kalender dengan jumlah
+t('Terpakai {0}', 'Spent {0}', '已用 {0}')
+t('Jatah {0} · {1} hari lagi', 'Allowance {0} · {1} days left', '额度 {0} · 还剩 {1} 天')
+t('Keuangan aman terkendali.', 'Your money is under control.', '财务状况良好。')
+t('Pengeluaran masih wajar.', 'Spending is still reasonable.', '支出仍属合理。')
+t('Jatah hari ini mulai menipis.', "Today's allowance is running low.", '今日额度正在减少。')
+t('Jatah hari ini hampir habis.', "Today's allowance is almost gone.", '今日额度快用完了。')
+t('Sudah lewat jatah hari ini.', "You're over today's allowance.", '今天已超出额度。')
+t('Belum mencatat. Ketuk untuk mulai.', 'Nothing logged yet. Tap to start.', '还没有记账。点按开始。')
+t('Status {0}', '{0} status', '{0}状态')
+t('Ritme anggaran', 'Budget pace', '预算节奏')
+t('Isi anggaran untuk melihat ritme pengeluaran.', 'Set a budget to see your spending pace.', '设置预算即可查看支出节奏。')
+t('anggaran terpakai', 'of budget used', '预算已用')
+t('Hari ke-{0} dari {1}', 'Day {0} of {1}', '第 {0} 天，共 {1} 天')
+t('Baris di bawah kartu utama', 'Row below the main card', '主卡片下方一行')
+t('Status singkat dan emoji maskot', 'Short status and mascot emoji', '简短状态和吉祥物表情')
+t('Ritme', 'Pace', '节奏')
+t('Anggaran terpakai dibanding hari di periode', 'Budget used versus days elapsed in the period', '预算使用量与周期已过天数对比')
+t('Kartu di bawahnya', 'Cards below', '其下的卡片')

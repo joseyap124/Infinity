@@ -75,6 +75,39 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
               'Centang kartu yang mau tampil, tahan dan geser untuk mengubah urutan. Aman dibelanjakan, saldo, dan hal yang perlu dicek selalu tampil paling atas.',
               style: TextStyle(fontSize: 12.5, color: C.muted)),
           const SizedBox(height: 8),
+          Text(tr('Baris di bawah kartu utama'),
+              style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: C.muted)),
+          CheckboxListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+            controlAffinity: ListTileControlAffinity.trailing,
+            activeColor: C.accentDark,
+            title: Text(tr('Maskot'),
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: Text(tr('Status singkat dan emoji maskot')),
+            value: widget.store.settings.homeMaskot,
+            onChanged: (v) => setState(
+                () => widget.store.updateSettings((s) => s.homeMaskot = v == true)),
+          ),
+          CheckboxListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+            controlAffinity: ListTileControlAffinity.trailing,
+            activeColor: C.accentDark,
+            title: Text(tr('Ritme'),
+                style: const TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: Text(tr('Anggaran terpakai dibanding hari di periode')),
+            value: widget.store.settings.homeRitme,
+            onChanged: (v) => setState(
+                () => widget.store.updateSettings((s) => s.homeRitme = v == true)),
+          ),
+          const SizedBox(height: 4),
+          Text(tr('Kartu di bawahnya'),
+              style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: C.muted)),
           ReorderableListView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -127,6 +160,10 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
                     if (!kDefaultHomeCards.contains(k)) k,
                 ];
                 _on = {...kDefaultHomeCards};
+              });
+              widget.store.updateSettings((s) {
+                s.homeMaskot = true;
+                s.homeRitme = true;
               });
               _save();
             },

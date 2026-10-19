@@ -3,7 +3,17 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.9.2)
+## Berikutnya (v5.11.0)
+
+### Diubah
+- **Beranda dua kartu.** Kartu utama sekarang berisi sisa jatah hari ini, bar, "Terpakai" dan "Jatah", lalu Total saldo. Cincin dan maskot besar diganti baris dua kartu: **Maskot** ("Status Owl", titik status, emoji, satu kalimat kondisi) dan **Ritme** (persen anggaran terpakai dibanding hari di periode). Titik status tidak berkedip, dan kalimatnya tetap menjelaskan kondisi sehingga tidak bergantung pada warna. Owl, Rubah, dan Gagak tampil sebagai emoji; maskot klasik dan gambar sendiri tetap memakai gambarnya. Tanpa anggaran bulanan, kartu Ritme mengajak mengisinya.
+- **Catat cepat jadi satu baris, tiga kolom** (tiga template pertama; sisanya lewat Semua).
+
+### Ditambah
+- **Jumlah pengeluaran di kotak kalender** (Riwayat > Kalender dan Statistik > Kalender), ringkas seperti "25 rb". Tidak tampil kalau saldo disembunyikan.
+- **Atur Beranda**: pilihan menampilkan kartu Maskot dan Ritme.
+
+## v5.9.2 (15 Okt 2026)
 
 ### Diperbaiki
 - **Penjaga satu jendela.** Kalau Infinity sudah terbuka lalu dibuka lagi dari luar (ikon, widget, notifikasi, pintasan), jendela baru langsung ditutup dan jendela lama dibawa ke depan, lengkap dengan aksi yang dibawa. Sebelumnya dua jendela bisa hidup sekaligus, masing-masing memegang salinan data sendiri, dan salinan yang lebih lama bisa menimpa yang baru. Ini bagian dari penyebab data yang kadang kembali ke kondisi lama. Perbaikan ini belum terbukti di HP: kalau penyebabnya ternyata dua proses, bukan dua jendela, penjaga ini tidak menolong.
