@@ -3,6 +3,20 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.1.0)
+
+### Logo bergerak
+- **Animasi pembuka lebih hidup**: koin berputar saat jatuh, memantul dua kali, dan gepeng sedikit saat mendarat. Pita berdenyut sekali, ada riak tipis dari tempat koin mendarat, kilau lewat di koin, dan huruf *Infinity* naik satu per satu. Lamanya 2 detik (sebelumnya 1,8 detik); versi *Tiap buka* tetap sekitar 1 detik.
+- **Warna animasi pembuka ikut paket gaya** (Malam Biru, Kuning Ceria, Merah Kafe) dan tema gelap. Di latar gelap atau kuning, logo diletakkan di atas cakram krem supaya garis tinta logo tetap terbaca. Latar mulai dari krem yang sama dengan splash Android, lalu bergeser ke warna paket dalam sekitar 0,2 detik.
+- **Logo bisa diketuk** di halaman Bantuan (menu Lainnya) dan di panduan pertama kali: koin melompat, berputar sekali, lalu mendarat. Main sekali saat halaman terbuka. Tidak bergerak kalau *Kurangi animasi* di HP menyala.
+- Bintang kecil di logo sekarang bergaris tinta; yang putih polos nyaris tidak terlihat di atas krem.
+
+### Diperbaiki
+- Layar tunggu sebelum animasi pembuka berwarna gelap padahal splash Android krem, jadi saat membuka app bisa berkedip krem, gelap, krem. Sekarang krem.
+
+### Belum terbukti
+- Semua gerak ini baru diuji lewat pratinjau di browser dan tes otomatis untuk garis waktunya. Belum dilihat di HP. Splash Android sebelum app siap tetap krem dan diam.
+
 ## v6.0.0 (19 Okt 2026)
 
 Rilis penanda untuk rangkaian 5.11 sampai 5.14.1. Tidak ada perubahan kode dibanding 5.14.1; isinya sama persis, hanya nomornya yang naik supaya satu paket perubahan ini mudah disebut. Yang berubah sejak 5.10:

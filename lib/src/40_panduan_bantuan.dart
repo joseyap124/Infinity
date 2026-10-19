@@ -51,7 +51,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (logo)
-            const InfinityLogo(size: 104)
+            const AnimatedInfinityLogo(size: 104)
           else
             CatIcon(icon: icon, color: color, size: 96),
           const SizedBox(height: 20),
@@ -246,6 +246,8 @@ class HelpPage extends StatelessWidget {
       body: ListView(
         padding: pagePad(context, 32),
         children: [
+          const Center(child: AnimatedInfinityLogo(size: 88)),
+          const SizedBox(height: 12),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

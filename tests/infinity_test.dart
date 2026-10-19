@@ -3428,4 +3428,102 @@ void main() {
       expect(s.widgetData()['w_skin'], 'crow');
     });
   });
+
+  group('Gerak logo (v6.1)', () {
+    double ratio(Color a, Color b) {
+      final x = a.computeLuminance(), y = b.computeLuminance();
+      final hi = x > y ? x : y, lo = x > y ? y : x;
+      return (hi + 0.05) / (lo + 0.05);
+    }
+
+    test('animasi pembuka mulai kosong dan berakhir utuh', () {
+      final a = LogoMotion.intro(0);
+      expect(a.draw, 0);
+      expect(a.coin, false);
+      expect(a.bgMix, 0);
+      for (final s in a.sparks) {
+        expect(s, closeTo(0, 1e-9));
+      }
+      final z = LogoMotion.intro(1);
+      expect(z.draw, 1);
+      expect(z.coin, true);
+      expect(z.bgMix, 1);
+      expect(z.coinY, closeTo(128, 1e-9));
+      expect(z.coinSX, closeTo(1, 1e-9));
+      expect(z.coinSY, closeTo(1, 1e-9));
+      expect(z.pulse, closeTo(1, 1e-9));
+      for (final s in z.sparks) {
+        expect(s, closeTo(1, 1e-9));
+      }
+    });
+
+    test('pita tergambar tanpa mundur dan koin mendarat tepat di pita', () {
+      var last = -1.0;
+      for (var i = 0; i <= 100; i++) {
+        final d = LogoMotion.intro(i / 100).draw;
+        expect(d, greaterThanOrEqualTo(last));
+        last = d;
+      }
+      expect(LogoMotion.intro(0.54).coinY, closeTo(128, 1e-9));
+      expect(LogoMotion.intro(0.40).coinY, lessThan(128));
+      expect(LogoMotion.intro(0.64).coinY, closeTo(102, 1e-9));
+    });
+
+    test('koin tidak pernah masuk ke bawah pita dan tidak melebar', () {
+      for (var i = 0; i <= 200; i++) {
+        final m = LogoMotion.intro(i / 200);
+        expect(m.coinY, lessThanOrEqualTo(128 + 1e-9), reason: 'i=$i');
+        expect(m.coinSX, inInclusiveRange(1, 1.2), reason: 'i=$i');
+        expect(m.coinSY, inInclusiveRange(0.78, 1), reason: 'i=$i');
+      }
+    });
+
+    test('logo diam sama dengan awal dan akhir gerak ketukan', () {
+      for (final m in [LogoMotion.rest(), LogoMotion.tap(1)]) {
+        expect(m.coinY, closeTo(128, 1e-9));
+        expect(m.coinSX, closeTo(1, 1e-9));
+        expect(m.coinSY, closeTo(1, 1e-9));
+        expect(m.pulse, closeTo(1, 1e-9));
+        expect(m.draw, 1);
+        for (final s in m.sparks) {
+          expect(s, closeTo(1, 1e-9));
+        }
+      }
+      final mid = LogoMotion.tap(0.25);
+      expect(mid.coinY, lessThan(128));
+    });
+
+    test('warna animasi pembuka per paket dan tema', () {
+      final light = splashLook('classic', dark: false);
+      expect(light.bg, kSplashCream);
+      expect(light.hasDisc, false);
+      final dark = splashLook('classic', dark: true);
+      expect(dark.hasDisc, true);
+      expect(dark.bg, const Color(0xFF121316));
+      expect(splashLook('tidak ada', dark: false).bg, kSplashCream);
+      for (final id in kStylePacks.keys) {
+        final l = splashLook(id, dark: false);
+        expect(l.bg, kStylePacks[id]!.bg, reason: id);
+        expect(l.hasDisc, true, reason: id);
+      }
+      expect(splashLook('kuning', dark: false).discRingWidth, 7);
+      expect(splashLook('malam', dark: false).discRingWidth, 5);
+    });
+
+    test('tulisan Infinity terbaca di semua latar splash', () {
+      final looks = [
+        splashLook('classic', dark: false),
+        splashLook('classic', dark: true),
+        for (final id in kStylePacks.keys) splashLook(id, dark: false),
+      ];
+      for (final l in looks) {
+        expect(ratio(l.bg, l.text), greaterThan(7), reason: '${l.bg}');
+      }
+    });
+
+    test('durasi versi singkat lebih pendek dan tetap di bawah 1,5 detik', () {
+      expect(kSplashQuickMs, lessThan(kSplashMs));
+      expect(kSplashQuickMs, lessThan(1500));
+    });
+  });
 }
