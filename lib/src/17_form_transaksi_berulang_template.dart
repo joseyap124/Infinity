@@ -1019,6 +1019,39 @@ class _TxFormSheetState extends State<TxFormSheet> {
     });
   }
 
+  /// Keypad angka bisa disembunyikan supaya daftar kategori lega. Pilihannya
+  /// diingat selama app terbuka.
+  static bool _numpadOpen = true;
+
+  Widget _numpadToggle() {
+    final label = _numpadOpen ? 'Sembunyikan angka' : 'Tampilkan angka';
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => setState(() => _numpadOpen = !_numpadOpen),
+        child: SizedBox(
+          height: 32,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                  _numpadOpen
+                      ? Icons.keyboard_arrow_down_rounded
+                      : Icons.keyboard_arrow_up_rounded,
+                  size: 22,
+                  color: C.muted),
+              const SizedBox(width: 4),
+              Text(tr(label), style: TextStyle(fontSize: 12, color: C.muted)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _numpad() {
     final dec = hasDecimals(_fromCur);
     final keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', dec ? '.' : '000', '0', 'del'];
@@ -1039,7 +1072,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 onTap: () => _key(k),
                 onLongPress: isDel ? _clearAmount : null,
                 child: SizedBox(
-                  height: 46,
+                  height: 42,
                   child: Center(
                     child: isDel
                         ? Icon(Icons.backspace_outlined,
@@ -1391,10 +1424,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
                     _error = null;
                   });
                 },
+                // Tanpa alignment: Container beralignment memenuhi lebar yang
+                // tersedia, sehingga tiap nominal jadi satu baris penuh.
                 child: Container(
-                  constraints: const BoxConstraints(minHeight: 40),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  alignment: Alignment.center,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: accent),
@@ -2088,18 +2122,21 @@ class _TxFormSheetState extends State<TxFormSheet> {
                             padding: const EdgeInsets.only(bottom: 8),
                             child: ErrorBox(_error!),
                           ),
-                        _numpad(),
-                        const SizedBox(height: 10),
+                        _numpadToggle(),
+                        if (_numpadOpen) _numpad(),
+                        const SizedBox(height: 8),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 3),
                           child: Row(
                             children: [
                               if (widget.onContinue != null && !widget.isEditing) ...[
                                 Expanded(
-                                  flex: 4,
+                                  flex: 5,
                                   child: OutlinedButton(
                                     onPressed: _submitContinue,
                                     style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
                                       minimumSize: const Size.fromHeight(52),
                                       foregroundColor: accent,
                                       side: BorderSide(color: accent, width: 1.5),
@@ -2117,7 +2154,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                                 const SizedBox(width: 8),
                               ],
                               Expanded(
-                                flex: 6,
+                                flex: 5,
                                 child: PrimaryButton(
                                   label: _saveLabel,
                                   color: accent,

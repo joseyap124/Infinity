@@ -1685,4 +1685,6 @@ const Map<String, String> kZhStrings = {
   'Buka utang & piutang': '打开债务与应收款',
   'Tampilan daftar': '列表视图',
   'Tampilan kalender': '日历视图',
+  'Sembunyikan angka': '隐藏数字键盘',
+  'Tampilkan angka': '显示数字键盘',
 };

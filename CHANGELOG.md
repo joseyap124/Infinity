@@ -3,7 +3,19 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.2.1)
+## Berikutnya (v6.2.2)
+
+### Diperbaiki
+- **Nominal "Biasanya di ..." di form Catat tampil selebar layar**, satu baris per nominal, sehingga memakan sekitar 300 px dan mendorong daftar kategori ke bawah keypad. Bug sejak 5.12.0 (kotak berisi `alignment` mengisi lebar yang tersedia). Sekarang berupa chip kecil sebaris dengan labelnya.
+- Tombol *Simpan & lanjut* tidak lagi patah jadi dua baris; lebar dua tombol simpan dibuat sama.
+
+### Diubah
+- **Keypad angka bisa disembunyikan** dengan tombol *Sembunyikan angka* di atasnya, supaya daftar kategori lebih lega. Pilihannya diingat selama app terbuka. Tinggi tiap tombol angka juga dikurangi sedikit (46 jadi 42).
+
+### Belum terbukti
+- Belum dilihat di HP. Perbaikan chip diturunkan dari screenshot Jose dan kode, bukan dari penampakan hasilnya.
+
+## v6.2.1 (19 Okt 2026)
 
 ### Diperbaiki
 - **Error "Null check operator used on a null value"** yang tercatat di Laporan error setiap kali widget, pintasan ikon, atau tombol notifikasi membuka Infinity. Alamat `infinity://...` yang dibawa ketukan itu ternyata juga dikirim ke sistem rute Flutter, yang tidak punya rute bernama. Tidak merusak data dan app tetap terbuka, hanya mengotori laporan. Sekarang pengiriman alamat ke rute dimatikan; widget dan pintasan tetap ditangani lewat home_widget seperti sebelumnya.

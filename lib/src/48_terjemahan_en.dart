@@ -1686,6 +1686,8 @@ const Map<String, String> kEnStrings = {
   'Buka utang & piutang': 'Open debts & receivables',
   'Tampilan daftar': 'List view',
   'Tampilan kalender': 'Calendar view',
+  'Sembunyikan angka': 'Hide keypad',
+  'Tampilkan angka': 'Show keypad',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.
