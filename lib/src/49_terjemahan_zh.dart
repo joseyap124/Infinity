@@ -1566,4 +1566,11 @@ const Map<String, String> kZhStrings = {
   'Simpan & lanjut': '保存并继续',
   'Batalkan': '撤销',
   'Ketuk untuk langsung catat, tahan untuk ubah dulu.': '点按直接记账，长按先编辑。',
+  'Pulihkan versi ini?': '恢复此版本？',
+  'versi {0}': '{0} 的版本',
+  'Versi harian di HP': '手机上的每日版本',
+  'Infinity menyimpan salinan terkunci sekali sehari di dalam app ({0} hari terakhir). Dipakai kalau data tiba-tiba kembali ke kondisi lama. Salinan ikut hilang kalau app di-uninstall; untuk itu pakai backup di Download.': 'Infinity 每天在应用内保存一份加密副本（最近 {0} 天）。如果数据突然回到旧状态，可以用它恢复。卸载应用后这些副本会消失；那种情况请使用“下载”里的备份。',
+  '{0} transaksi, {1} kantong': '{0} 笔交易，{1} 个账户',
+  'Salinan terlalu pendek': '副本太短',
+  'Salinan tidak bisa dibuka': '无法打开副本',
 };

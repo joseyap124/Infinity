@@ -3215,4 +3215,29 @@ void main() {
       expect(s.widgetData()['w_skin_path'], '/data/x/maskot.png');
     });
   });
+
+  group('Salinan harian (v5.13)', () {
+    test('nama file bolak-balik ke tanggal', () {
+      final n = DataFile.snapFileName(DateTime(2026, 10, 9, 23, 59));
+      expect(n, 'infinity_data.bin.snap_20261009');
+      expect(DataFile.snapFileDay('/a/b/$n'), DateTime(2026, 10, 9));
+      expect(DataFile.snapFileDay('infinity_data.bin'), isNull);
+      expect(DataFile.snapFileDay('infinity_data.bin.snap_2026'), isNull);
+      expect(DataFile.snapFileDay('infinity_data.bin.snap_abcdefgh'), isNull);
+    });
+
+    test('pangkas menyisakan yang terbaru dan tidak menyentuh file lain', () {
+      final names = [
+        for (var d = 1; d <= 10; d++)
+          DataFile.snapFileName(DateTime(2026, 10, d)),
+        'infinity_data.bin',
+        'infinity_data.bin.timpa_123',
+      ];
+      final del = DataFile.snapsToPrune(names, 7);
+      expect(del.length, 3);
+      expect(del.map(DataFile.snapFileDay).map((d) => d!.day).toSet(),
+          {1, 2, 3});
+      expect(DataFile.snapsToPrune(names.take(5).toList(), 7), isEmpty);
+    });
+  });
 }

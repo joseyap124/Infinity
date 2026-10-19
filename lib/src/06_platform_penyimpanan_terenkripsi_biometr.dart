@@ -530,6 +530,92 @@ class DataFile {
     } catch (_) {}
   }
 
+  // ---- Salinan harian (v5.13): salinan file data terenkripsi, satu per hari,
+  // disimpan di folder app. Dibuat dari file yang baru saja terbaca utuh,
+  // sebelum ada tulisan hari itu. Tidak menyentuh jalur tulis data.
+  static const String _snapPrefix = 'infinity_data.bin.snap_';
+  static const int kKeepSnapshots = 7;
+
+  static String snapFileName(DateTime d) =>
+      '$_snapPrefix${d.year.toString().padLeft(4, '0')}'
+      '${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
+
+  /// Tanggal dari nama file salinan harian; null kalau bukan salinan.
+  static DateTime? snapFileDay(String name) {
+    final n = name.split('/').last;
+    if (!n.startsWith(_snapPrefix)) return null;
+    final t = n.substring(_snapPrefix.length);
+    if (t.length != 8) return null;
+    final y = int.tryParse(t.substring(0, 4));
+    final m = int.tryParse(t.substring(4, 6));
+    final d = int.tryParse(t.substring(6, 8));
+    if (y == null || m == null || d == null) return null;
+    return DateTime(y, m, d);
+  }
+
+  /// Nama salinan yang perlu dihapus supaya tersisa [keep] yang terbaru.
+  static List<String> snapsToPrune(List<String> names, int keep) {
+    final snaps = names.where((n) => snapFileDay(n) != null).toList()
+      ..sort((a, b) => snapFileDay(b)!.compareTo(snapFileDay(a)!));
+    return snaps.skip(keep).toList();
+  }
+
+  /// Buat salinan hari ini kalau belum ada. Aman dipanggil berkali-kali.
+  static Future<void> snapshotToday() async {
+    final f = _file;
+    if (f == null || !f.existsSync()) return;
+    try {
+      if (f.lengthSync() < 28) return;
+      final dir = f.parent;
+      final dest = File('${dir.path}/${snapFileName(DateTime.now())}');
+      if (!dest.existsSync()) {
+        await f.copy('${dest.path}.tmp');
+        await File('${dest.path}.tmp').rename(dest.path);
+        jot('salinan harian dibuat: ${dest.path.split('/').last}');
+      }
+      final names = dir.listSync().whereType<File>().map((e) => e.path).toList();
+      for (final old in snapsToPrune(names, kKeepSnapshots)) {
+        try {
+          File(old).deleteSync();
+        } catch (_) {}
+      }
+    } catch (e) {
+      jot('salinan harian GAGAL: ${_short(e)}');
+    }
+  }
+
+  /// Salinan harian yang ada, terbaru dulu.
+  static List<File> snapshots() {
+    final f = _file;
+    if (f == null) return const [];
+    try {
+      final l = f.parent
+          .listSync()
+          .whereType<File>()
+          .where((e) => snapFileDay(e.path) != null)
+          .toList()
+        ..sort((a, b) => snapFileDay(b.path)!.compareTo(snapFileDay(a.path)!));
+      return l;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Isi salinan harian sebagai teks JSON. Lempar kalau tidak bisa dibuka.
+  static Future<String> readSnapshot(File snap) async {
+    final b = await snap.readAsBytes();
+    if (b.length < 28) throw const FormatException('Salinan terlalu pendek');
+    final key = _key;
+    if (key != null) {
+      try {
+        return await _decrypt(b, key);
+      } catch (_) {}
+    }
+    final alt = _alt;
+    if (alt != null) return _decrypt(b, alt);
+    throw const FormatException('Salinan tidak bisa dibuka');
+  }
+
   // ---- Jejak penyimpanan: catatan singkat tiap muat/simpan, untuk melacak
   // kenapa perubahan kadang tidak bertahan setelah app dibuka ulang.
   static File? _jf;

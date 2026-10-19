@@ -3,7 +3,13 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.12.1)
+## Berikutnya (v5.13.0)
+
+### Ditambah
+- **Versi harian di HP.** Tiap hari, begitu data terbaca utuh saat app dibuka, Infinity menyalin file datanya (tetap terenkripsi) ke folder app, dan menyimpan 7 hari terakhir. Di Backup & Pulihkan ada daftar "Versi harian di HP" (tanggal, jumlah transaksi dan kantong) dengan tombol Pulihkan. Sebelum memulihkan, data sekarang disimpan dulu ke Download/Infinity, sama seperti pulihkan dari file. Gunanya untuk kasus data tiba-tiba kembali ke kondisi lama. Salinan ini hilang kalau app di-uninstall; untuk itu backup di Download tetap yang dipakai.
+- Salinan dibuat dari file yang baru saja terbaca, sebelum ada tulisan hari itu. Jalur tulis data tidak diubah.
+
+## v5.12.1 (19 Okt 2026)
 
 ### Diubah
 - **Catat cepat langsung menyimpan.** Ketuk template di Beranda: transaksi langsung tersimpan dengan tanggal dan jam sekarang, lalu muncul "Batalkan" selama beberapa detik. Tekan-tahan template untuk membuka form dulu. Kalau template belum lengkap (nominal kosong, kategori atau akun sudah dihapus, jumlah diterima kosong untuk transfer beda mata uang) atau saldo/limit akun tidak cukup, form tetap dibuka seperti sebelumnya supaya bisa dilengkapi. Halaman Template tetap membuka form.

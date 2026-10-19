@@ -124,6 +124,8 @@ class AppStore extends ChangeNotifier {
     loaded = true;
     DataFile.jot(
         'dimuat: transaksi=${transactions.length} anggaran=${settings.globalBudget.round()}');
+    // Salinan harian dari file yang baru terbaca utuh, sebelum tulisan hari ini.
+    if (raw != null && _useFile && !fromLegacy) await DataFile.snapshotToday();
     await flush();
     if (fromLegacy && _useFile) {
       // Pindah ke file terenkripsi. Salinan lama baru dikosongkan setelah
@@ -1808,6 +1810,29 @@ class AppStore extends ChangeNotifier {
       await NativeBridge.pruneBackups(kKeepBackups);
     }
     return ok;
+  }
+
+  /// Salinan harian di folder app (v5.13), terbaru dulu. Yang tidak bisa
+  /// dibuka dilewati.
+  Future<List<({File file, DateTime day, BackupInfo info})>>
+      localSnapshots() async {
+    final out = <({File file, DateTime day, BackupInfo info})>[];
+    for (final f in DataFile.snapshots()) {
+      try {
+        final raw = await DataFile.readSnapshot(f);
+        out.add((
+          file: f,
+          day: DataFile.snapFileDay(f.path)!,
+          info: AppStore.peekJson(raw),
+        ));
+      } catch (_) {}
+    }
+    return out;
+  }
+
+  /// Ganti data dengan salinan harian. Panggil [backupBeforeRestore] dulu.
+  Future<void> restoreLocalSnapshot(File f) async {
+    importJson(await DataFile.readSnapshot(f));
   }
 
   /// Ada data yang berarti di HP ini (bukan app yang masih kosong).

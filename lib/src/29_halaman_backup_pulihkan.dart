@@ -19,6 +19,92 @@ class _BackupPageState extends State<BackupPage> {
   AppStore get store => widget.store;
   final _importCtrl = TextEditingController();
   String? _error;
+  late Future<List<({File file, DateTime day, BackupInfo info})>> _snaps =
+      store.localSnapshots();
+
+  Future<void> _restoreSnapshot(
+      ({File file, DateTime day, BackupInfo info}) s) async {
+    final label = DateFormat('d MMM yyyy', gDateLoc).format(s.day);
+    final ok = await confirmDialog(context,
+        title: 'Pulihkan versi ini?',
+        message: _compareText(tr('versi {0}', [label]), s.info),
+        confirmLabel: 'Pulihkan',
+        destructive: true);
+    if (!ok || !mounted) return;
+    if (!await _saveCurrentFirst()) return;
+    try {
+      await store.restoreLocalSnapshot(s.file);
+      if (!mounted) return;
+      setState(() {
+        _error = null;
+        _snaps = store.localSnapshots();
+      });
+      snack(context, 'Data berhasil dipulihkan ✅');
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Gagal memulihkan: $e');
+    }
+  }
+
+  Widget _snapshotsCard() {
+    final day = DateFormat('EEE, d MMM', gDateLoc);
+    final today = DateTime.now();
+    return FutureBuilder<List<({File file, DateTime day, BackupInfo info})>>(
+      future: _snaps,
+      builder: (context, snap) {
+        final list = snap.data ?? const [];
+        if (list.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SectionTitle('Versi harian di HP'),
+                const SizedBox(height: 6),
+                Text(
+                    tr('Infinity menyimpan salinan terkunci sekali sehari di dalam app ({0} hari terakhir). Dipakai kalau data tiba-tiba kembali ke kondisi lama. Salinan ikut hilang kalau app di-uninstall; untuk itu pakai backup di Download.',
+                        [DataFile.kKeepSnapshots]),
+                    style: TextStyle(fontSize: 12.5, color: C.muted, height: 1.35)),
+                const SizedBox(height: 8),
+                for (final s in list)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  s.day.year == today.year &&
+                                          s.day.month == today.month &&
+                                          s.day.day == today.day
+                                      ? tr('Hari ini')
+                                      : day.format(s.day),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w800)),
+                              Text(
+                                  tr('{0} transaksi, {1} kantong',
+                                      [s.info.transactions, s.info.accounts]),
+                                  style:
+                                      TextStyle(fontSize: 12.5, color: C.muted)),
+                            ],
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => _restoreSnapshot(s),
+                          child: const Text('Pulihkan'),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -430,6 +516,7 @@ class _BackupPageState extends State<BackupPage> {
           const SizedBox(height: 12),
           ExportExcelCard(store: store),
           const SizedBox(height: 12),
+          _snapshotsCard(),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

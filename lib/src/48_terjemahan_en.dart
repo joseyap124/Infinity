@@ -1567,6 +1567,13 @@ const Map<String, String> kEnStrings = {
   'Simpan & lanjut': 'Save & next',
   'Batalkan': 'Undo',
   'Ketuk untuk langsung catat, tahan untuk ubah dulu.': 'Tap to record right away, hold to edit first.',
+  'Pulihkan versi ini?': 'Restore this version?',
+  'versi {0}': 'version {0}',
+  'Versi harian di HP': 'Daily versions on this phone',
+  'Infinity menyimpan salinan terkunci sekali sehari di dalam app ({0} hari terakhir). Dipakai kalau data tiba-tiba kembali ke kondisi lama. Salinan ikut hilang kalau app di-uninstall; untuk itu pakai backup di Download.': 'Infinity keeps one locked copy per day inside the app (last {0} days). Use it if your data suddenly goes back to an older state. The copies are lost if the app is uninstalled; for that, use the backups in Downloads.',
+  '{0} transaksi, {1} kantong': '{0} transactions, {1} accounts',
+  'Salinan terlalu pendek': 'The copy is too short',
+  'Salinan tidak bisa dibuka': 'The copy could not be opened',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.
