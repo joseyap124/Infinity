@@ -1559,6 +1559,8 @@ const Map<String, String> kEnStrings = {
   'Ritme': 'Pace',
   'Anggaran terpakai dibanding hari di periode': 'Budget used versus days elapsed in the period',
   'Kartu di bawahnya': 'Cards below',
+  'Dipilih manual': 'Chosen manually',
+  'Otomatis dari riwayat catatan': 'Automatic, from your note history',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

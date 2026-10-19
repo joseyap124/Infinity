@@ -48,6 +48,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
   final _titleCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
   final _titleFocus = FocusNode();
+  bool _catAuto = false; // kategori terisi otomatis dari riwayat catatan
+  bool _catManual = false; // kategori dipilih sendiri di form ini
 
   /// true kalau user sudah memilih kategori sendiri (jangan ditimpa tebakan).
   late bool _catTouched;
@@ -310,12 +312,20 @@ class _TxFormSheetState extends State<TxFormSheet> {
   /// Selesai mengetik judul: isi kategori dari kebiasaan (kalau kategori
   /// belum dipilih sendiri).
   void _onTitleFocus() {
-    if (_titleFocus.hasFocus || _catTouched || !mounted) return;
+    if (_titleFocus.hasFocus) return;
+    _applyLearned();
+  }
+
+  /// Isi kategori dari kebiasaan (catatan yang sama) kalau belum dipilih
+  /// sendiri. Dipanggil saat kolom Catatan ditinggalkan dan sebelum simpan.
+  void _applyLearned() {
+    if (_catTouched || !mounted) return;
     if (_type == TxType.transfer) return;
     final cat = store.learnedCategory(_titleCtrl.text, _type);
     if (cat == null || cat == _categoryId) return;
     setState(() {
       _categoryId = cat;
+      _catAuto = true;
       _info =
           'Kategori ${store.categoryById(cat)?.name ?? ''} dipilih dari kebiasaanmu. Ketuk kategori untuk mengganti.';
     });
@@ -328,6 +338,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       final cat = store.learnedCategory(title, _type) ?? last.categoryId;
       if (!_catTouched && cat != null && store.categoryById(cat) != null) {
         _categoryId = cat;
+        _catAuto = true;
       }
       _error = null;
     });
@@ -426,6 +437,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
   }
 
   void _submit() {
+    _applyLearned();
     final amount = _amount;
     String? err;
     double? toAmount;
@@ -513,14 +525,6 @@ class _TxFormSheetState extends State<TxFormSheet> {
   }
 
   // ------------------------------------------------------------ pemilih (gaya Money Manager)
-
-  String _categoryLabel() {
-    final c = store.categoryById(_categoryId);
-    if (c == null) return '';
-    final pid = c.parentId;
-    final p = pid == null ? null : store.categoryById(pid);
-    return p == null ? c.name : '${p.name} / ${c.name}';
-  }
 
   void _clearSplits() {
     for (final s in _splits) {
@@ -731,15 +735,152 @@ class _TxFormSheetState extends State<TxFormSheet> {
     setState(() {
       _categoryId = id;
       _catTouched = true;
+      _catAuto = false;
+      _catManual = true;
       _error = null;
     });
-    // Kategori sudah dipilih dan catatan masih kosong: langsung ke kolom
-    // catatan dengan keyboard terbuka.
-    if (_titleCtrl.text.trim().isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _titleFocus.requestFocus();
-      });
+  }
+
+  /// Kategori yang paling sering dipakai untuk jenis ini (lima teratas).
+  List<String> _topCategoryIds() {
+    final count = <String, int>{};
+    for (final t in store.transactions) {
+      if (t.type != _type) continue;
+      final id = t.categoryId;
+      if (id == null || store.categoryById(id) == null) continue;
+      count[id] = (count[id] ?? 0) + 1;
     }
+    final ids = count.keys.toList()
+      ..sort((a, b) => count[b]!.compareTo(count[a]!));
+    return ids.take(5).toList();
+  }
+
+  Widget _catChip(String id, Color accent) {
+    final c = store.categoryById(id)!;
+    final selected = id == _categoryId;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => setState(() {
+          _categoryId = id;
+          _catTouched = true;
+          _catAuto = false;
+          _catManual = true;
+          _error = null;
+        }),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: selected ? accent : C.line, width: selected ? 2 : 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CatIcon(
+                  icon: c.iconData, art: c.art, color: c.colorValue, size: 24),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(c.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                        color: C.carbon)),
+              ),
+              if (selected) ...[
+                const SizedBox(width: 4),
+                Icon(Icons.check_rounded, size: 16, color: accent),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Baris Kategori berupa chip: pilihan sekarang, lima yang sering dipakai,
+  /// dan "Semua kategori" yang membuka panel lengkap.
+  Widget _categoryChips(Color accent) {
+    final ids = <String>[
+      if (_categoryId != null && store.categoryById(_categoryId) != null)
+        _categoryId!,
+      for (final id in _topCategoryIds())
+        if (id != _categoryId) id,
+    ].take(6).toList();
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: C.line))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(tr('Kategori'),
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: C.muted,
+                        fontWeight: FontWeight.w600)),
+              ),
+              if (_canSplit && _categoryId != null)
+                TextButton(
+                  onPressed: _addSplit,
+                  style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      foregroundColor: accent),
+                  child: Text(tr('Bagi')),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final id in ids) _catChip(id, accent),
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: _pickCategory,
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: C.line),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.apps_rounded, size: 18, color: C.muted),
+                      const SizedBox(width: 6),
+                      Text(tr('Semua kategori'),
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: C.carbon)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_categoryId != null && (_catAuto || _catManual)) ...[
+            const SizedBox(height: 6),
+            Text(
+                _catManual
+                    ? tr('Dipilih manual')
+                    : tr('Otomatis dari riwayat catatan'),
+                style: TextStyle(fontSize: 12, color: C.muted)),
+          ],
+        ],
+      ),
+    );
   }
 
   Future<void> _pickAccount({required bool to}) async {
@@ -1788,9 +1929,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
                       keyboardType: TextInputType.numberWithOptions(
                           decimal: fromDecimals),
                       textInputAction: TextInputAction.next,
-                      // Selesai isi nominal -> langsung pilih kategori.
+                      // Selesai isi nominal -> lanjut ke Catatan; kategori
+                      // terisi otomatis dari riwayat atau dipilih lewat chip.
                       onSubmitted: (_) {
-                        if (!isTransfer) _pickCategory();
+                        if (!isTransfer) _titleFocus.requestFocus();
                       },
                       inputFormatters: [
                         AmountFormatter(decimals: fromDecimals)
@@ -1837,31 +1979,43 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 ],
               ),
             ),
+            FormRow(
+              label: mode == FormMode.template ? 'Nama' : 'Catatan',
+              accent: accent,
+              child: SuggestField(
+                controller: _titleCtrl,
+                focusNode: _titleFocus,
+                suggest: (q) => store.suggestTitles(q, _type),
+                detail: (t) {
+                  final last = store.lastWithTitle(t, _type);
+                  if (last == null) return null;
+                  final cat = store.categoryById(
+                          store.learnedCategory(t, _type) ?? last.categoryId)
+                      ?.name;
+                  return [
+                    money(last.amount, store.currencyOf(last.accountId)),
+                    ?cat,
+                    store.accountName(last.accountId),
+                  ].join(' · ');
+                },
+                onPicked: _pickedTitle,
+                textCapitalization: TextCapitalization.sentences,
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: C.carbon),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  hintText: tr('Opsional, misal "Nasi padang"'),
+                ),
+              ),
+            ),
             if (!isTransfer && _splitting && _canSplit)
               _splitCard(accent)
             else if (!isTransfer)
-              FormRow(
-                label: 'Kategori',
-                accent: accent,
-                onTap: _pickCategory,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: FormValue(
-                          _categoryId == null ? null : _categoryLabel(),
-                          placeholder: 'Pilih kategori'),
-                    ),
-                    if (_canSplit && _categoryId != null)
-                      TextButton(
-                        onPressed: _addSplit,
-                        style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            foregroundColor: accent),
-                        child: const Text('Bagi'),
-                      ),
-                  ],
-                ),
-              ),
+              _categoryChips(accent),
             FormRow(
               label: isTransfer ? 'Dari' : 'Akun',
               accent: accent,
@@ -1921,39 +2075,6 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 child: FormValue(store.eventById(_eventId)?.name,
                     placeholder: 'Tanpa acara'),
               ),
-            FormRow(
-              label: mode == FormMode.template ? 'Nama' : 'Catatan',
-              accent: accent,
-              child: SuggestField(
-                controller: _titleCtrl,
-                focusNode: _titleFocus,
-                suggest: (q) => store.suggestTitles(q, _type),
-                detail: (t) {
-                  final last = store.lastWithTitle(t, _type);
-                  if (last == null) return null;
-                  final cat = store.categoryById(
-                          store.learnedCategory(t, _type) ?? last.categoryId)
-                      ?.name;
-                  return [
-                    money(last.amount, store.currencyOf(last.accountId)),
-                    ?cat,
-                    store.accountName(last.accountId),
-                  ].join(' · ');
-                },
-                onPicked: _pickedTitle,
-                textCapitalization: TextCapitalization.sentences,
-                style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: C.carbon),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
-                  hintText: tr('Opsional, misal "Nasi padang"'),
-                ),
-              ),
-            ),
             FormRow(
               label: 'Deskripsi',
               accent: accent,

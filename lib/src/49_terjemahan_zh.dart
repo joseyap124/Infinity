@@ -1558,4 +1558,6 @@ const Map<String, String> kZhStrings = {
   'Ritme': '节奏',
   'Anggaran terpakai dibanding hari di periode': '预算使用量与周期已过天数对比',
   'Kartu di bawahnya': '其下的卡片',
+  'Dipilih manual': '手动选择',
+  'Otomatis dari riwayat catatan': '根据备注历史自动选择',
 };

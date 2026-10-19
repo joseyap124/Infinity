@@ -20,3 +20,6 @@ t('Status singkat dan emoji maskot', 'Short status and mascot emoji', '简短状
 t('Ritme', 'Pace', '节奏')
 t('Anggaran terpakai dibanding hari di periode', 'Budget used versus days elapsed in the period', '预算使用量与周期已过天数对比')
 t('Kartu di bawahnya', 'Cards below', '其下的卡片')
+# 5.11.0: form Catat, kategori berupa chip
+t('Dipilih manual', 'Chosen manually', '手动选择')
+t('Otomatis dari riwayat catatan', 'Automatic, from your note history', '根据备注历史自动选择')
