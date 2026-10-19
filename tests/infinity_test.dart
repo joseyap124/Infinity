@@ -3294,7 +3294,9 @@ void main() {
       expect(w.small!.count, 5);
       expect(w.small!.total, 125000);
       expect(w.small!.perYear, 6500000);
-      expect(w.topCategoryId, 'makan');
+      // Kategori terbesar mutlak ('lain' 630.000) bukan yang naik paling banyak.
+      expect(w.topCategoryId, 'lain');
+      expect(w.topCategoryAmount, 630000);
     });
 
     test('kenaikan kecil tidak disebut dan transaksi besar tidak dianggap kecil', () {
