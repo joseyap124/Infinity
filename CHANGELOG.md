@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.1.0)
+## v6.1.0 (19 Okt 2026)
 
 ### Logo bergerak
 - **Animasi pembuka lebih hidup**: koin berputar saat jatuh, memantul dua kali, dan gepeng sedikit saat mendarat. Pita berdenyut sekali, ada riak tipis dari tempat koin mendarat, kilau lewat di koin, dan huruf *Infinity* naik satu per satu. Lamanya 2 detik (sebelumnya 1,8 detik); versi *Tiap buka* tetap sekitar 1 detik.
