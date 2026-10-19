@@ -1693,4 +1693,6 @@ const Map<String, String> kZhStrings = {
   'KATEGORI': '分类',
   'CATATAN': '备注',
   '+ Tambah catatan atau struk': '+ 添加备注或小票',
+  'SEMUA': '全部',
+  'Catatan atau struk': '备注或小票',
 };

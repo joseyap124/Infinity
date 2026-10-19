@@ -1926,51 +1926,6 @@ class _TxFormSheetState extends State<TxFormSheet> {
   TextStyle get _fieldValue =>
       TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: C.carbon);
 
-  /// Kotak isian bergaya Money Manager: label kecil di atas, nilai di bawah.
-  Widget _fieldBox(String label, Widget value,
-      {IconData? icon,
-      Widget? trailing,
-      bool active = false,
-      required VoidCallback onTap}) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 52),
-        padding: const EdgeInsets.fromLTRB(12, 6, 10, 6),
-        decoration: BoxDecoration(
-          border: Border.all(
-              color: active ? _type.color : C.line, width: active ? 1.6 : 1),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(tr(label),
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
-                          color: C.muted)),
-                  const SizedBox(height: 2),
-                  value,
-                ],
-              ),
-            ),
-            if (trailing != null)
-              trailing
-            else if (icon != null)
-              Icon(icon, size: 18, color: C.muted),
-          ],
-        ),
-      ),
-    );
-  }
-
   String _categoryPath(TxCategory c) {
     final pid = c.parentId;
     final parent = pid == null ? null : store.categoryById(pid);
@@ -1983,12 +1938,60 @@ class _TxFormSheetState extends State<TxFormSheet> {
         _openParent = null;
       });
 
-  /// Bagian atas form (pengeluaran dan pemasukan): jenis, tanggal, akun, jumlah,
-  /// kategori, dan catatan sebagai baris isian. Pengisiannya lewat panel bawah.
+  void _closeCatPanel() => setState(() {
+        _catPanel = false;
+        _openParent = null;
+      });
+
+  /// Satu baris isian: ikon bulat di kiri, nilai, lalu penanda di kanan. Baris
+  /// yang aktif (panel bawahnya sedang terbuka) diberi warna latar.
+  Widget _fRow(
+      {required Widget leading,
+      required Widget value,
+      Widget? trailing,
+      bool active = false,
+      required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 52),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+        color: active ? _type.color.withValues(alpha: 0.10) : null,
+        child: Row(
+          children: [
+            leading,
+            const SizedBox(width: 12),
+            Expanded(child: value),
+            if (trailing != null) ...[const SizedBox(width: 8), trailing],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fIcon(IconData icon, {bool active = false}) {
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: active ? _type.color : C.surface,
+      ),
+      child: Icon(icon, size: 16, color: active ? Colors.white : C.carbon),
+    );
+  }
+
+  Widget _fDivider() =>
+      Divider(height: 1, thickness: 1, indent: 56, color: C.line);
+
+  /// Bagian atas form (pengeluaran dan pemasukan): jenis, lalu satu kartu
+  /// berisi tanggal, jumlah, kategori, akun, dan catatan. Pengisiannya lewat
+  /// panel bawah yang berganti.
   Widget _mmTop(Color accent,
       {required String shown, required bool empty, required String title}) {
     final cid = _categoryId;
     final c = cid == null ? null : store.categoryById(cid);
+    final noteEmpty = title.isEmpty && !_hasDetails;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -2001,115 +2004,115 @@ class _TxFormSheetState extends State<TxFormSheet> {
           onChanged: _changeType,
         ),
         const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _fieldBox('TANGGAL',
-                  Text(_dateLabel(), maxLines: 1, style: _fieldValue),
-                  icon: Icons.calendar_month_rounded, onTap: _pickDate),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _fieldBox(
-                  'AKUN',
-                  Text(store.accountName(_fromId),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: _fieldValue),
-                  icon: Icons.expand_more_rounded,
-                  onTap: () => _pickAccount(to: false)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        _fieldBox(
-          'JUMLAH',
-          Semantics(
-            label: 'Nominal $shown',
-            excludeSemantics: true,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(currencySymbol(_fromCur),
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: C.muted)),
-                  const SizedBox(width: 6),
-                  Text(shown,
-                      style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: empty
-                              ? C.muted.withValues(alpha: 0.45)
-                              : C.carbon)),
-                ],
-              ),
-            ),
-          ),
-          active: !_catPanel,
-          trailing: IconButton(
-            tooltip: tr('Kalkulator'),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-            onPressed: _openCalculator,
-            icon: Icon(Icons.calculate_rounded, color: accent),
-          ),
-          onTap: () => setState(() {
-            _catPanel = false;
-            _openParent = null;
-          }),
-        ),
-        const SizedBox(height: 8),
-        if (_splitting && _canSplit)
-          _splitCard(accent)
-        else
-          _fieldBox(
-            'KATEGORI',
-            Row(
+        ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            color: C.bg,
+            child: Column(
               children: [
-                if (c != null) ...[
-                  CatIcon(
-                      icon: c.iconData,
-                      art: c.art,
-                      color: c.colorValue,
-                      size: 26),
-                  const SizedBox(width: 8),
-                ],
-                Expanded(
-                  child: Text(c == null ? tr('Pilih kategori') : _categoryPath(c),
+                _fRow(
+                  leading: _fIcon(Icons.calendar_month_rounded),
+                  value: Text(_dateLabel(), maxLines: 1, style: _fieldValue),
+                  onTap: _pickDate,
+                ),
+                _fDivider(),
+                _fRow(
+                  leading: _fIcon(Icons.payments_rounded, active: !_catPanel),
+                  value: Semantics(
+                    label: 'Nominal $shown',
+                    excludeSemantics: true,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(currencySymbol(_fromCur),
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: C.muted)),
+                          const SizedBox(width: 6),
+                          Text(shown,
+                              style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w900,
+                                  color: empty
+                                      ? C.muted.withValues(alpha: 0.45)
+                                      : C.carbon)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  trailing: IconButton(
+                    tooltip: tr('Kalkulator'),
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 40, minHeight: 40),
+                    onPressed: _openCalculator,
+                    icon: Icon(Icons.calculate_rounded, color: accent),
+                  ),
+                  active: !_catPanel,
+                  onTap: _closeCatPanel,
+                ),
+                _fDivider(),
+                if (_splitting && _canSplit)
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: _splitCard(accent),
+                  )
+                else
+                  _fRow(
+                    leading: c == null
+                        ? _fIcon(Icons.category_rounded, active: _catPanel)
+                        : CatIcon(
+                            icon: c.iconData,
+                            art: c.art,
+                            color: c.colorValue,
+                            size: 30),
+                    value: Text(
+                        c == null ? tr('Pilih kategori') : _categoryPath(c),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _fieldValue),
+                    trailing: Icon(Icons.expand_more_rounded, color: C.muted),
+                    active: _catPanel,
+                    onTap: _openCatPanel,
+                  ),
+                _fDivider(),
+                _fRow(
+                  leading: _accountLeading(_fromId, size: 30),
+                  value: Text(store.accountName(_fromId),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: _fieldValue),
+                  trailing: Icon(Icons.expand_more_rounded, color: C.muted),
+                  onTap: () => _pickAccount(to: false),
+                ),
+                _fDivider(),
+                _fRow(
+                  leading: _fIcon(
+                      _hasDetails ? Icons.edit_note_rounded : Icons.add_rounded),
+                  value: Text(
+                      title.isNotEmpty
+                          ? title
+                          : (_hasDetails
+                              ? tr('Detail terisi')
+                              : tr('Catatan atau struk')),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight:
+                              noteEmpty ? FontWeight.w500 : FontWeight.w700,
+                          color: noteEmpty ? C.muted : C.carbon)),
+                  onTap: () => _openDetails(focusTitle: true),
                 ),
               ],
             ),
-            icon: Icons.chevron_right_rounded,
-            active: _catPanel,
-            onTap: _openCatPanel,
           ),
-        const SizedBox(height: 8),
-        _fieldBox(
-          'CATATAN',
-          Text(
-              title.isNotEmpty
-                  ? title
-                  : (_hasDetails ? tr('Detail terisi') : tr('+ Tambah catatan atau struk')),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: title.isEmpty && !_hasDetails
-                      ? FontWeight.w600
-                      : FontWeight.w700,
-                  color: title.isEmpty && !_hasDetails ? C.muted : C.carbon)),
-          icon: _hasDetails ? Icons.edit_note_rounded : null,
-          onTap: () => _openDetails(focusTitle: true),
         ),
         const SizedBox(height: 8),
         if (_amountCtrl.text.isEmpty && !widget.isEditing)
@@ -2119,91 +2122,206 @@ class _TxFormSheetState extends State<TxFormSheet> {
   }
 
   /// Panel bawah: keypad angka, atau daftar kategori bila baris Kategori aktif.
+  /// Tingginya tetap supaya bagian atas form tidak bergeser saat panel ganti.
   Widget _mmPanel(Color accent, double height) {
     return Container(
       height: height,
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
       decoration: BoxDecoration(
         color: C.bg,
-        border: Border(top: BorderSide(color: C.line)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
       ),
-      child: _catPanel
-          ? _categoryPanelBody(accent)
-          : _amountPanelBody(height),
+      child: _catPanel ? _categoryPanelBody(accent) : _amountPanelBody(height),
     );
   }
 
   Widget _amountPanelBody(double height) {
-    final canNext = !(_splitting && _canSplit);
-    final keyH =
-        ((height - 20 - (canNext ? 50 : 0) - 18) / 4).clamp(38.0, 60.0).toDouble();
-    return Column(
-      children: [
-        _numpad(keyHeight: keyH, keyColor: C.surface),
-        if (canNext) ...[
-          const SizedBox(height: 6),
+    final keyH = ((height - 24 - 18) / 4).clamp(38.0, 56.0).toDouble();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: _numpad(keyHeight: keyH, keyColor: C.surface),
+      ),
+    );
+  }
+
+  Widget _panelTitle(String text, {VoidCallback? onBack}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 10, 12, 4),
+      child: Row(
+        children: [
           Expanded(
             child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: _openCatPanel,
-              child: Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: C.surface,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(tr('Pilih kategori'),
+              onTap: onBack,
+              child: Row(
+                children: [
+                  if (onBack != null)
+                    Icon(Icons.chevron_left_rounded, color: C.muted),
+                  Expanded(
+                    child: Text(text,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 15,
                             fontWeight: FontWeight.w800,
                             color: C.carbon)),
-                    Icon(Icons.chevron_right_rounded, color: C.carbon),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
+          IconButton(
+            tooltip: tr('Tutup'),
+            visualDensity: VisualDensity.compact,
+            onPressed: _closeCatPanel,
+            style: IconButton.styleFrom(backgroundColor: C.surface),
+            icon: Icon(Icons.close_rounded, size: 18, color: C.carbon),
+          ),
         ],
-      ],
+      ),
     );
   }
+
+  Widget _catTile(TxCategory c, Color accent,
+      {required bool sel,
+      required bool hasSubs,
+      required VoidCallback onTap,
+      VoidCallback? onLongPress}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: Semantics(
+        button: true,
+        selected: sel,
+        label: c.name,
+        excludeSemantics: true,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(6, 0, 6, 0),
+          decoration: BoxDecoration(
+            color: sel ? accent.withValues(alpha: 0.10) : C.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: sel ? accent : C.line, width: sel ? 1.6 : 1),
+          ),
+          child: Row(
+            children: [
+              CatIcon(
+                  icon: c.iconData, art: c.art, color: c.colorValue, size: 26),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(shortCategoryName(c.name),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        height: 1.1,
+                        fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                        color: sel ? accent : C.carbon)),
+              ),
+              if (hasSubs) Icon(Icons.chevron_right_rounded, size: 16, color: C.muted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tileGrid(List<Widget> children) {
+    return GridView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisExtent: 48,
+        mainAxisSpacing: 6,
+        crossAxisSpacing: 6,
+      ),
+      children: children,
+    );
+  }
+
+  Widget _tileLabel(String text) => Padding(
+        padding: const EdgeInsets.fromLTRB(2, 8, 0, 4),
+        child: Text(tr(text),
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+                color: C.muted)),
+      );
 
   Widget _categoryPanelBody(Color accent) {
     final oid = _openParent;
     final open = oid == null ? null : store.categoryById(oid);
     if (open != null) {
-      return SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: () => setState(() => _openParent = null),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.chevron_left_rounded, color: C.muted),
-                    const SizedBox(width: 4),
-                    Text(shortCategoryName(open.name),
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: C.carbon)),
-                  ],
-                ),
-              ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _panelTitle(shortCategoryName(open.name),
+              onBack: () => setState(() => _openParent = null)),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              child: _subPanel(open, accent),
             ),
-            _subPanel(open, accent),
-          ],
-        ),
+          ),
+        ],
       );
     }
-    return SingleChildScrollView(child: _categoryArea(accent));
+    final tops = store.topCategories(_type);
+    final selTop = _categoryId == null ? null : store.topCategoryId(_categoryId!);
+    final freq = <TxCategory>[];
+    for (final id in store.frequentCategories(_type, ensure: _categoryId, limit: 3)) {
+      final c = store.categoryById(id);
+      if (c != null) freq.add(c);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _panelTitle(tr('Pilih kategori')),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (freq.isNotEmpty) ...[
+                  _tileLabel('SERING DIPAKAI'),
+                  _tileGrid([
+                    for (final c in freq)
+                      _catTile(
+                        c,
+                        accent,
+                        sel: c.id == _categoryId,
+                        hasSubs: false,
+                        onTap: () {
+                          _chooseCategory1(c.id);
+                          _closeCatPanel();
+                        },
+                        onLongPress: () => _categoryMenu(c.id),
+                      ),
+                  ]),
+                ],
+                _tileLabel('SEMUA'),
+                _tileGrid([
+                  for (final c in tops)
+                    _catTile(
+                      c,
+                      accent,
+                      sel: c.id == selTop,
+                      hasSubs: store.childrenOf(c.id).isNotEmpty,
+                      onTap: () => _tapParent(c),
+                    ),
+                ]),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildOnePage(BuildContext context) {
@@ -2216,7 +2334,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     final title = _titleCtrl.text.trim();
     final mm = !isTransfer;
     final panelH =
-        (MediaQuery.of(context).size.height * 0.36).clamp(250.0, 330.0).toDouble();
+        (MediaQuery.of(context).size.height * 0.36).clamp(280.0, 340.0).toDouble();
 
     final Widget top = mm
         ? _mmTop(accent, shown: shown, empty: empty, title: title)

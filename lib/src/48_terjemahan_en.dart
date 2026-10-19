@@ -1694,6 +1694,8 @@ const Map<String, String> kEnStrings = {
   'KATEGORI': 'CATEGORY',
   'CATATAN': 'NOTE',
   '+ Tambah catatan atau struk': '+ Add a note or receipt',
+  'SEMUA': 'ALL',
+  'Catatan atau struk': 'Note or receipt',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.
