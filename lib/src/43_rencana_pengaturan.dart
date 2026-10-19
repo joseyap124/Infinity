@@ -6,6 +6,7 @@ part of '../main.dart';
 
 /// Kartu yang bisa dipilih untuk Beranda: id -> (judul, keterangan).
 const Map<String, (String, String)> kHomeCards = {
+  'week': ('Tinjauan mingguan', 'Ringkasan minggu lalu, Senin sampai Rabu'),
   'quick': ('Catat cepat', 'Tombol template sekali ketuk'),
   'upcoming': ('Tagihan & langganan', '3 yang paling dekat'),
   'budget': ('Anggaran', 'Sisa anggaran bulan ini'),
@@ -16,7 +17,7 @@ const Map<String, (String, String)> kHomeCards = {
 };
 
 /// Beranda bawaan: ringkas. Sisanya ada di tab Rencana dan Statistik.
-const List<String> kDefaultHomeCards = ['quick', 'recent'];
+const List<String> kDefaultHomeCards = ['week', 'quick', 'recent'];
 
 void _pushPage(BuildContext context, Widget page) =>
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));

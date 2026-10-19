@@ -3240,4 +3240,137 @@ void main() {
       expect(DataFile.snapsToPrune(names.take(5).toList(), 7), isEmpty);
     });
   });
+
+  group('Tinjauan mingguan (v5.14)', () {
+    // Rabu 21 Okt 2026: minggu lalu = Senin 12 sampai Minggu 18 Okt.
+    final now = DateTime(2026, 10, 21, 10);
+    DateTime d(int day, [int h = 12]) => DateTime(2026, 10, day, h);
+    Transaction ex(String id, double amt, int day, String cat, String title) =>
+        tx(id, TxType.expense, amt, 'a', cat: cat, title: title, date: d(day));
+
+    List<Transaction> data() => [
+          tx('gaji', TxType.income, 5000000, 'a', cat: 'gaji', date: d(5, 0)),
+          // Minggu sebelumnya (5 sampai 11 Okt): 1.050.000
+          ex('p1', 430000, 8, 'makan', 'Makan'),
+          ex('p2', 620000, 10, 'lain', 'Belanja'),
+          // Minggu lalu: 1.240.000, Sabtu paling besar (390.000, 2 transaksi)
+          for (var i = 0; i < 5; i++)
+            ex('k$i', 25000, 12 + i, 'makan', 'Kopi susu'),
+          ex('m1', 95000, 12, 'makan', 'Makan siang'),
+          ex('b1', 70000, 13, 'lain', 'Belanja'),
+          ex('b2', 135000, 14, 'lain', 'Bensin'),
+          ex('b3', 115000, 15, 'lain', 'Tagihan'),
+          ex('m2', 155000, 16, 'makan', 'Makan malam'),
+          ex('m3', 235000, 17, 'makan', 'Makan keluarga'),
+          ex('h1', 155000, 17, 'lain', 'Hiburan'),
+          ex('s1', 155000, 18, 'lain', 'Belanja mingguan'),
+        ];
+
+    test('rentang, total, perubahan, dan hari terbesar', () {
+      final s = storeWith([acc('a', initial: 9000000)], data());
+      final r = s.lastWeekRange(now);
+      expect(r.start, DateTime(2026, 10, 12));
+      expect(r.end, DateTime(2026, 10, 19));
+      expect(s.weekKey(now), '2026-10-12');
+      final w = s.weekReview(now)!;
+      expect(w.total, 1240000);
+      expect(w.prevTotal, 1050000);
+      expect(w.change!, closeTo(0.181, 0.001));
+      expect(w.days, [120000, 95000, 160000, 140000, 180000, 390000, 155000]);
+      expect(w.peakDay, 5);
+      expect(w.dayCounts[5], 2);
+      expect(w.pace, isNull);
+    });
+
+    test('kenaikan kategori terbesar dan transaksi kecil berulang', () {
+      final s = storeWith([acc('a', initial: 9000000)], data());
+      final w = s.weekReview(now)!;
+      expect(w.rise!.categoryId, 'makan');
+      expect(w.rise!.now, 610000);
+      expect(w.rise!.before, 430000);
+      expect(w.rise!.diff, 180000);
+      expect(w.rise!.ratio!, closeTo(0.4186, 0.001));
+      expect(w.small!.title, 'Kopi susu');
+      expect(w.small!.count, 5);
+      expect(w.small!.total, 125000);
+      expect(w.small!.perYear, 6500000);
+      expect(w.topCategoryId, 'makan');
+    });
+
+    test('kenaikan kecil tidak disebut dan transaksi besar tidak dianggap kecil', () {
+      final txs = [
+        tx('gaji', TxType.income, 5000000, 'a', cat: 'gaji', date: d(5, 0)),
+        ex('p1', 500000, 8, 'makan', 'Makan'),
+        ex('p2', 300000, 10, 'lain', 'Belanja'),
+        ex('n1', 520000, 13, 'makan', 'Makan'),
+        for (var i = 0; i < 4; i++) ex('c$i', 60000, 13 + i, 'lain', 'Bensin'),
+        ex('q1', 40000, 14, 'lain', 'Parkir'),
+        ex('q2', 40000, 15, 'lain', 'Parkir'),
+      ];
+      final w = storeWith([acc('a', initial: 9000000)], txs).weekReview(now)!;
+      expect(w.rise, isNull);
+      expect(w.small, isNull);
+      expect(w.topCategoryId, 'makan');
+    });
+
+    test('belum ada tinjauan sebelum dua minggu penuh atau tanpa pengeluaran', () {
+      final late = [
+        tx('gaji', TxType.income, 5000000, 'a', cat: 'gaji', date: d(8)),
+        ex('a1', 100000, 13, 'makan', 'Makan'),
+      ];
+      expect(storeWith([acc('a')], late).weekReview(now), isNull);
+      expect(storeWith([acc('a')]).weekReview(now), isNull);
+      final empty = [
+        tx('gaji', TxType.income, 5000000, 'a', cat: 'gaji', date: d(5, 0)),
+        ex('a1', 100000, 8, 'makan', 'Makan'),
+      ];
+      expect(storeWith([acc('a')], empty).weekReview(now), isNull);
+    });
+
+    test('hari catatan berjalan dibatasi 14', () {
+      final s = storeWith([acc('a')], data());
+      expect(s.weekReviewDays(now), 14);
+      expect(s.weekReviewDays(DateTime(2026, 10, 9)), 5);
+      expect(storeWith([acc('a')]).weekReviewDays(now), 0);
+    });
+
+    test('ritme anggaran ikut kalau anggaran global diisi', () {
+      final s = storeWith([acc('a', initial: 9000000)], data());
+      s.settings.globalBudget = 4000000;
+      final p = s.weekReview(now)!.pace!;
+      expect(p.day, 21);
+      expect(p.totalDays, 31);
+      expect(p.used, closeTo(2290000 / 4000000, 0.0001));
+    });
+
+    test('kartu Beranda: Senin sampai Rabu dan hilang setelah dilihat', () {
+      final s = storeWith([acc('a', initial: 9000000)], data());
+      expect(s.weekCardVisible(DateTime(2026, 10, 19, 8)), isTrue);
+      expect(s.weekCardVisible(now), isTrue);
+      expect(s.weekCardVisible(DateTime(2026, 10, 22, 8)), isFalse);
+      s.settings.weekSeen = s.weekKey(now);
+      expect(s.weekCardVisible(now), isFalse);
+      // Minggu berikutnya (data tetap) kartu muncul lagi.
+      expect(s.weekKey(DateTime(2026, 10, 26)), '2026-10-19');
+    });
+
+    test('daftar kartu lama mendapat kartu Tinjauan sekali saja', () {
+      final old = AppSettings().toJson()
+        ..['homeCards'] = ['quick', 'recent']
+        ..remove('weekOffered');
+      final once = AppSettings.fromJson(old);
+      expect(once.homeCards, ['week', 'quick', 'recent']);
+      // Sudah ditawarkan: kalau dimatikan, tidak muncul lagi.
+      final saved = once.toJson()..['homeCards'] = ['quick', 'recent'];
+      expect(AppSettings.fromJson(saved).homeCards, ['quick', 'recent']);
+      // Pengaturan baru memuat kartu itu sejak awal.
+      expect(AppSettings().homeCards.first, 'week');
+    });
+
+    test('weekSeen ikut tersimpan di pengaturan', () {
+      final st = AppSettings()..weekSeen = '2026-10-12';
+      expect(AppSettings.fromJson(st.toJson()).weekSeen, '2026-10-12');
+      expect(AppSettings.fromJson(AppSettings().toJson()).weekSeen, isNull);
+    });
+  });
 }

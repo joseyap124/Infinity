@@ -501,6 +501,14 @@ class AppSettings {
   bool homeMaskot = true;
   bool homeRitme = true;
 
+  /// Minggu (awal minggu lalu, "yyyy-MM-dd") yang tinjauannya sudah dibuka
+  /// atau ditutup, supaya kartu di Beranda tidak muncul lagi (v5.14).
+  String? weekSeen;
+
+  /// Kartu Tinjauan mingguan sudah ditawarkan sekali ke daftar kartu Beranda
+  /// yang tersimpan (v5.14). Bawaan true: pengaturan baru sudah memuatnya.
+  bool weekOffered = true;
+
   /// 'system' | 'light' | 'dark'
   String themeMode = 'system';
 
@@ -635,6 +643,8 @@ class AppSettings {
         'hideBalance': hideBalance,
         if (!homeMaskot) 'homeMaskot': false,
         if (!homeRitme) 'homeRitme': false,
+        if (weekSeen != null) 'weekSeen': weekSeen,
+        'weekOffered': true,
         'themeMode': themeMode,
         'textScale': textScale,
         'homeCards': homeCards,
@@ -709,6 +719,7 @@ class AppSettings {
     s.hideBalance = j['hideBalance'] == true;
     s.homeMaskot = j['homeMaskot'] != false;
     s.homeRitme = j['homeRitme'] != false;
+    s.weekSeen = _s(j['weekSeen']);
     s.textScale = _d(j['textScale'] ?? 1.0).clamp(0.85, 1.3);
     if (j['homeCards'] is List) {
       s.homeCards = (j['homeCards'] as List)
@@ -716,6 +727,10 @@ class AppSettings {
           .where(kHomeCards.containsKey)
           .toSet()
           .toList();
+    }
+    // Daftar kartu lama belum punya Tinjauan mingguan: tawarkan sekali, di atas.
+    if (j['homeCards'] is List && j['weekOffered'] != true) {
+      if (!s.homeCards.contains('week')) s.homeCards.insert(0, 'week');
     }
     if (j['spendKinds'] is Map) {
       s.spendKinds = {

@@ -3,7 +3,13 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.13.0)
+## Berikutnya (v5.14.0)
+
+### Ditambah
+- **Tinjauan mingguan.** Kartu satu baris di Beranda (Senin sampai Rabu, setelah ada dua minggu penuh catatan) berisi total pengeluaran minggu lalu dan naik atau turunnya dari minggu sebelumnya. Ketuk untuk membuka halaman detail: 7 batang harian, hari terbesar, dan sampai tiga temuan: kategori dengan kenaikan rupiah terbesar (minimal Rp 50.000 dan 20%), transaksi kecil yang berulang (sampai Rp 50.000, judul sama, minimal 3 kali; angka setahun hanya total minggu itu dikali 52, perkiraan kasar), dan ritme anggaran bulan ini (kalau Anggaran global diisi). Tombol X menutup kartu untuk minggu itu; membuka detail juga menandainya sudah dilihat. Tinjauan tetap bisa dibuka kapan saja dari Lainnya. Hanya pengeluaran yang dihitung; transfer antar akun tidak.
+- Kartunya bisa dimatikan di Atur Beranda ("Tinjauan mingguan"). Daftar kartu Beranda yang sudah tersimpan mendapat kartu ini sekali, di paling atas; kalau kamu matikan, tidak muncul lagi.
+
+## v5.13.0 (19 Okt 2026)
 
 ### Ditambah
 - **Versi harian di HP.** Tiap hari, begitu data terbaca utuh saat app dibuka, Infinity menyalin file datanya (tetap terenkripsi) ke folder app, dan menyimpan 7 hari terakhir. Di Backup & Pulihkan ada daftar "Versi harian di HP" (tanggal, jumlah transaksi dan kantong) dengan tombol Pulihkan. Sebelum memulihkan, data sekarang disimpan dulu ke Download/Infinity, sama seperti pulihkan dari file. Gunanya untuk kasus data tiba-tiba kembali ke kondisi lama. Salinan ini hilang kalau app di-uninstall; untuk itu backup di Download tetap yang dipakai.

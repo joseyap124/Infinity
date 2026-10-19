@@ -681,6 +681,12 @@ class DashboardTab extends StatelessWidget {
       List<RecurringRule> upcoming, List<Transaction> recent) {
     const gap = SizedBox(height: 12);
     switch (id) {
+      case 'week':
+        return [
+          WeekReviewCard(
+              store: store,
+              onOpen: () => _push(context, WeekReviewPage(store: store)))
+        ];
       case 'quick':
         if (store.templates.isEmpty) return const [];
         return [_templatesCard(context), gap];

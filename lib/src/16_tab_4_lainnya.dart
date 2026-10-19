@@ -140,6 +140,12 @@ class MoreTab extends StatelessWidget {
                     subtitle:
                         tr('{0} aktif', [store.recurring.where((r) => r.active).length]),
                     onTap: () => _push(context, RecurringPage(store: store))),
+                _tile(context,
+                    icon: Icons.insights_rounded,
+                    color: C.accentDark,
+                    title: 'Tinjauan minggu lalu',
+                    subtitle: 'Total, hari terbesar, dan tiga temuan',
+                    onTap: () => _push(context, WeekReviewPage(store: store))),
                 if (store.feature('tunda'))
                   _tile(context,
                       icon: Icons.hourglass_bottom_rounded,
