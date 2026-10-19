@@ -332,7 +332,7 @@ class _StatsTabState extends State<StatsTab> {
     ));
     tiles.add(_moreTile(
       leading: CatIcon(icon: Icons.tune_rounded, color: C.income, size: 34),
-      label: tr('Kalau...'),
+      label: tr('Simulasi'),
       onTap: () => Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => WhatIfPage(store: store))),
     ));
@@ -363,7 +363,7 @@ class _StatsTabState extends State<StatsTab> {
           SectionTitle(_mode == BudgetPeriod.monthly
               ? 'Tren 6 Bulan'
               : (_mode == BudgetPeriod.weekly
-                  ? 'Tren Harian'
+                  ? 'Tren harian'
                   : 'Tren Bulanan ${_anchor.year}')),
           const SizedBox(height: 16),
           TrendChart(buckets: _buckets()),
@@ -684,11 +684,19 @@ class _StatsTabState extends State<StatsTab> {
                   const SizedBox(height: 4),
                   FunProgressBar(value: pct, color: color, height: 7),
                   const SizedBox(height: 2),
-                  Text(
-                      hasChildren
-                          ? tr('{0} · ketuk untuk rincian', [money(value)])
-                          : money(value),
-                      style: TextStyle(fontSize: 11, color: C.muted)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(money(value),
+                            style: TextStyle(fontSize: 12, color: C.muted)),
+                      ),
+                      // Panah menandakan ada rincian; tidak perlu diulang
+                      // dengan tulisan di tiap baris.
+                      if (hasChildren)
+                        Icon(Icons.chevron_right_rounded,
+                            size: 18, color: C.muted),
+                    ],
+                  ),
                 ],
               ),
             ),

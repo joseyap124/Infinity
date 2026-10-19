@@ -231,7 +231,7 @@ class _AutoCapturePageState extends State<AutoCapturePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: pageBar('Catat Otomatis'),
+      appBar: pageBar('Catat otomatis'),
       body: ListenableBuilder(
         listenable: store,
         builder: (context, _) {

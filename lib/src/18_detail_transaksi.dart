@@ -79,8 +79,8 @@ class TransactionDetailSheet extends StatelessWidget {
                     row(store.categoryById(sp.categoryId)?.name ?? 'Tanpa kategori',
                         money(sp.amount, cur)),
                 if (t.type == TxType.transfer) ...[
-                  row('Dari Akun', store.accountName(t.accountId)),
-                  row('Ke Akun', store.accountName(t.toAccountId)),
+                  row('Dari akun', store.accountName(t.accountId)),
+                  row('Ke akun', store.accountName(t.toAccountId)),
                   if (t.toAmount != null)
                     row('Diterima',
                         money(t.receivedAmount, store.currencyOf(t.toAccountId))),
@@ -152,7 +152,7 @@ class TransactionDetailSheet extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => Navigator.of(context).pop(_DetailAction.delete),
             icon: const Icon(Icons.delete_rounded),
-            label: const Text('Hapus Transaksi',
+            label: const Text('Hapus transaksi',
                 style: TextStyle(fontWeight: FontWeight.w800)),
             style: OutlinedButton.styleFrom(
               foregroundColor: C.redDark,

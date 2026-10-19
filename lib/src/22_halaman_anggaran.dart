@@ -127,7 +127,7 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
             ),
           const SizedBox(height: 16),
-          PrimaryButton(label: 'Simpan Anggaran', onPressed: _save),
+          PrimaryButton(label: 'Simpan anggaran', onPressed: _save),
         ],
       ),
     );

@@ -621,11 +621,18 @@ class DataFile {
   static File? _jf;
   static final List<String> _jmem = [];
 
+  /// Penanda proses dan isolate penulis jejak ini. Kalau dua baris yang
+  /// ditulis bersamaan punya penanda berbeda, penulisnya dua isolate atau
+  /// dua proses; kalau sama, dua objek di app yang sama (lihat penanda
+  /// salinan di baris simpan).
+  static final String who =
+      'p$pid.${math.Random().nextInt(0xFFFF).toRadixString(36)}';
+
   static void jot(String msg) {
     final t = DateTime.now();
     String two(int n) => n.toString().padLeft(2, '0');
     final line =
-        '${two(t.month)}-${two(t.day)} ${two(t.hour)}:${two(t.minute)}:${two(t.second)}.${t.millisecond.toString().padLeft(3, '0')} $msg\n';
+        '${two(t.month)}-${two(t.day)} ${two(t.hour)}:${two(t.minute)}:${two(t.second)}.${t.millisecond.toString().padLeft(3, '0')} $who $msg\n';
     try {
       var f = _jf;
       if (f == null) {

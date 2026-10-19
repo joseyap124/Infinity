@@ -524,7 +524,7 @@ class _WhatIfPageState extends State<WhatIfPage> {
     final noData = isInst ? inst == null : goal == null;
 
     return Scaffold(
-      appBar: pageBar('Kalau...'),
+      appBar: pageBar('Simulasi'),
       body: ListView(
         padding: pagePad(context, 32),
         children: [

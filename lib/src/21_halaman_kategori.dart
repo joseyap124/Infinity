@@ -188,7 +188,7 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
               Expanded(
                 child: Text(
                     _editing
-                        ? 'Edit Kategori'
+                        ? 'Edit kategori'
                         : tr('Kategori {0} Baru', [tr(widget.type.label)]),
                     style: const TextStyle(
                         fontSize: 19, fontWeight: FontWeight.w900)),
@@ -284,7 +284,7 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
             ErrorBox(_error!),
           ],
           const SizedBox(height: 16),
-          PrimaryButton(label: 'Simpan Kategori', onPressed: _save),
+          PrimaryButton(label: 'Simpan kategori', onPressed: _save),
           if (_editing) ...[
             const SizedBox(height: 8),
             TextButton.icon(

@@ -585,7 +585,7 @@ class _BackupPageState extends State<BackupPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SectionTitle('Zona Bahaya'),
+                const SectionTitle('Zona bahaya'),
                 const SizedBox(height: 8),
                 Text(
                     'Hapus semua data dan mulai dari nol. Harus mengetik HAPUS dulu supaya tidak terpencet.',

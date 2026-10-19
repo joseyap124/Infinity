@@ -74,7 +74,7 @@ class NetWorthCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionTitle('Kekayaan Bersih'),
+          const SectionTitle('Kekayaan bersih'),
           const SizedBox(height: 4),
           Text(hide ? 'Rp ••••••' : money(now),
               style: TextStyle(

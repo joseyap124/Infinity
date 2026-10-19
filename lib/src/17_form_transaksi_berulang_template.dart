@@ -556,11 +556,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
   String get _heading {
     switch (widget.mode) {
       case FormMode.transaction:
-        return widget.isEditing ? 'Edit Transaksi' : 'Catat ${_type.label}';
+        return widget.isEditing ? 'Edit transaksi' : 'Catat ${_type.label}';
       case FormMode.recurring:
-        return widget.isEditing ? 'Edit Transaksi Berulang' : 'Transaksi Berulang';
+        return widget.isEditing ? 'Edit transaksi berulang' : 'Transaksi berulang';
       case FormMode.template:
-        return widget.isEditing ? 'Edit Template' : 'Template Baru';
+        return widget.isEditing ? 'Edit template' : 'Template baru';
     }
   }
 
@@ -2538,7 +2538,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
             ],
             const SizedBox(height: 14),
             PrimaryButton(
-              label: widget.isEditing ? 'Simpan Perubahan' : 'Simpan',
+              label: widget.isEditing ? 'Simpan perubahan' : 'Simpan',
               color: accent,
               onPressed: _submit,
             ),

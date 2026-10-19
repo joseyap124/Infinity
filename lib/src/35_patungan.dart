@@ -503,7 +503,7 @@ class _PatunganSheetState extends State<PatunganSheet> {
             ErrorBox(_error!),
           ],
           const SizedBox(height: 14),
-          PrimaryButton(label: 'Simpan Patungan', onPressed: _save),
+          PrimaryButton(label: 'Simpan patungan', onPressed: _save),
         ],
       ),
     );

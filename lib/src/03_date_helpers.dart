@@ -29,7 +29,7 @@ bool sameDay(DateTime a, DateTime b) =>
 
 String dayLabel(DateTime day) {
   final now = DateTime.now();
-  if (sameDay(day, now)) return 'Hari Ini';
+  if (sameDay(day, now)) return 'Hari ini';
   if (sameDay(day, DateTime(now.year, now.month, now.day - 1))) {
     return 'Kemarin';
   }

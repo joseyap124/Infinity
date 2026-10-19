@@ -123,7 +123,7 @@ class AppStore extends ChangeNotifier {
     processRecurring(notify: false);
     loaded = true;
     DataFile.jot(
-        'dimuat: transaksi=${transactions.length} anggaran=${settings.globalBudget.round()}');
+        'dimuat s${identityHashCode(this).toRadixString(36)}: transaksi=${transactions.length} anggaran=${settings.globalBudget.round()}');
     // Salinan harian dari file yang baru terbaca utuh, sebelum tulisan hari ini.
     if (raw != null && _useFile && !fromLegacy) await DataFile.snapshotToday();
     await flush();
@@ -398,7 +398,7 @@ class AppStore extends ChangeNotifier {
   Future<bool> _write(String json) async {
     try {
       DataFile.jot(
-          'simpan: ${_useFile ? 'file' : 'SECURE-STORAGE LAMA'} transaksi=${transactions.length} anggaran=${settings.globalBudget.round()}');
+          'simpan s${identityHashCode(this).toRadixString(36)}: ${_useFile ? 'file' : 'SECURE-STORAGE LAMA'} transaksi=${transactions.length} anggaran=${settings.globalBudget.round()}');
       if (_useFile) {
         await DataFile.write(json);
       } else {

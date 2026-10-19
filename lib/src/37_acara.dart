@@ -501,7 +501,7 @@ class _EventEditorSheetState extends State<EventEditorSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(old == null ? 'Acara Baru' : 'Edit Acara',
+          Text(old == null ? 'Acara baru' : 'Edit acara',
               style:
                   const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
           const SizedBox(height: 14),
@@ -573,7 +573,7 @@ class _EventEditorSheetState extends State<EventEditorSheet> {
             ErrorBox(_error!),
           ],
           const SizedBox(height: 14),
-          PrimaryButton(label: 'Simpan Acara', onPressed: _save),
+          PrimaryButton(label: 'Simpan acara', onPressed: _save),
           if (old != null)
             TextButton.icon(
               onPressed: () async {

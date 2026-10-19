@@ -26,7 +26,7 @@ enum AccountType {
   bank('Rekening Bank', Icons.account_balance_rounded),
   savings('Tabungan', Icons.savings_rounded),
   emergency('Dana Darurat', Icons.health_and_safety_rounded),
-  credit('Kartu Kredit', Icons.credit_card_rounded),
+  credit('Kartu kredit', Icons.credit_card_rounded),
   investment('Investasi', Icons.trending_up_rounded);
 
   const AccountType(this.label, this.icon);

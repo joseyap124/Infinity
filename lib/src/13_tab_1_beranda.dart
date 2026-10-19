@@ -416,7 +416,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
           Row(
             children: [
               const Expanded(
-                child: Text('Atur Beranda',
+                child: Text('Atur beranda',
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ),
@@ -666,7 +666,7 @@ class DashboardTab extends StatelessWidget {
                   onPressed: () => showSheet<void>(
                       context, HomeCardsSheet(store: store)),
                   icon: const Icon(Icons.tune_rounded, size: 18),
-                  label: const Text('Atur Beranda'),
+                  label: const Text('Atur beranda'),
                 ),
               ),
             ]),
@@ -701,7 +701,7 @@ class DashboardTab extends StatelessWidget {
       case 'goals':
         if (store.goals.isEmpty || !store.feature('target')) return const [];
         return [
-          SectionTitle('Target Tabungan',
+          SectionTitle('Target tabungan',
               trailing: TextButton(
                   onPressed: () => _push(context, GoalsPage(store: store)),
                   child: const Text('Lihat semua'))),
@@ -713,7 +713,7 @@ class DashboardTab extends StatelessWidget {
         return [MonthCompareCard(store: store), gap];
       case 'recent':
         return [
-          SectionTitle('Transaksi Terakhir',
+          SectionTitle('Transaksi terakhir',
               trailing: TextButton(
                   onPressed: onSeeAll, child: const Text('Lihat semua'))),
           const SizedBox(height: 4),
@@ -1296,7 +1296,7 @@ class DashboardTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionTitle('Kartu Kredit'),
+          const SectionTitle('Kartu kredit'),
           const SizedBox(height: 8),
           for (final a in cards) ...[
             Builder(builder: (context) {
@@ -1493,7 +1493,7 @@ class DashboardTab extends StatelessWidget {
             const SizedBox(height: 14),
             Divider(height: 1, color: C.line),
             const SizedBox(height: 10),
-            const SmallLabel('Per Kategori'),
+            const SmallLabel('Per kategori'),
             const SizedBox(height: 6),
             for (final e in catRows) _catBudgetRow(e.key, e.value, range, elapsed),
           ],
@@ -1658,7 +1658,7 @@ class DashboardTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionTitle('Akan Datang',
+          SectionTitle('Akan datang',
               trailing: TextButton(
                   onPressed: () =>
                       _push(context, RecurringPage(store: store)),

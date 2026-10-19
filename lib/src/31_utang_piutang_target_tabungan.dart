@@ -844,7 +844,7 @@ class GoalsPage extends StatelessWidget {
     return ListenableBuilder(
       listenable: store,
       builder: (context, _) => Scaffold(
-        appBar: pageBar('Target Tabungan'),
+        appBar: pageBar('Target tabungan'),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () =>
               showSheet<void>(context, GoalEditorSheet(store: store)),

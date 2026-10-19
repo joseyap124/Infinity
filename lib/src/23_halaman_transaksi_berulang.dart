@@ -11,7 +11,7 @@ class RecurringPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: pageBar('Transaksi Berulang'),
+      appBar: pageBar('Transaksi berulang'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => openRecurringForm(context, store),
         backgroundColor: C.accentDark,

@@ -11,7 +11,7 @@ class TemplatesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: pageBar('Template Catat Cepat'),
+      appBar: pageBar('Template catat cepat'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => openTemplateForm(context, store),
         backgroundColor: C.accentDark,

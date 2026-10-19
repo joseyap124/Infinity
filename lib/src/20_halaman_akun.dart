@@ -108,7 +108,7 @@ class AccountsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: pageBar('Akun & Dompet'),
+      appBar: pageBar('Akun & dompet'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () =>
             showSheet<void>(context, AccountEditorSheet(store: store)),
@@ -400,7 +400,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(_editing ? 'Edit Akun' : 'Akun Baru',
+          Text(_editing ? 'Edit akun' : 'Akun baru',
               style:
                   const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
           const SizedBox(height: 14),
@@ -583,7 +583,7 @@ class _AccountEditorSheetState extends State<AccountEditorSheet> {
             ErrorBox(_error!),
           ],
           const SizedBox(height: 16),
-          PrimaryButton(label: 'Simpan Akun', onPressed: _save),
+          PrimaryButton(label: 'Simpan akun', onPressed: _save),
           if (_editing) ...[
             const SizedBox(height: 8),
             TextButton.icon(

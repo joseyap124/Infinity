@@ -3,6 +3,17 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.2.0)
+
+### Dirapikan
+- **Huruf besar-kecil seragam**: judul, tombol, dan menu memakai huruf kecil kecuali kata pertama (mis. *Transaksi terakhir*, *Akun & dompet*, *Reset semua data*, *Simpan akun*, *Edit transaksi*). Sebelumnya dua gaya tercampur, kadang di layar yang sama.
+- Ejaan **Impor** dari Money Manager (sebelumnya *Import*).
+- Tombol **Kalau...** di Statistik diganti **Simulasi**, sama dengan judul halamannya.
+- Daftar kategori di Statistik tidak lagi mengulang *ketuk untuk rincian* di tiap baris; baris yang punya rincian diberi panah.
+
+### Untuk melacak
+- Jejak penyimpanan sekarang memuat penanda proses dan salinan di tiap baris, supaya terlihat apakah dua penulis yang menyimpan bersamaan itu dua objek di app yang sama atau dua proses terpisah.
+
 ## v6.1.0 (19 Okt 2026)
 
 ### Logo bergerak

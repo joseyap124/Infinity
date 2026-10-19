@@ -129,7 +129,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         'Infinity bisa membaca notifikasi bank & e-wallet (GoPay, BCA, SeaBank, dll.) lalu mencatat transaksinya. Notifikasi dibaca di HP ini saja.\n\n'
                         'Di Android 13+, aktifkan sekali, lalu buka Info aplikasi → ⋮ → Izinkan setelan terbatas, dan aktifkan lagi. Panduannya ada di halaman Catat Otomatis.',
                     actions: [
-                      _action('Buka Catat Otomatis', Icons.bolt_rounded,
+                      _action('Buka catat otomatis', Icons.bolt_rounded,
                           () => _push(AutoCapturePage(store: store))),
                     ],
                   ),

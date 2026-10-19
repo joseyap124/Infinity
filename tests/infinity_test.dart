@@ -3526,4 +3526,18 @@ void main() {
       expect(kSplashQuickMs, lessThan(1500));
     });
   });
+
+  group('Perapian 6.2', () {
+    test('jejak penyimpanan memuat penanda penulis', () {
+      expect(DataFile.who, matches(RegExp(r'^p\d+\.[0-9a-z]+$')));
+      DataFile.jot('uji penanda');
+      expect(DataFile.journalText(), contains('${DataFile.who} uji penanda'));
+    });
+
+    test('label periode Riwayat memakai huruf kecil kecuali kata pertama', () {
+      expect(HistoryFilter.today.label, 'Hari ini');
+      expect(HistoryFilter.week.label, 'Minggu ini');
+      expect(HistoryFilter.month.label, 'Bulan ini');
+    });
+  });
 }

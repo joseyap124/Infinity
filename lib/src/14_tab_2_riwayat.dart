@@ -5,9 +5,9 @@ part of '../main.dart';
 // =============================================================================
 
 enum HistoryFilter {
-  today('Hari Ini'),
-  week('Minggu Ini'),
-  month('Bulan Ini'),
+  today('Hari ini'),
+  week('Minggu ini'),
+  month('Bulan ini'),
   all('Semua');
 
   const HistoryFilter(this.label);

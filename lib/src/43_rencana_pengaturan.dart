@@ -62,7 +62,7 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
           Row(
             children: [
               const Expanded(
-                child: Text('Atur Beranda',
+                child: Text('Atur beranda',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
               ),
               IconButton(
@@ -443,7 +443,7 @@ class _PlanTabState extends State<PlanTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(tr('Kalau...'),
+                        Text(tr('Simulasi'),
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 14)),
                         Text(tr('Lihat efek hemat atau tabung ke target dan cicilan'),
@@ -563,7 +563,7 @@ class SettingsPage extends StatelessWidget {
                       context,
                       Icons.dashboard_customize_rounded,
                       C.blueDark,
-                      'Atur Beranda',
+                      'Atur beranda',
                       '${s.homeCards.length} kartu tampil',
                       () => showSheet<void>(
                           context, HomeCardsSheet(store: store))),

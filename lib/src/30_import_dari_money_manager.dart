@@ -448,7 +448,7 @@ class _MoneyManagerImportPageState extends State<MoneyManagerImportPage> {
     final p = _plan;
     final df = DateFormat('d MMM yyyy', gDateLoc);
     return Scaffold(
-      appBar: pageBar('Import Money Manager'),
+      appBar: pageBar('Impor Money Manager'),
       body: ListView(
         padding: pagePad(context, 32),
         children: [

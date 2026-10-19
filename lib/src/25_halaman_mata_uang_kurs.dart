@@ -131,7 +131,7 @@ class _CurrencyPageState extends State<CurrencyPage> {
               ),
             ),
           const SizedBox(height: 8),
-          PrimaryButton(label: 'Simpan Kurs', onPressed: _save),
+          PrimaryButton(label: 'Simpan kurs', onPressed: _save),
         ],
       ),
     );
