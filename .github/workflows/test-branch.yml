@@ -46,7 +46,7 @@ jobs:
         run: |
           set -o pipefail
           flutter test --reporter expanded 2>&1 | tee "$RUNNER_TEMP/test.txt" || ec=$?
-          grep -nE "\[E\]|Expected|Actual|Which|infinity_test.dart:" "$RUNNER_TEMP/test.txt" | head -20 | while IFS= read -r l; do echo "::error::${l}"; done
+          grep -nE "\[E\]|Expected:|Actual:|Which:|infinity_test.dart:[0-9]+" "$RUNNER_TEMP/test.txt" | grep -v "^[0-9]*:[0-9:]* +[0-9]*: /home" | head -20 | while IFS= read -r l; do echo "::error::${l}"; done
           exit ${ec:-0}
 
       - name: Analyze
