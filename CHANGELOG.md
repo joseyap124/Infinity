@@ -13,6 +13,8 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 - **Widget bersih, tanpa maskot, mengikuti mode gelap HP.** Ketiga ukuran (4x2, 2x2, 2x1) untuk gaya Klasik kini berlatar putih di mode terang dan charcoal di mode gelap, dengan bar sisa jatah hari ini (merah saat lewat jatah). Gaya Malam, Kuning, dan Merah tetap memakai widget lama dengan cincin dan maskot. Belum diuji di HP: tampilan widget hanya bisa dicek setelah APK dipasang.
 
+- **Ikon menu Lainnya dan empat pintasan Beranda memakai satu warna aksen** (sebelumnya pelangi: indigo, pink, ungu, biru, amber). Merah hanya tersisa untuk Reset Semua Data. Gaya ikon kategori tetap bisa dipilih di Pengaturan seperti biasa.
+
 ### Ditambah
 - **Jumlah pengeluaran di kotak kalender** (Riwayat > Kalender dan Statistik > Kalender), ringkas seperti "25 rb". Tidak tampil kalau saldo disembunyikan.
 - **Atur Beranda**: pilihan menampilkan kartu Maskot dan Ritme.

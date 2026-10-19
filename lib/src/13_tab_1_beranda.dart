@@ -1176,10 +1176,11 @@ class DashboardTab extends StatelessWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.13),
+                            color: C.accentDark.withValues(alpha: 0.12),
                             shape: BoxShape.circle),
                         alignment: Alignment.center,
-                        child: ArtIcon(icon, color: color, size: 24),
+                        // Satu warna aksen untuk keempat pintasan.
+                        child: ArtIcon(icon, color: C.accentDark, size: 24),
                       ),
                     const SizedBox(height: 5),
                     Text(label,

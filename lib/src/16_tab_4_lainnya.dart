@@ -25,7 +25,11 @@ class MoreTab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         child: Row(
           children: [
-            CatIcon(icon: icon, color: color, size: 40),
+            // Satu warna aksen untuk semua menu; merah hanya untuk aksi berbahaya.
+            CatIcon(
+                icon: icon,
+                color: color == C.redDark ? color : C.accentDark,
+                size: 40),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
