@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.3.2)
+## v6.3.2 (20 Okt 2026)
 
 ### Diubah
 - **Sorotan form Catat kembali memakai warna jenis transaksi**: merah untuk pengeluaran, hijau untuk pemasukan, biru untuk transfer. Di v6.3.1 sorotan memakai warna aksen tema, dan dengan tema Hijau pengeluaran jadi hijau, yang terasa salah. Bentuk form (kartu bulat, ikon bulat 4 kolom, tombol) tidak berubah.
@@ -11,7 +11,7 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ### Belum terbukti
 - Belum dilihat di HP.
 
-## Berikutnya (v6.3.1)
+## v6.3.1 (20 Okt 2026)
 
 ### Diubah
 - **Form Catat (pengeluaran dan pemasukan) tampil lebih rapi, dengan gaya Infinity sendiri.** Tanggal, Jumlah, Kategori, Akun, dan Catatan sekarang satu kartu bulat (radius 24 seperti kartu lain di aplikasi) dengan garis tipis antar baris. Tiap baris punya ikon bulat di kiri dan nilainya langsung terbaca tanpa label. Baris yang sedang diisi diberi warna latar dan ikonnya terisi.
