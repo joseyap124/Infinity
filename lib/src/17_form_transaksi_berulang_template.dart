@@ -1955,7 +1955,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       child: Container(
         constraints: const BoxConstraints(minHeight: 56),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-        color: active ? C.accentDark.withValues(alpha: 0.12) : null,
+        color: active ? _type.color.withValues(alpha: 0.10) : null,
         child: Row(
           children: [
             leading,
@@ -1974,7 +1974,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       height: 30,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: active ? C.accentDark : C.surface,
+        color: active ? _type.color : C.surface,
       ),
       child: Icon(icon, size: 16, color: active ? Colors.white : C.carbon),
     );
@@ -2347,9 +2347,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
 
   Widget _buildOnePage(BuildContext context) {
     final isTransfer = _type == TxType.transfer;
-    // Isian pengeluaran/pemasukan memakai warna aksen tema aplikasi; transfer
-    // tetap memakai warna jenisnya. Penanda jenis (Segmented) selalu berwarna jenis.
-    final accent = isTransfer ? _type.color : C.accentDark;
+    // Sorotan form mengikuti warna jenis (pengeluaran merah, pemasukan hijau,
+    // transfer biru). Dicoba memakai aksen tema, tapi pengeluaran hijau terasa salah.
+    final accent = _type.color;
     final dec = hasDecimals(_fromCur);
     final raw = _amountCtrl.text;
     final empty = raw.isEmpty;
