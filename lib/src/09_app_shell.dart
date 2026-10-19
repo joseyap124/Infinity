@@ -229,7 +229,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
     gIconStyle.value = store.settings.iconStyle;
-    gMascotSkin.value = store.settings.mascotSkin;
+    gMascotSkin.value = effectiveMascotSkin(store.settings);
     gMascotCustom.value = store.settings.mascotCustomPath;
     gLang.value = langOf(store.settings.lang);
     store.onSaveFailed = () {
@@ -290,7 +290,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
     themePref.value = themeKey(store.settings);
     appTextScale.value = store.settings.textScale;
     gIconStyle.value = store.settings.iconStyle;
-    gMascotSkin.value = store.settings.mascotSkin;
+    gMascotSkin.value = effectiveMascotSkin(store.settings);
     gMascotCustom.value = store.settings.mascotCustomPath;
     final lang = langOf(store.settings.lang);
     if (gLang.value != lang) {

@@ -517,6 +517,7 @@ class _MascotPickerSheetState extends State<MascotPickerSheet> {
   bool _busy = false;
 
   String _nameOf(String skin) => switch (skin) {
+        'auto' => 'Ikut paket',
         'owl' => 'Burung Hantu',
         'fox' => 'Rubah',
         'crow' => 'Gagak',
@@ -562,6 +563,8 @@ class _MascotPickerSheetState extends State<MascotPickerSheet> {
     final sel = s.mascotSkin;
     Widget tile(String skin) {
       final on = sel == skin;
+      // "Ikut paket" menampilkan maskot paket gaya yang sedang aktif.
+      final shown = skin == 'auto' ? (kPackSkin[s.stylePack] ?? 'classic') : skin;
       final Widget face;
       if (skin == 'custom' &&
           (s.mascotCustomPath == null ||
@@ -569,7 +572,7 @@ class _MascotPickerSheetState extends State<MascotPickerSheet> {
         face = Icon(Icons.add_photo_alternate_rounded,
             color: C.muted, size: 30);
       } else {
-        face = mascotImage(skin, MascotMood.ok, 60, s.mascotCustomPath);
+        face = mascotImage(shown, MascotMood.ok, 60, s.mascotCustomPath);
       }
       return Semantics(
         button: true,
@@ -593,7 +596,7 @@ class _MascotPickerSheetState extends State<MascotPickerSheet> {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                      color: skin == 'custom' ? C.line : mascotBase(skin),
+                      color: skin == 'custom' ? C.line : mascotBase(shown),
                       shape: BoxShape.circle),
                   alignment: Alignment.center,
                   clipBehavior: Clip.antiAlias,

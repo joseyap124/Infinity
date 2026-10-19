@@ -16,7 +16,61 @@ final ValueNotifier<String?> gMascotCustom = ValueNotifier<String?>(null);
 String mascotAsset(String skin, MascotMood mood) =>
     'assets/mascots/${skin}_${mood.name}.png';
 
-const List<String> kMascotSkins = ['classic', 'owl', 'fox', 'crow', 'custom'];
+const List<String> kMascotSkins = ['auto', 'classic', 'owl', 'fox', 'crow', 'custom'];
+
+/// Maskot yang dipasangkan dengan tiap paket gaya (pilihan "Ikut paket").
+const Map<String, String> kPackSkin = {
+  'malam': 'owl',
+  'kuning': 'fox',
+  'merah': 'crow',
+};
+
+/// Maskot yang benar-benar dipakai: "Ikut paket" diterjemahkan ke maskot
+/// paket gaya aktif (Klasik kalau paketnya Klasik).
+String effectiveMascotSkin(AppSettings s) =>
+    s.mascotSkin == 'auto' ? (kPackSkin[s.stylePack] ?? 'classic') : s.mascotSkin;
+
+/// Kalimat maskot menurut nada paket. Urutan: senang, aman, hati-hati, bahaya,
+/// boros, ngantuk. Paket Klasik (atau nada dimatikan) memakai kalimat netral.
+String mascotLine(MascotMood m, {String pack = 'classic'}) {
+  switch (pack) {
+    case 'malam':
+      return switch (m) {
+        MascotMood.happy => tr('Malam ini tenang. Jatahmu masih lega.'),
+        MascotMood.ok => tr('Pelan saja, semuanya masih terjaga.'),
+        MascotMood.warn => tr('Mulai menipis. Pikir dulu sebelum membeli.'),
+        MascotMood.danger => tr('Sisa sedikit. Bertahanlah sampai pagi.'),
+        MascotMood.over => tr('Sudah lewat batas. Besok kita mulai lagi.'),
+        MascotMood.sleepy => tr('Sudah lama sunyi. Ada yang belum dicatat?'),
+      };
+    case 'kuning':
+      return switch (m) {
+        MascotMood.happy => tr('Yeay, jatah masih banyak!'),
+        MascotMood.ok => tr('Aman jaya, lanjut semangat!'),
+        MascotMood.warn => tr('Eits, pelan-pelan ya belanjanya.'),
+        MascotMood.danger => tr('Wah tinggal sedikit! Hemat dulu yuk.'),
+        MascotMood.over => tr('Aduh kebablasan! Besok hemat lagi ya.'),
+        MascotMood.sleepy => tr('Halo? Belum ada catatan nih.'),
+      };
+    case 'merah':
+      return switch (m) {
+        MascotMood.happy => tr('Longgar. Jangan keburu senang.'),
+        MascotMood.ok => tr('Terkendali. Pertahankan.'),
+        MascotMood.warn => tr('Rem sedikit. Itu tidak perlu.'),
+        MascotMood.danger => tr('Hampir habis. Berhenti belanja.'),
+        MascotMood.over => tr('Lewat jatah. Hitung ulang.'),
+        MascotMood.sleepy => tr('Kamu menghilang. Catat yang kemarin.'),
+      };
+  }
+  return switch (m) {
+    MascotMood.happy => tr('Keuangan aman terkendali.'),
+    MascotMood.ok => tr('Pengeluaran masih wajar.'),
+    MascotMood.warn => tr('Jatah hari ini mulai menipis.'),
+    MascotMood.danger => tr('Jatah hari ini hampir habis.'),
+    MascotMood.over => tr('Sudah lewat jatah hari ini.'),
+    MascotMood.sleepy => tr('Belum mencatat. Ketuk untuk mulai.'),
+  };
+}
 
 /// Warna alas lingkaran maskot. Burung hantu bulunya gelap, jadi alasnya biru es.
 Color mascotBase(String skin) =>

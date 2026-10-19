@@ -531,6 +531,10 @@ class AppSettings {
   /// Maskot di Beranda: 'classic' | 'owl' | 'fox' | 'crow' | 'custom'.
   String mascotSkin = 'classic';
 
+  /// Kalimat maskot memakai nada paket gaya (Malam Biru tenang, Kuning Ceria
+  /// ceria, Merah Kafe tegas). Paket Klasik tetap netral.
+  bool packTone = true;
+
   /// Gambar maskot pilihan sendiri (dipakai kalau [mascotSkin] == 'custom').
   String? mascotCustomPath;
 
@@ -653,6 +657,7 @@ class AppSettings {
         if (stylePack != 'classic') 'stylePack': stylePack,
         if (!packMotif) 'packMotif': false,
         if (mascotSkin != 'classic') 'mascotSkin': mascotSkin,
+        if (!packTone) 'packTone': false,
         if (mascotCustomPath != null) 'mascotCustomPath': mascotCustomPath,
         'iconStyle': iconStyle,
         if (features.isNotEmpty) 'features': features,
@@ -745,9 +750,14 @@ class AppSettings {
     s.stylePack = (sp != null && kStylePacks.containsKey(sp)) ? sp : 'classic';
     s.packMotif = j['packMotif'] != false;
     final ms = _s(j['mascotSkin']);
-    s.mascotSkin = (ms == 'owl' || ms == 'fox' || ms == 'crow' || ms == 'custom')
+    s.mascotSkin = (ms == 'owl' ||
+            ms == 'fox' ||
+            ms == 'crow' ||
+            ms == 'custom' ||
+            ms == 'auto')
         ? ms!
         : 'classic';
+    s.packTone = j['packTone'] != false;
     s.mascotCustomPath = _s(j['mascotCustomPath']);
     final isv = _s(j['iconStyle']);
     s.iconStyle =

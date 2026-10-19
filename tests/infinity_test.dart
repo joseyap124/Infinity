@@ -3375,4 +3375,57 @@ void main() {
       expect(AppSettings.fromJson(AppSettings().toJson()).weekSeen, isNull);
     });
   });
+
+  group('Paket gaya: maskot dan nada (v5.14.1)', () {
+    test('Ikut paket memilih maskot sesuai paket gaya', () {
+      AppSettings st(String skin, String pack) =>
+          AppSettings()..mascotSkin = skin..stylePack = pack;
+      expect(effectiveMascotSkin(st('auto', 'malam')), 'owl');
+      expect(effectiveMascotSkin(st('auto', 'kuning')), 'fox');
+      expect(effectiveMascotSkin(st('auto', 'merah')), 'crow');
+      expect(effectiveMascotSkin(st('auto', 'classic')), 'classic');
+      // Pilihan sendiri tidak ditimpa paket.
+      expect(effectiveMascotSkin(st('owl', 'merah')), 'owl');
+      expect(effectiveMascotSkin(st('custom', 'malam')), 'custom');
+      expect(effectiveMascotSkin(st('classic', 'malam')), 'classic');
+    });
+
+    test('pilihan auto dan nada ikut tersimpan', () {
+      final a = AppSettings()
+        ..mascotSkin = 'auto'
+        ..packTone = false;
+      final b = AppSettings.fromJson(a.toJson());
+      expect(b.mascotSkin, 'auto');
+      expect(b.packTone, isFalse);
+      final d = AppSettings.fromJson(AppSettings().toJson());
+      expect(d.packTone, isTrue);
+      expect(d.mascotSkin, 'classic');
+      expect(AppSettings.fromJson(<String, dynamic>{'mascotSkin': 'naga'}).mascotSkin,
+          'classic');
+    });
+
+    test('kalimat maskot: tiap paket punya enam kalimat berbeda', () {
+      expect(mascotLine(MascotMood.happy), 'Keuangan aman terkendali.');
+      expect(mascotLine(MascotMood.happy, pack: 'tidak ada'),
+          'Keuangan aman terkendali.');
+      for (final pack in ['malam', 'kuning', 'merah']) {
+        final lines = {for (final m in MascotMood.values) mascotLine(m, pack: pack)};
+        expect(lines.length, MascotMood.values.length, reason: pack);
+        for (final m in MascotMood.values) {
+          expect(mascotLine(m, pack: pack), isNot(mascotLine(m)), reason: '$pack $m');
+        }
+      }
+      expect(mascotLine(MascotMood.over, pack: 'merah'), 'Lewat jatah. Hitung ulang.');
+    });
+
+    test('data widget memakai maskot efektif', () {
+      final s = storeWith([acc('a', initial: 1000000)]);
+      s.settings
+        ..stylePack = 'kuning'
+        ..mascotSkin = 'auto';
+      expect(s.widgetData()['w_skin'], 'fox');
+      s.settings.mascotSkin = 'crow';
+      expect(s.widgetData()['w_skin'], 'crow');
+    });
+  });
 }

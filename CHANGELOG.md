@@ -3,7 +3,16 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.14.0)
+## Berikutnya (v5.14.1)
+
+### Ditambah
+- **Maskot "Ikut paket".** Pilihan baru di Pengaturan, Tampilan, Maskot: maskot otomatis mengikuti paket gaya, yaitu Malam Biru dengan Burung Hantu, Kuning Ceria dengan Rubah, Merah Kafe dengan Gagak (Klasik tetap maskot klasik). Pengaturan maskot yang sudah kamu pilih tidak diubah. Widget ikut maskot yang berlaku.
+- **Nada kalimat ikut paket.** Kalimat di kartu Maskot kini punya watak sesuai paket: Malam Biru tenang, Kuning Ceria ceria, Merah Kafe tegas, masing-masing enam kalimat untuk enam suasana. Bisa dimatikan di Tampilan ("Nada kalimat ikut paket"); paket Klasik tetap netral.
+
+### Diperbaiki
+- **Burung Hantu di mode gelap** kini diberi cakram terang tipis di kartu Maskot, karena gambarnya sendiri gelap dan di atas latar biru gelap hanya matanya yang terlihat. Mode terang tidak berubah.
+
+## v5.14.0 (19 Okt 2026)
 
 ### Ditambah
 - **Tinjauan mingguan.** Kartu satu baris di Beranda (Senin sampai Rabu, setelah ada dua minggu penuh catatan) berisi total pengeluaran minggu lalu dan naik atau turunnya dari minggu sebelumnya. Ketuk untuk membuka halaman detail: 7 batang harian, hari terbesar, dan sampai tiga temuan: kategori dengan kenaikan rupiah terbesar (minimal Rp 50.000 dan 20%), transaksi kecil yang berulang (sampai Rp 50.000, judul sama, minimal 3 kali; angka setahun hanya total minggu itu dikali 52, perkiraan kasar), dan ritme anggaran bulan ini (kalau Anggaran global diisi). Tombol X menutup kartu untuk minggu itu; membuka detail juga menandainya sudah dilihat. Tinjauan tetap bisa dibuka kapan saja dari Lainnya. Hanya pengeluaran yang dihitung; transfer antar akun tidak.

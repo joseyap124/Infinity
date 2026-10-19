@@ -848,13 +848,22 @@ class AppearancePage extends StatelessWidget {
                               style: TextStyle(
                                   fontSize: 14, fontWeight: FontWeight.w800)),
                           Text(
-                              switch (s.mascotSkin) {
-                                'owl' => 'Burung Hantu',
-                                'fox' => 'Rubah',
-                                'crow' => 'Gagak',
-                                'custom' => 'Gambar sendiri',
-                                _ => 'Klasik',
-                              },
+                              s.mascotSkin == 'auto'
+                                  ? tr('Ikut paket ({0})', [
+                                      tr(switch (effectiveMascotSkin(s)) {
+                                        'owl' => 'Burung Hantu',
+                                        'fox' => 'Rubah',
+                                        'crow' => 'Gagak',
+                                        _ => 'Klasik',
+                                      })
+                                    ])
+                                  : switch (s.mascotSkin) {
+                                      'owl' => 'Burung Hantu',
+                                      'fox' => 'Rubah',
+                                      'crow' => 'Gagak',
+                                      'custom' => 'Gambar sendiri',
+                                      _ => 'Klasik',
+                                    },
                               style: TextStyle(fontSize: 12, color: C.muted)),
                         ],
                       ),
@@ -876,6 +885,21 @@ class AppearancePage extends StatelessWidget {
                             fontWeight: FontWeight.w800, fontSize: 14)),
                     subtitle: Text(
                         tr('Kabut, awan, atau lampu di belakang Beranda sesuai gaya. Matikan kalau terasa ramai.'),
+                        style: TextStyle(fontSize: 12, color: C.muted)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                AppCard(
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: s.packTone,
+                    onChanged: (v) =>
+                        store.updateSettings((x) => x.packTone = v),
+                    title: Text(tr('Nada kalimat ikut paket'),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 14)),
+                    subtitle: Text(
+                        tr('Kalimat di kartu Maskot mengikuti watak paket gaya. Matikan untuk kalimat netral seperti Klasik.'),
                         style: TextStyle(fontSize: 12, color: C.muted)),
                   ),
                 ),

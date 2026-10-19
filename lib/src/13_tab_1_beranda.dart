@@ -960,20 +960,14 @@ class DashboardTab extends StatelessWidget {
         MascotMood.sleepy => C.muted,
       };
 
-  String _moodLine(MascotMood m) => switch (m) {
-        MascotMood.happy => tr('Keuangan aman terkendali.'),
-        MascotMood.ok => tr('Pengeluaran masih wajar.'),
-        MascotMood.warn => tr('Jatah hari ini mulai menipis.'),
-        MascotMood.danger => tr('Jatah hari ini hampir habis.'),
-        MascotMood.over => tr('Sudah lewat jatah hari ini.'),
-        MascotMood.sleepy => tr('Belum mencatat. Ketuk untuk mulai.'),
-      };
+  String _moodLine(MascotMood m) => mascotLine(m,
+      pack: store.settings.packTone ? store.settings.stylePack : 'classic');
 
   /// Kartu Maskot: gambar maskot pilihan dengan 6 ekspresi sesuai suasana,
   /// tanpa lingkaran latar.
   Widget _maskotTile(BuildContext context, MascotMood mood, bool sleepy,
       VoidCallback openDetail) {
-    final skin = store.settings.mascotSkin;
+    final skin = effectiveMascotSkin(store.settings);
     final name = switch (skin) {
       'owl' => 'Owl',
       'fox' => tr('Rubah'),
@@ -1014,7 +1008,19 @@ class DashboardTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              Center(child: MascotView(mood: mood, size: 60)),
+              Center(
+                // Gambar Burung Hantu gelap: di mode gelap diberi cakram terang tipis.
+                child: skin == 'owl' && C.isDark
+                    ? Container(
+                        width: 68,
+                        height: 68,
+                        decoration: BoxDecoration(
+                            color: mascotBase('owl'), shape: BoxShape.circle),
+                        alignment: Alignment.center,
+                        child: MascotView(mood: mood, size: 50),
+                      )
+                    : MascotView(mood: mood, size: 60),
+              ),
               const SizedBox(height: 8),
               Text(_moodLine(mood),
                   textAlign: TextAlign.center,
