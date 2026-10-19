@@ -1555,7 +1555,7 @@ const Map<String, String> kEnStrings = {
   'anggaran terpakai': 'of budget used',
   'Hari ke-{0} dari {1}': 'Day {0} of {1}',
   'Baris di bawah kartu utama': 'Row below the main card',
-  'Status singkat dan emoji maskot': 'Short status and mascot emoji',
+  'Status singkat dan maskot': 'Short status and mascot',
   'Ritme': 'Pace',
   'Anggaran terpakai dibanding hari di periode': 'Budget used versus days elapsed in the period',
   'Kartu di bawahnya': 'Cards below',

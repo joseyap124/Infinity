@@ -16,7 +16,7 @@ t('Isi anggaran untuk melihat ritme pengeluaran.', 'Set a budget to see your spe
 t('anggaran terpakai', 'of budget used', '预算已用')
 t('Hari ke-{0} dari {1}', 'Day {0} of {1}', '第 {0} 天，共 {1} 天')
 t('Baris di bawah kartu utama', 'Row below the main card', '主卡片下方一行')
-t('Status singkat dan emoji maskot', 'Short status and mascot emoji', '简短状态和吉祥物表情')
+t('Status singkat dan maskot', 'Short status and mascot', '简短状态和吉祥物')
 t('Ritme', 'Pace', '节奏')
 t('Anggaran terpakai dibanding hari di periode', 'Budget used versus days elapsed in the period', '预算使用量与周期已过天数对比')
 t('Kartu di bawahnya', 'Cards below', '其下的卡片')

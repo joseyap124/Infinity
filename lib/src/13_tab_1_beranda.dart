@@ -963,16 +963,16 @@ class DashboardTab extends StatelessWidget {
         MascotMood.sleepy => tr('Belum mencatat. Ketuk untuk mulai.'),
       };
 
-  /// Kartu Maskot: emoji untuk Owl/Rubah/Gagak; maskot klasik dan gambar
-  /// sendiri tetap memakai gambarnya.
+  /// Kartu Maskot: gambar maskot pilihan dengan 6 ekspresi sesuai suasana,
+  /// tanpa lingkaran latar.
   Widget _maskotTile(BuildContext context, MascotMood mood, bool sleepy,
       VoidCallback openDetail) {
     final skin = store.settings.mascotSkin;
-    final (emoji, name) = switch (skin) {
-      'owl' => ('🦉', 'Owl'),
-      'fox' => ('🦊', tr('Rubah')),
-      'crow' => ('🐦\u200D⬛', tr('Gagak')),
-      _ => (null, tr('Maskot')),
+    final name = switch (skin) {
+      'owl' => 'Owl',
+      'fox' => tr('Rubah'),
+      'crow' => tr('Gagak'),
+      _ => tr('Maskot'),
     };
     return Material(
       color: C.surface,
@@ -1008,12 +1008,7 @@ class DashboardTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              Center(
-                child: emoji != null
-                    ? Text(emoji,
-                        style: const TextStyle(fontSize: 36, height: 1.2))
-                    : MascotView(mood: mood, size: 44),
-              ),
+              Center(child: MascotView(mood: mood, size: 60)),
               const SizedBox(height: 8),
               Text(_moodLine(mood),
                   textAlign: TextAlign.center,

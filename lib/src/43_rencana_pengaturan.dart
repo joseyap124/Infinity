@@ -86,7 +86,7 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
             activeColor: C.accentDark,
             title: Text(tr('Maskot'),
                 style: const TextStyle(fontWeight: FontWeight.w800)),
-            subtitle: Text(tr('Status singkat dan emoji maskot')),
+            subtitle: Text(tr('Status singkat dan maskot')),
             value: widget.store.settings.homeMaskot,
             onChanged: (v) => setState(
                 () => widget.store.updateSettings((s) => s.homeMaskot = v == true)),

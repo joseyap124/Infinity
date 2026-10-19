@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.11.0)
+## Berikutnya (v5.11.1)
+
+### Diperbaiki
+- **Kartu Maskot di Beranda kembali memakai gambar maskot dengan 6 ekspresi** (senang, biasa, waspada, bahaya, lewat jatah, ngantuk), tanpa lingkaran latar. Di v5.11.0 kartu ini memakai satu emoji hewan yang tidak berubah ekspresi.
+
+## v5.11.0 (19 Okt 2026)
 
 ### Diubah
 - **Beranda dua kartu.** Kartu utama sekarang berisi sisa jatah hari ini, bar, "Terpakai" dan "Jatah", lalu Total saldo. Cincin dan maskot besar diganti baris dua kartu: **Maskot** ("Status Owl", titik status, emoji, satu kalimat kondisi) dan **Ritme** (persen anggaran terpakai dibanding hari di periode). Titik status tidak berkedip, dan kalimatnya tetap menjelaskan kondisi sehingga tidak bergantung pada warna. Owl, Rubah, dan Gagak tampil sebagai emoji; maskot klasik dan gambar sendiri tetap memakai gambarnya. Tanpa anggaran bulanan, kartu Ritme mengajak mengisinya.

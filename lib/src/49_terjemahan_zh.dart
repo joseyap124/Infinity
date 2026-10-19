@@ -1554,7 +1554,7 @@ const Map<String, String> kZhStrings = {
   'anggaran terpakai': '预算已用',
   'Hari ke-{0} dari {1}': '第 {0} 天，共 {1} 天',
   'Baris di bawah kartu utama': '主卡片下方一行',
-  'Status singkat dan emoji maskot': '简短状态和吉祥物表情',
+  'Status singkat dan maskot': '简短状态和吉祥物',
   'Ritme': '节奏',
   'Anggaran terpakai dibanding hari di periode': '预算使用量与周期已过天数对比',
   'Kartu di bawahnya': '其下的卡片',
