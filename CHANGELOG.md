@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.3.0)
+## v6.3.0 (19 Okt 2026)
 
 ### Diubah
 - **Form Catat (pengeluaran dan pemasukan) dibuat seperti Money Manager.** Form sekarang berupa baris isian: Tanggal, Akun, Jumlah, Kategori, Catatan. Panel di bawahnya berganti sesuai baris yang aktif: keypad angka untuk Jumlah, atau daftar kategori yang tinggi untuk Kategori. Memilih kategori cukup satu ketukan, lalu panel kembali ke keypad. Induk yang punya sub membuka daftar sub di panel yang sama, dengan tombol kembali. Tombol *Pilih kategori* di bawah keypad membawa langsung ke daftar kategori. Keypad lebih besar karena tingginya mengisi panel.
