@@ -6,13 +6,14 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 ## Berikutnya (v6.3.1)
 
 ### Diubah
-- **Form Catat tampil lebih rapi, dengan gaya Infinity sendiri.** Tanggal, Jumlah, Kategori, Akun, dan Catatan sekarang satu kartu bergaris tipis, bukan lima kotak terpisah. Tiap baris punya ikon bulat di kiri dan nilainya langsung terbaca tanpa label. Baris yang sedang diisi diberi warna latar dan ikonnya terisi warna jenis transaksi (merah/hijau). Warnanya diambil dari tema aplikasi, jadi ikut tema terang dan gelap.
-- **Panel kategori berupa kotak tiga kolom.** Ada bagian *Sering dipakai* (3 kotak) dan *Semua*. Induk yang punya sub membuka dua kolom sub di panel yang sama, judulnya bisa diketuk untuk kembali. Tombol tutup di pojok panel. Tekan lama kategori sering dipakai tetap membuka menu sematkan.
-- **Keypad mengisi panel**, tanpa tombol *Pilih kategori* di bawahnya (kategori sudah bisa dibuka dari barisnya). Tinggi panel sama untuk keypad dan kategori, jadi bagian atas tidak bergeser.
-- **Tombol bawah**: *Simpan & lanjut* di kiri, *Simpan* di kanan.
+- **Form Catat (pengeluaran dan pemasukan) tampil lebih rapi, dengan gaya Infinity sendiri.** Tanggal, Jumlah, Kategori, Akun, dan Catatan sekarang satu kartu bulat (radius 24 seperti kartu lain di aplikasi) dengan garis tipis antar baris. Tiap baris punya ikon bulat di kiri dan nilainya langsung terbaca tanpa label. Baris yang sedang diisi diberi warna latar dan ikonnya terisi.
+- **Warna sorotan mengikuti warna tema aplikasi** (yang dipilih di Pengaturan), bukan merah. Berlaku untuk baris aktif, kategori terpilih, tombol Simpan, dan garis tombol Simpan & lanjut. Hanya penanda jenis di paling atas (Pengeluaran, Pemasukan, Transfer) yang tetap berwarna jenisnya. Form transfer tidak berubah.
+- **Panel kategori memakai ikon bulat 4 kolom** dengan nama di bawahnya, tanpa kotak bergaris. Ada bagian *Sering dipakai* (4 kategori) dan *Semua*. Induk yang punya sub membuka dua kolom sub di panel yang sama, judulnya bisa diketuk untuk kembali. Tombol tutup di pojok panel. Tekan lama kategori sering dipakai tetap membuka menu sematkan.
+- **Keypad mengisi panel** dengan tombol lebih bulat, tanpa tombol *Pilih kategori* di bawahnya. Tinggi panel sama untuk keypad dan kategori, jadi bagian atas tidak bergeser.
+- **Tombol bawah**: *Simpan & lanjut* di kiri, *Simpan* di kanan, tinggi 54 dengan sudut 22 seperti tombol lain.
 
 ### Belum terbukti
-- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Yang paling mungkin meleset: tinggi panel di layar kecil dan teks kategori dua baris di kotak 48dp.
+- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Yang paling mungkin meleset: tinggi panel di layar kecil (daftar kategori mungkin perlu digulir), nama kategori dua baris di bawah ikon, dan kontras kartu isian di tema terang.
 
 ## v6.3.0 (19 Okt 2026)
 

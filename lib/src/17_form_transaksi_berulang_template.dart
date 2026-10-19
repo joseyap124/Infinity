@@ -1066,9 +1066,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
             excludeSemantics: true,
             child: Material(
               color: keyColor ?? C.bg,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(18),
               child: InkWell(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(18),
                 onTap: () => _key(k),
                 onLongPress: isDel ? _clearAmount : null,
                 child: SizedBox(
@@ -1079,7 +1079,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
                             size: 21, color: C.carbon)
                         : Text(k == '.' ? ',' : k,
                             style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w700,
                                 color: C.carbon)),
                   ),
@@ -1284,7 +1284,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     Widget chip(String label, String id) {
       final sel = id == _categoryId;
       return InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () {
           _chooseCategory1(id);
           setState(() {
@@ -1299,10 +1299,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
             constraints: const BoxConstraints(minHeight: 44),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: sel ? accent.withValues(alpha: 0.08) : C.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: sel ? accent : C.line, width: sel ? 2 : 1),
+              color: sel ? accent.withValues(alpha: 0.10) : C.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: sel ? Border.all(color: accent, width: 1.6) : null,
             ),
             child: Row(
               children: [
@@ -1954,9 +1953,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 52),
+        constraints: const BoxConstraints(minHeight: 56),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-        color: active ? _type.color.withValues(alpha: 0.10) : null,
+        color: active ? C.accentDark.withValues(alpha: 0.12) : null,
         child: Row(
           children: [
             leading,
@@ -1975,7 +1974,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       height: 30,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: active ? _type.color : C.surface,
+        color: active ? C.accentDark : C.surface,
       ),
       child: Icon(icon, size: 16, color: active ? Colors.white : C.carbon),
     );
@@ -2005,7 +2004,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
         ),
         const SizedBox(height: 10),
         ClipRRect(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(24),
           child: Container(
             color: C.bg,
             child: Column(
@@ -2129,7 +2128,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: C.bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: _catPanel ? _categoryPanelBody(accent) : _amountPanelBody(height),
     );
@@ -2189,7 +2188,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
       required VoidCallback onTap,
       VoidCallback? onLongPress}) {
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       onLongPress: onLongPress,
       child: Semantics(
@@ -2198,29 +2197,51 @@ class _TxFormSheetState extends State<TxFormSheet> {
         label: c.name,
         excludeSemantics: true,
         child: Container(
-          padding: const EdgeInsets.fromLTRB(6, 0, 6, 0),
+          padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
           decoration: BoxDecoration(
-            color: sel ? accent.withValues(alpha: 0.10) : C.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-                color: sel ? accent : C.line, width: sel ? 1.6 : 1),
+            color: sel ? accent.withValues(alpha: 0.10) : null,
+            borderRadius: BorderRadius.circular(18),
+            border: sel ? Border.all(color: accent, width: 1.6) : null,
           ),
-          child: Row(
+          // Column langsung di sel grid: terpusat.
+          child: Column(
             children: [
-              CatIcon(
-                  icon: c.iconData, art: c.art, color: c.colorValue, size: 26),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(shortCategoryName(c.name),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 12.5,
-                        height: 1.1,
-                        fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
-                        color: sel ? accent : C.carbon)),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CatIcon(
+                      icon: c.iconData,
+                      art: c.art,
+                      color: c.colorValue,
+                      size: 44),
+                  if (hasSubs)
+                    Positioned(
+                      right: -6,
+                      top: -4,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: C.bg,
+                          border: Border.all(color: C.line),
+                        ),
+                        child: Icon(Icons.chevron_right_rounded,
+                            size: 12, color: C.muted),
+                      ),
+                    ),
+                ],
               ),
-              if (hasSubs) Icon(Icons.chevron_right_rounded, size: 16, color: C.muted),
+              const SizedBox(height: 4),
+              Text(shortCategoryName(c.name),
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 11,
+                      height: 1.15,
+                      fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                      color: sel ? accent : C.carbon)),
             ],
           ),
         ),
@@ -2234,10 +2255,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisExtent: 48,
-        mainAxisSpacing: 6,
-        crossAxisSpacing: 6,
+        crossAxisCount: 4,
+        mainAxisExtent: 90,
+        mainAxisSpacing: 4,
+        crossAxisSpacing: 4,
       ),
       children: children,
     );
@@ -2274,7 +2295,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     final tops = store.topCategories(_type);
     final selTop = _categoryId == null ? null : store.topCategoryId(_categoryId!);
     final freq = <TxCategory>[];
-    for (final id in store.frequentCategories(_type, ensure: _categoryId, limit: 3)) {
+    for (final id in store.frequentCategories(_type, ensure: _categoryId, limit: 4)) {
       final c = store.categoryById(id);
       if (c != null) freq.add(c);
     }
@@ -2325,8 +2346,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
   }
 
   Widget _buildOnePage(BuildContext context) {
-    final accent = _type.color;
     final isTransfer = _type == TxType.transfer;
+    // Isian pengeluaran/pemasukan memakai warna aksen tema aplikasi; transfer
+    // tetap memakai warna jenisnya. Penanda jenis (Segmented) selalu berwarna jenis.
+    final accent = isTransfer ? _type.color : C.accentDark;
     final dec = hasDecimals(_fromCur);
     final raw = _amountCtrl.text;
     final empty = raw.isEmpty;
@@ -2586,11 +2609,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
                                     style: OutlinedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8),
-                                      minimumSize: const Size.fromHeight(52),
+                                      minimumSize: const Size.fromHeight(54),
                                       foregroundColor: accent,
                                       side: BorderSide(color: accent, width: 1.5),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16)),
+                                          borderRadius: BorderRadius.circular(22)),
                                     ),
                                     child: Text(tr('Simpan & lanjut'),
                                         textAlign: TextAlign.center,
