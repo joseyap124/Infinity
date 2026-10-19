@@ -1561,6 +1561,10 @@ const Map<String, String> kEnStrings = {
   'Kartu di bawahnya': 'Cards below',
   'Dipilih manual': 'Chosen manually',
   'Otomatis dari riwayat catatan': 'Automatic, from your note history',
+  '{0} {1} tercatat. Catat berikutnya.': '{0} {1} saved. Next one.',
+  'SEMUA KATEGORI': 'ALL CATEGORIES',
+  'Biasanya di {0}:': 'Usually in {0}:',
+  'Simpan & lanjut': 'Save & next',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

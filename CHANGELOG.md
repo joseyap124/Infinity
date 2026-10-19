@@ -3,7 +3,16 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.11.1)
+## Berikutnya (v5.12.0)
+
+### Diubah
+- **Kategori langsung di form Catat transaksi.** Sheet "Semua kategori" tidak dipakai lagi di form ini. Baris atas tetap "Sering dipakai" (empat teratas, satu ketukan). Di bawahnya ada semua kategori induk; ketuk satu (mis. Kebutuhan Pokok) dan sub-kategorinya muncul tepat di bawah barisnya, ketuk sub untuk memilih. Induk tanpa sub langsung terpilih. Untuk kategori yang jarang dipakai ini 2 ketukan, sebelumnya 3 (Semua, induk, sub). Tekan-tahan untuk pin di "Sering dipakai" tetap ada.
+
+### Ditambah
+- **Nominal yang biasa.** Saat jumlah masih kosong, muncul sampai tiga nominal yang paling sering dipakai di kategori terpilih (minimal dua kali dalam 180 hari terakhir). Satu ketukan mengisi jumlah.
+- **Simpan & lanjut.** Tombol kedua di form transaksi baru: menyimpan lalu form tetap terbuka dan dikosongkan (jenis, akun, tanggal, dan acara tetap). Tidak tersedia saat mengedit.
+
+## v5.11.1 (19 Okt 2026)
 
 ### Diperbaiki
 - **Kartu Maskot di Beranda kembali memakai gambar maskot dengan 6 ekspresi** (senang, biasa, waspada, bahaya, lewat jatah, ngantuk), tanpa lingkaran latar. Di v5.11.0 kartu ini memakai satu emoji hewan yang tidak berubah ekspresi.

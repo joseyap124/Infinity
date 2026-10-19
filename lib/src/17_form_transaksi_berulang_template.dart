@@ -13,7 +13,11 @@ class TxFormSheet extends StatefulWidget {
     this.excludeTxId,
     this.isEditing = false,
     this.frequency,
+    this.onContinue,
   });
+
+  /// Dipanggil untuk menyimpan transaksi tanpa menutup form (Simpan & lanjut).
+  final Future<void> Function(FormResult r)? onContinue;
 
   final AppStore store;
   final TxDraft draft;
@@ -436,7 +440,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
     return [for (final e in m.entries) TxSplit(e.key, e.value)];
   }
 
-  void _submit() {
+  /// Validasi lalu susun hasil form; null kalau ada isian yang salah.
+  FormResult? _buildResult() {
     _applyLearned();
     final amount = _amount;
     String? err;
@@ -474,7 +479,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     if (err != null) {
       HapticFeedback.mediumImpact();
       setState(() => _error = err);
-      return;
+      return null;
     }
 
     final now = DateTime.now();
@@ -506,11 +511,46 @@ class _TxFormSheetState extends State<TxFormSheet> {
     final title = _titleCtrl.text.trim();
     draft.title = title.isEmpty ? _defaultTitle(store, draft) : title;
 
-    Navigator.of(context).pop(FormResult(
+    return FormResult(
       draft,
       frequency: widget.mode == FormMode.recurring ? _frequency : null,
       saveAsTemplate: _saveTemplate,
-    ));
+    );
+  }
+
+  void _submit() {
+    final r = _buildResult();
+    if (r != null) Navigator.of(context).pop(r);
+  }
+
+  /// Simpan & lanjut (v5.12): transaksi disimpan, form tetap terbuka dan
+  /// dikosongkan. Akun, jenis, tanggal, dan acara tetap.
+  Future<void> _submitContinue() async {
+    final r = _buildResult();
+    final cb = widget.onContinue;
+    if (r == null || cb == null) return;
+    await cb(r);
+    if (!mounted) return;
+    HapticFeedback.lightImpact();
+    setState(() {
+      _amountCtrl.clear();
+      _toAmountCtrl.clear();
+      _titleCtrl.clear();
+      _noteCtrl.clear();
+      _photos = [];
+      _clearSplits();
+      _saveTemplate = false;
+      _catTouched = false;
+      _catAuto = false;
+      _catManual = false;
+      _openParent = null;
+      _categoryId = _defaultCategory(_type);
+      _toTouched = false;
+      _syncToAmount();
+      _error = null;
+      _info = tr('{0} {1} tercatat. Catat berikutnya.',
+          [tr(r.draft.type.label), money(r.draft.amount, _fromCur)]);
+    });
   }
 
   String get _heading {
@@ -1115,6 +1155,263 @@ class _TxFormSheetState extends State<TxFormSheet> {
     );
   }
 
+  /// Induk kategori yang sub-nya sedang terbuka di form (null = tertutup).
+  String? _openParent;
+
+  String _plainName(String raw) =>
+      tr(raw).replaceAll(_emojiRe, '').replaceAll(RegExp(r'\s+'), ' ').trim();
+
+  void _tapParent(TxCategory c) {
+    if (store.childrenOf(c.id).isEmpty) {
+      _chooseCategory1(c.id);
+      setState(() => _openParent = null);
+      return;
+    }
+    HapticFeedback.selectionClick();
+    setState(() => _openParent = _openParent == c.id ? null : c.id);
+  }
+
+  Widget _parentTile(TxCategory c, Color accent, {required bool sel}) {
+    final hasSubs = store.childrenOf(c.id).isNotEmpty;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => _tapParent(c),
+      child: Semantics(
+        button: true,
+        selected: sel,
+        label: c.name,
+        excludeSemantics: true,
+        child: Container(
+          decoration: BoxDecoration(
+            color: sel ? accent.withValues(alpha: 0.08) : null,
+            border: sel ? Border.all(color: accent, width: 1.6) : null,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  CatIcon(
+                      icon: c.iconData, art: c.art, color: c.colorValue, size: 42),
+                  const SizedBox(height: 4),
+                  Text(shortCategoryName(c.name),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 10.5,
+                          height: 1.15,
+                          fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                          color: sel ? accent : C.carbon)),
+                ],
+              ),
+              if (hasSubs)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Icon(
+                      _openParent == c.id
+                          ? Icons.expand_less_rounded
+                          : Icons.chevron_right_rounded,
+                      size: 14,
+                      color: C.muted),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Sub-kategori yang muncul tepat di bawah baris induknya.
+  Widget _subPanel(TxCategory parent, Color accent) {
+    Widget chip(String label, String id) {
+      final sel = id == _categoryId;
+      return InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          _chooseCategory1(id);
+          setState(() => _openParent = null);
+        },
+        child: Semantics(
+          button: true,
+          selected: sel,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 44),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: sel ? accent.withValues(alpha: 0.08) : C.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: sel ? accent : C.line, width: sel ? 2 : 1),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(label,
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                          color: sel ? accent : C.carbon)),
+                ),
+                if (sel) ...[
+                  const SizedBox(width: 4),
+                  Icon(Icons.check_rounded, size: 16, color: accent),
+                ],
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 6, bottom: 2),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+          color: C.bg, borderRadius: BorderRadius.circular(14)),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          chip(tr('Umum ({0})', [shortCategoryName(parent.name)]), parent.id),
+          for (final sub in store.childrenOf(parent.id))
+            chip(_plainName(sub.name), sub.id),
+        ],
+      ),
+    );
+  }
+
+  /// Kategori langsung di form (v5.12): pintasan sering dipakai, lalu semua
+  /// kategori induk dengan sub-kategori yang terbuka di tempat. Tanpa sheet.
+  Widget _categoryArea(Color accent) {
+    final tops = store.topCategories(_type);
+    final selTop = _categoryId == null ? null : store.topCategoryId(_categoryId!);
+    final rows = <Widget>[];
+    for (var i = 0; i < tops.length; i += 4) {
+      final chunk = tops.sublist(i, math.min(i + 4, tops.length));
+      rows.add(GridView.count(
+        crossAxisCount: 4,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        mainAxisSpacing: 4,
+        crossAxisSpacing: 4,
+        childAspectRatio: 0.86,
+        children: [
+          for (final c in chunk) _parentTile(c, accent, sel: c.id == selTop),
+        ],
+      ));
+      for (final c in chunk) {
+        if (c.id == _openParent) rows.add(_subPanel(c, accent));
+      }
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Text(tr('SERING DIPAKAI'),
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: C.muted)),
+            const Spacer(),
+            Text(tr('tahan untuk pin'),
+                style: TextStyle(fontSize: 11, color: C.muted)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _frequentGrid(accent, limit: 4, withAll: false),
+        const SizedBox(height: 6),
+        Text(tr('SEMUA KATEGORI'),
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+                color: C.muted)),
+        const SizedBox(height: 4),
+        ...rows,
+      ],
+    );
+  }
+
+  /// Nominal yang paling sering dipakai di kategori terpilih (maks. 3, minimal
+  /// dua kali dipakai dalam 180 hari terakhir), urut dari yang kecil.
+  List<double> _usualAmounts() {
+    final id = _categoryId;
+    if (id == null || _type == TxType.transfer) return const [];
+    final from = DateTime.now().subtract(const Duration(days: 180));
+    final count = <double, int>{};
+    final last = <double, DateTime>{};
+    for (final t in store.transactions) {
+      if (t.type != _type || t.categoryId != id || t.date.isBefore(from)) {
+        continue;
+      }
+      if (store.currencyOf(t.accountId) != _fromCur || t.amount <= 0) continue;
+      count[t.amount] = (count[t.amount] ?? 0) + 1;
+      final l = last[t.amount];
+      if (l == null || t.date.isAfter(l)) last[t.amount] = t.date;
+    }
+    final ranked = count.keys.where((a) => count[a]! >= 2).toList()
+      ..sort((a, b) {
+        final c = count[b]!.compareTo(count[a]!);
+        return c != 0 ? c : last[b]!.compareTo(last[a]!);
+      });
+    return ranked.take(3).toList()..sort();
+  }
+
+  Widget _usualAmountChips(Color accent) {
+    final c = store.categoryById(_categoryId);
+    final amounts = _usualAmounts();
+    if (c == null || amounts.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(tr('Biasanya di {0}:', [shortCategoryName(c.name)]),
+              style: TextStyle(fontSize: 12, color: C.muted)),
+          for (final a in amounts)
+            Semantics(
+              button: true,
+              label: money(a, _fromCur),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _amountCtrl.text = amountToInput(a, _fromCur);
+                    _syncToAmount();
+                    _error = null;
+                  });
+                },
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: accent),
+                  ),
+                  child: Text(amountToInput(a, _fromCur),
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: accent)),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   void _chooseCategory1(String id) {
     if (id == _categoryId) return;
     HapticFeedback.selectionClick();
@@ -1189,8 +1486,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
     setState(() {});
   }
 
-  Widget _frequentGrid(Color accent) {
-    final ids = store.frequentCategories(_type, ensure: _categoryId);
+  Widget _frequentGrid(Color accent, {int? limit, bool withAll = true}) {
+    final ids = limit == null
+        ? store.frequentCategories(_type, ensure: _categoryId)
+        : store.frequentCategories(_type, ensure: _categoryId, limit: limit);
     final cells = <Widget>[];
     for (final id in ids) {
       final c = store.categoryById(id);
@@ -1251,7 +1550,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
         ),
       ));
     }
-    cells.add(InkWell(
+    if (withAll) cells.add(InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: _pickCategory,
       child: Semantics(
@@ -1625,6 +1924,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
           ),
         ),
         const SizedBox(height: 8),
+        if (!isTransfer && _amountCtrl.text.isEmpty && !widget.isEditing)
+          _usualAmountChips(accent),
         if (isTransfer) ...[
           Text('DARI AKUN',
               style: TextStyle(
@@ -1677,23 +1978,8 @@ class _TxFormSheetState extends State<TxFormSheet> {
           ],
         ] else if (_splitting && _canSplit)
           _splitCard(accent)
-        else ...[
-          Row(
-            children: [
-              Text('SERING DIPAKAI',
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                      color: C.muted)),
-              const Spacer(),
-              Text('tahan untuk pin',
-                  style: TextStyle(fontSize: 11, color: C.muted)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          _frequentGrid(accent),
-        ],
+        else
+          _categoryArea(accent),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -1806,10 +2092,39 @@ class _TxFormSheetState extends State<TxFormSheet> {
                         const SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 3),
-                          child: PrimaryButton(
-                            label: _saveLabel,
-                            color: accent,
-                            onPressed: _submit,
+                          child: Row(
+                            children: [
+                              if (widget.onContinue != null && !widget.isEditing) ...[
+                                Expanded(
+                                  flex: 4,
+                                  child: OutlinedButton(
+                                    onPressed: _submitContinue,
+                                    style: OutlinedButton.styleFrom(
+                                      minimumSize: const Size.fromHeight(52),
+                                      foregroundColor: accent,
+                                      side: BorderSide(color: accent, width: 1.5),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(16)),
+                                    ),
+                                    child: Text(tr('Simpan & lanjut'),
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w700,
+                                            height: 1.15)),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                              Expanded(
+                                flex: 6,
+                                child: PrimaryButton(
+                                  label: _saveLabel,
+                                  color: accent,
+                                  onPressed: _submit,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],

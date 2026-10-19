@@ -19,6 +19,7 @@ Future<FormResult?> showTxForm(
   String? excludeTxId,
   bool isEditing = false,
   Frequency? frequency,
+  Future<void> Function(FormResult r)? onContinue,
 }) {
   return showSheet<FormResult>(
     context,
@@ -29,6 +30,7 @@ Future<FormResult?> showTxForm(
       excludeTxId: excludeTxId,
       isEditing: isEditing,
       frequency: frequency,
+      onContinue: onContinue,
     ),
   );
 }
@@ -65,8 +67,21 @@ Future<bool> openTxForm(
         toAccountId: toAccountId,
         amount: amount ?? 0);
   }
-  final r = await showTxForm(context, store, draft: draft);
+  final r = await showTxForm(context, store,
+      draft: draft,
+      // Simpan & lanjut: simpan tanpa menutup form.
+      onContinue: (r) async {
+        if (context.mounted) _commitNewTx(context, store, r, announce: false);
+      });
   if (r == null || !context.mounted) return false;
+  _commitNewTx(context, store, r, announce: true);
+  return true;
+}
+
+/// Menyimpan hasil form transaksi baru, termasuk template dan peringatan
+/// anggaran. [announce] false kalau form masih terbuka (Simpan & lanjut).
+void _commitNewTx(BuildContext context, AppStore store, FormResult r,
+    {required bool announce}) {
   final before = store.budgetStatusNow();
   final t = r.draft.toTransaction(store.newId());
   store.upsertTransaction(t);
@@ -92,11 +107,10 @@ Future<bool> openTxForm(
   if (t.type == TxType.expense && status == BudgetStatus.broke) {
     snack(context,
         tr('{0} Anggaran {1} hampir habis.', [tr(BudgetStatus.broke.message), tr(store.settings.budgetPeriod.current)]));
-  } else {
+  } else if (announce) {
     snack(context,
         tr('{0} {1} tercatat ✅', [tr(t.type.label), money(t.amount, store.currencyOf(t.accountId))]));
   }
-  return true;
 }
 
 Future<void> editTx(BuildContext context, AppStore store, Transaction t) async {

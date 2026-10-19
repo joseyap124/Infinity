@@ -1560,4 +1560,8 @@ const Map<String, String> kZhStrings = {
   'Kartu di bawahnya': '其下的卡片',
   'Dipilih manual': '手动选择',
   'Otomatis dari riwayat catatan': '根据备注历史自动选择',
+  '{0} {1} tercatat. Catat berikutnya.': '{0} {1} 已记录。继续记下一笔。',
+  'SEMUA KATEGORI': '全部分类',
+  'Biasanya di {0}:': '{0} 常见金额：',
+  'Simpan & lanjut': '保存并继续',
 };
