@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.2.3)
+## v6.2.3 (19 Okt 2026)
 
 ### Dirapikan
 - **Form Catat, daftar kategori**: ikon dan nama tiap induk kategori sekarang terpusat di selnya, jadi antar kolom sejajar. Sebelumnya isi sel menempel ke kiri atas dan lebarnya mengikuti teks, sehingga kolom tampak bergeser-geser. Penanda "punya sub" pindah ke pojok ikon (sebelumnya menimpa nama).
