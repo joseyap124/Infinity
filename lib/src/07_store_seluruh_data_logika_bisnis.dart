@@ -2220,6 +2220,7 @@ class AppStore extends ChangeNotifier {
           ? ''
           : tr('{0}/hari · {1} hari lagi', [money(safe.perDay), safe.daysLeft]),
       'w_balance': tr('Total saldo {0}', [saldo]),
+      'w_days': tr('{0} hari lagi', [safe.daysLeft]),
       'w_btn_expense': tr('− Keluar'),
       'w_btn_income': tr('+ Masuk'),
       'w_btn_transfer': tr('⇄ Transfer'),

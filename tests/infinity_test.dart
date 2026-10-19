@@ -1532,6 +1532,7 @@ void main() {
       final ring = int.parse(w['w_ring']!);
       expect(ring, inInclusiveRange(0, 100));
       expect(w['w_perday'], contains('hari lagi'));
+      expect(w['w_days'], contains('hari lagi'));
     });
 
     test('ukuran huruf tersimpan', () {

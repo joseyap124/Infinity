@@ -25,7 +25,12 @@ class InfinityQuickWidgetProvider : HomeWidgetProvider() {
         val skin = widgetData.getString("w_skin", null)
         val skinPath = widgetData.getString("w_skin_path", null)
         val theme = WidgetTheme.of(widgetData.getString("w_pack", null), skin)
+        val clean = WidgetTheme.isClean(widgetData.getString("w_pack", null))
         appWidgetIds.forEach { widgetId ->
+            if (clean) {
+                appWidgetManager.updateAppWidget(widgetId, cleanViews(context, widgetData, mood, ring))
+                return@forEach
+            }
             val views = RemoteViews(context.packageName, R.layout.infinity_widget_small).apply {
                 setImageViewBitmap(R.id.ws_ring, WidgetArt.ring(context, mood, ring, 160, theme, skin, skinPath))
                 setTextViewText(R.id.ws_label, widgetData.getString("w_safe_label", null) ?: "Aman dibelanjakan")
@@ -38,6 +43,19 @@ class InfinityQuickWidgetProvider : HomeWidgetProvider() {
             }
             appWidgetManager.updateAppWidget(widgetId, views)
         }
+    }
+
+    /** Tampilan bersih (v5.11): tanpa maskot; warna ikut mode gelap HP. */
+    private fun cleanViews(
+        context: Context,
+        d: SharedPreferences,
+        mood: String,
+        ring: Int,
+    ): RemoteViews = RemoteViews(context.packageName, R.layout.infinity_widget_small_clean).apply {
+        setTextViewText(R.id.cs_label, d.getString("w_safe_label", null) ?: "Aman dibelanjakan")
+        setTextViewText(R.id.cs_safe, d.getString("w_safe", null) ?: "Buka Infinity")
+        setOnClickPendingIntent(R.id.cs_root, launch(context, "infinity://open"))
+        setOnClickPendingIntent(R.id.cs_btn, launch(context, "infinity://add?type=expense"))
     }
 
     private fun launch(context: Context, uri: String) =

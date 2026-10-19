@@ -10,4 +10,15 @@
     <color name="w_btn_blue">#FF1497B5</color>
     <color name="qb_icon">#FFE6E7EA</color>
     <color name="qb_divider">#FF44474E</color>
+    <!-- Widget bersih (v5.11): mengikuti mode terang/gelap HP -->
+    <color name="w_clean_bg">#FF16181C</color>
+    <color name="w_clean_line">#FF2E3137</color>
+    <color name="w_clean_ink">#FFECEDEF</color>
+    <color name="w_clean_muted">#FFA3A9B4</color>
+    <color name="w_clean_acc">#FF2DB5A3</color>
+    <color name="w_clean_acc_soft">#2E2DB5A3</color>
+    <color name="w_clean_on_acc">#FF06201D</color>
+    <color name="w_clean_out">#FFEC5258</color>
+    <color name="w_clean_out_soft">#29EC5258</color>
+    <color name="w_clean_neutral">#FF262A30</color>
 </resources>

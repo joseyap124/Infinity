@@ -11,6 +11,8 @@ Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
 - **Form Catat: Jumlah, Catatan, lalu Kategori.** Setelah mengisi jumlah, kursor pindah ke Catatan, bukan membuka panel kategori. Kategori sekarang berupa chip: yang terpilih, lima yang paling sering dipakai, dan "Semua kategori" yang membuka panel lengkap. Kategori terisi otomatis dari riwayat catatan yang sama (sebelumnya otomatis ini hampir tidak pernah jalan karena kategori dipilih sebelum Catatan diisi). Kategori tetap wajib.
 
+- **Widget bersih, tanpa maskot, mengikuti mode gelap HP.** Ketiga ukuran (4x2, 2x2, 2x1) untuk gaya Klasik kini berlatar putih di mode terang dan charcoal di mode gelap, dengan bar sisa jatah hari ini (merah saat lewat jatah). Gaya Malam, Kuning, dan Merah tetap memakai widget lama dengan cincin dan maskot. Belum diuji di HP: tampilan widget hanya bisa dicek setelah APK dipasang.
+
 ### Ditambah
 - **Jumlah pengeluaran di kotak kalender** (Riwayat > Kalender dan Statistik > Kalender), ringkas seperti "25 rb". Tidak tampil kalau saldo disembunyikan.
 - **Atur Beranda**: pilihan menampilkan kartu Maskot dan Ritme.

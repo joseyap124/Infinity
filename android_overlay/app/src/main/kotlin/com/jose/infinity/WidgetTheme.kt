@@ -16,6 +16,10 @@ class WidgetTheme(
     val disc: Int,
 ) {
     companion object {
+        /** Widget bersih (tanpa maskot) untuk gaya Klasik; gaya lain tetap seperti sebelumnya. */
+        fun isClean(pack: String?): Boolean =
+            pack != "malam" && pack != "kuning" && pack != "merah"
+
         fun of(pack: String?, skin: String?): WidgetTheme {
             val disc = if (skin == "owl") Color.parseColor("#FFDCEEFF") else Color.WHITE
             return when (pack) {
