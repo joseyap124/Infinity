@@ -45,7 +45,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          flutter test 2>&1 | tee "$RUNNER_TEMP/test.txt"
+          flutter test --reporter expanded 2>&1 | tee "$RUNNER_TEMP/test.txt" || ec=$?
+          grep -nE "\[E\]|Expected|Actual|Which|infinity_test.dart:" "$RUNNER_TEMP/test.txt" | head -20 | while IFS= read -r l; do echo "::error::${l}"; done
+          exit ${ec:-0}
 
       - name: Analyze
         shell: bash
