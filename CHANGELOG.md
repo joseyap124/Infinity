@@ -3,7 +3,12 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.2.1)
+## Berikutnya (v6.2.2)
+
+### Dihapus
+- **Pintasan di ikon app** (tahan ikon Infinity di layar utama: *Catat pengeluaran*, *Catat pemasukan*, *Catat transfer*). Tombol widget dan ikon di notifikasi pintasan tetap ada. Setelah pembaruan, HP kadang masih menyimpan pintasan lama sampai app dibuka sekali atau peluncur dimulai ulang.
+
+## v6.2.1 (19 Okt 2026)
 
 ### Diperbaiki
 - **Error "Null check operator used on a null value"** yang tercatat di Laporan error setiap kali widget, pintasan ikon, atau tombol notifikasi membuka Infinity. Alamat `infinity://...` yang dibawa ketukan itu ternyata juga dikirim ke sistem rute Flutter, yang tidak punya rute bernama. Tidak merusak data dan app tetap terbuka, hanya mengotori laporan. Sekarang pengiriman alamat ke rute dimatikan; widget dan pintasan tetap ditangani lewat home_widget seperti sebelumnya.

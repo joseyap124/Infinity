@@ -1,9 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="sc_expense_short">Pengeluaran</string>
-    <string name="sc_expense_long">Catat pengeluaran</string>
-    <string name="sc_income_short">Pemasukan</string>
-    <string name="sc_income_long">Catat pemasukan</string>
-    <string name="sc_transfer_short">Transfer</string>
-    <string name="sc_transfer_long">Catat transfer</string>
 </resources>
