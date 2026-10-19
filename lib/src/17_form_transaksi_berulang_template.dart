@@ -1221,35 +1221,50 @@ class _TxFormSheetState extends State<TxFormSheet> {
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.fromLTRB(2, 8, 2, 4),
-          child: Stack(
+          // Column langsung di sel grid: terpusat. (Dulu dibungkus Stack yang
+          // menaruh isinya di kiri atas, jadi ikon antar kolom tidak sejajar.)
+          child: Column(
             children: [
-              Column(
+              Stack(
+                clipBehavior: Clip.none,
                 children: [
                   CatIcon(
-                      icon: c.iconData, art: c.art, color: c.colorValue, size: 42),
-                  const SizedBox(height: 4),
-                  Text(shortCategoryName(c.name),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 10.5,
-                          height: 1.15,
-                          fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
-                          color: sel ? accent : C.carbon)),
+                      icon: c.iconData,
+                      art: c.art,
+                      color: c.colorValue,
+                      size: 42),
+                  if (hasSubs)
+                    Positioned(
+                      right: -5,
+                      top: -4,
+                      child: Container(
+                        width: 18,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: C.surface,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: C.line),
+                        ),
+                        child: Icon(
+                            _openParent == c.id
+                                ? Icons.expand_less_rounded
+                                : Icons.expand_more_rounded,
+                            size: 14,
+                            color: C.muted),
+                      ),
+                    ),
                 ],
               ),
-              if (hasSubs)
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Icon(
-                      _openParent == c.id
-                          ? Icons.expand_less_rounded
-                          : Icons.chevron_right_rounded,
-                      size: 14,
-                      color: C.muted),
-                ),
+              const SizedBox(height: 4),
+              Text(shortCategoryName(c.name),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 10.5,
+                      height: 1.15,
+                      fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                      color: sel ? accent : C.carbon)),
             ],
           ),
         ),
@@ -1280,10 +1295,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
                   color: sel ? accent : C.line, width: sel ? 2 : 1),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Flexible(
+                Expanded(
                   child: Text(label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           fontSize: 13,
                           fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
@@ -1305,15 +1321,23 @@ class _TxFormSheetState extends State<TxFormSheet> {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
           color: C.bg, borderRadius: BorderRadius.circular(14)),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: [
-          chip(tr('Umum ({0})', [shortCategoryName(parent.name)]), parent.id),
-          for (final sub in store.childrenOf(parent.id))
-            chip(_plainName(sub.name), sub.id),
-        ],
-      ),
+      child: LayoutBuilder(builder: (context, box) {
+        // Dua kolom sama lebar supaya tepinya rata, bukan chip selebar teks.
+        final w = (box.maxWidth - 6) / 2;
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            SizedBox(
+                width: w,
+                child: chip(
+                    tr('Umum ({0})', [shortCategoryName(parent.name)]),
+                    parent.id)),
+            for (final sub in store.childrenOf(parent.id))
+              SizedBox(width: w, child: chip(_plainName(sub.name), sub.id)),
+          ],
+        );
+      }),
     );
   }
 
@@ -1960,6 +1984,36 @@ class _TxFormSheetState extends State<TxFormSheet> {
         const SizedBox(height: 8),
         if (!isTransfer && _amountCtrl.text.isEmpty && !widget.isEditing)
           _usualAmountChips(accent),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (!isTransfer)
+              _pill(
+                leading: _accountLeading(_fromId, size: 22),
+                label: store.accountName(_fromId),
+                dropdown: true,
+                onTap: () => _pickAccount(to: false),
+              ),
+            _pill(
+              leading: ArtIcon(Icons.calendar_month_rounded,
+                  color: accent, size: 16),
+              label: _dateLabel(),
+              dropdown: true,
+              onTap: _pickDate,
+            ),
+            _pill(
+              leading: Icon(
+                  _hasDetails ? Icons.edit_note_rounded : Icons.add_rounded,
+                  size: 18,
+                  color: _hasDetails ? accent : C.muted),
+              label: _hasDetails ? 'Detail terisi' : 'Catatan',
+              selected: _hasDetails,
+              onTap: _openDetails,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         if (isTransfer) ...[
           Text('DARI AKUN',
               style: TextStyle(
@@ -2014,36 +2068,6 @@ class _TxFormSheetState extends State<TxFormSheet> {
           _splitCard(accent)
         else
           _categoryArea(accent),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            if (!isTransfer)
-              _pill(
-                leading: _accountLeading(_fromId, size: 22),
-                label: store.accountName(_fromId),
-                dropdown: true,
-                onTap: () => _pickAccount(to: false),
-              ),
-            _pill(
-              leading: ArtIcon(Icons.calendar_month_rounded,
-                  color: accent, size: 16),
-              label: _dateLabel(),
-              dropdown: true,
-              onTap: _pickDate,
-            ),
-            _pill(
-              leading: Icon(
-                  _hasDetails ? Icons.edit_note_rounded : Icons.add_rounded,
-                  size: 18,
-                  color: _hasDetails ? accent : C.muted),
-              label: _hasDetails ? 'Detail terisi' : 'Catatan, struk, bagi',
-              selected: _hasDetails,
-              onTap: _openDetails,
-            ),
-          ],
-        ),
         const SizedBox(height: 6),
       ],
     );

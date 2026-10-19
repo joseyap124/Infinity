@@ -3,7 +3,17 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.2.2)
+## Berikutnya (v6.2.3)
+
+### Dirapikan
+- **Form Catat, daftar kategori**: ikon dan nama tiap induk kategori sekarang terpusat di selnya, jadi antar kolom sejajar. Sebelumnya isi sel menempel ke kiri atas dan lebarnya mengikuti teks, sehingga kolom tampak bergeser-geser. Penanda "punya sub" pindah ke pojok ikon (sebelumnya menimpa nama).
+- **Sub-kategori** tampil dua kolom sama lebar dengan tepi rata (nama panjang jadi dua baris), bukan chip selebar teks yang tepinya acak.
+- **Akun, tanggal, dan catatan** naik ke bawah nominal, bukan di dasar daftar kategori yang harus digulir. Tombol *Catatan, struk, bagi* diperpendek jadi *Catatan*; struk dan bagi tetap ada di dalamnya.
+
+### Belum terbukti
+- Diturunkan dari screenshot Jose dan kode, belum dilihat hasilnya di HP.
+
+## v6.2.2 (19 Okt 2026)
 
 ### Diperbaiki
 - **Nominal "Biasanya di ..." di form Catat tampil selebar layar**, satu baris per nominal, sehingga memakan sekitar 300 px dan mendorong daftar kategori ke bawah keypad. Bug sejak 5.12.0 (kotak berisi `alignment` mengisi lebar yang tersedia). Sekarang berupa chip kecil sebaris dengan labelnya.
