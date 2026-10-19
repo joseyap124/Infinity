@@ -3,6 +3,14 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.2.1)
+
+### Diperbaiki
+- **Error "Null check operator used on a null value"** yang tercatat di Laporan error setiap kali widget, pintasan ikon, atau tombol notifikasi membuka Infinity. Alamat `infinity://...` yang dibawa ketukan itu ternyata juga dikirim ke sistem rute Flutter, yang tidak punya rute bernama. Tidak merusak data dan app tetap terbuka, hanya mengotori laporan. Sekarang pengiriman alamat ke rute dimatikan; widget dan pintasan tetap ditangani lewat home_widget seperti sebelumnya.
+
+### Belum terbukti
+- Perbaikannya bergantung pada pengaturan `flutter_deeplinking_enabled` yang diakui Flutter 3.47.6. Belum dicoba di HP. Cara cek: ketuk widget atau pintasan *Catat pengeluaran*, lalu lihat apakah jumlah error di Laporan error bertambah.
+
 ## v6.2.0 (19 Okt 2026)
 
 ### Dirapikan

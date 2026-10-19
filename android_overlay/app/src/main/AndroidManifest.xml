@@ -32,6 +32,12 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+            <!-- Ketukan widget, pintasan, dan notifikasi membawa alamat infinity://...
+                 yang ditangani home_widget. Tanpa ini Flutter juga mencoba
+                 membukanya sebagai rute dan mencatat "Null check operator". -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
