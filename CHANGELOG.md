@@ -3,6 +3,17 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.3.3)
+
+### Diperbaiki
+- **Nominal yang biasa dipakai ("Biasanya di Jajan: 18.000 ...") tertutup panel keypad** di form Catat v6.3.2 (hanya ujung atas chip yang kelihatan). Sekarang chip itu ada di panel, di atas keypad, dan hilang setelah nominal terisi seperti sebelumnya. Ketahuan dari screenshot Jose.
+
+### Diubah
+- **Keypad lebih kecil dan panelnya lebih pendek** (tombol tinggi 48, sebelumnya sampai 56, dan panel tidak lagi lebih tinggi dari isinya), supaya tidak terasa menutupi form. Panel kategori tetap tinggi. Akibatnya form bergeser sedikit (sekitar 45 dp) saat berpindah antara keypad dan kategori.
+
+### Belum terbukti
+- Belum dilihat di HP. Setelah nominal terisi, ruang chip di atas keypad kosong dan form bergeser saat pindah ke daftar kategori; kalau terasa janggal, kita sesuaikan.
+
 ## v6.3.2 (20 Okt 2026)
 
 ### Diubah

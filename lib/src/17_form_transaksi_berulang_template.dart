@@ -2113,9 +2113,6 @@ class _TxFormSheetState extends State<TxFormSheet> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        if (_amountCtrl.text.isEmpty && !widget.isEditing)
-          _usualAmountChips(accent),
       ],
     );
   }
@@ -2123,24 +2120,39 @@ class _TxFormSheetState extends State<TxFormSheet> {
   /// Panel bawah: keypad angka, atau daftar kategori bila baris Kategori aktif.
   /// Tingginya tetap supaya bagian atas form tidak bergeser saat panel ganti.
   Widget _mmPanel(Color accent, double height) {
+    // Panel keypad hanya setinggi isinya (chip 52 + keypad 210 + jarak 20), supaya
+    // tidak menutupi form; panel kategori memakai tinggi penuh karena isinya banyak.
+    final h = _catPanel ? height : (height < 282.0 ? height : 282.0);
     return Container(
-      height: height,
+      height: h,
       width: double.infinity,
       decoration: BoxDecoration(
         color: C.bg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: _catPanel ? _categoryPanelBody(accent) : _amountPanelBody(height),
+      child: _catPanel ? _categoryPanelBody(accent) : _amountPanelBody(accent, height),
     );
   }
 
-  Widget _amountPanelBody(double height) {
-    final keyH = ((height - 24 - 18) / 4).clamp(38.0, 56.0).toDouble();
+  /// Keypad lebih kecil dan menempel di dasar panel. Nominal yang biasa dipakai
+  /// ada di ruang kosong di atasnya (hanya saat nominal masih kosong); dulu chip
+  /// itu di bawah kartu isian dan tertutup panel.
+  Widget _amountPanelBody(Color accent, double height) {
+    final showChips = _amountCtrl.text.isEmpty &&
+        !widget.isEditing &&
+        _categoryId != null &&
+        _usualAmounts().isNotEmpty;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: _numpad(keyHeight: keyH, keyColor: C.surface),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      child: Column(
+        children: [
+          if (showChips)
+            Align(
+                alignment: Alignment.centerLeft,
+                child: _usualAmountChips(accent)),
+          const Spacer(),
+          _numpad(keyHeight: 48, keyColor: C.surface),
+        ],
       ),
     );
   }
