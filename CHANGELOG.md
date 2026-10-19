@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.2.0)
+## v6.2.0 (19 Okt 2026)
 
 ### Dirapikan
 - **Huruf besar-kecil seragam**: judul, tombol, dan menu memakai huruf kecil kecuali kata pertama (mis. *Transaksi terakhir*, *Akun & dompet*, *Reset semua data*, *Simpan akun*, *Edit transaksi*). Sebelumnya dua gaya tercampur, kadang di layar yang sama.
