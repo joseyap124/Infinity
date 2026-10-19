@@ -3,7 +3,27 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v5.14.1)
+## v6.0.0 (19 Okt 2026)
+
+Rilis penanda untuk rangkaian 5.11 sampai 5.14.1. Tidak ada perubahan kode dibanding 5.14.1; isinya sama persis, hanya nomornya yang naik supaya satu paket perubahan ini mudah disebut. Yang berubah sejak 5.10:
+
+### Dicatat lebih cepat
+- Kategori langsung di form Catat (ketuk induk, sub muncul di tempat), nominal yang biasa, dan Simpan & lanjut (5.12.0).
+- Catat cepat di Beranda langsung menyimpan dengan tombol Batalkan; tahan untuk membuka form (5.12.1).
+
+### Beranda dan tampilan
+- Beranda dua kartu dengan Maskot dan Ritme, maskot bergambar dengan 6 ekspresi (5.11.0, 5.11.1).
+- Widget bersih dan ikut mode gelap, tiga ukuran; angka pengeluaran harian di kotak kalender (5.11.0).
+- Tinjauan mingguan: kartu satu baris dan halaman detail dengan tiga temuan (5.14.0).
+- Paket gaya: maskot dan nada kalimat ikut paket, cakram Burung Hantu di mode gelap (5.14.1).
+
+### Data
+- Salinan harian terenkripsi di HP (7 hari terakhir) dengan layar Pulihkan (5.13.0).
+
+### Belum terbukti di HP
+Semua rilis ini hanya lolos tes otomatis dan build di CI. Tampilan widget, Beranda, form Catat, dan kartu-kartu baru belum dilihat langsung di perangkat saat rilis ini dibuat.
+
+## v5.14.1 (19 Okt 2026)
 
 ### Ditambah
 - **Maskot "Ikut paket".** Pilihan baru di Pengaturan, Tampilan, Maskot: maskot otomatis mengikuti paket gaya, yaitu Malam Biru dengan Burung Hantu, Kuning Ceria dengan Rubah, Merah Kafe dengan Gagak (Klasik tetap maskot klasik). Pengaturan maskot yang sudah kamu pilih tidak diubah. Widget ikut maskot yang berlaku.
