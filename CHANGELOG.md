@@ -3,6 +3,16 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.3.0)
+
+### Diubah
+- **Form Catat (pengeluaran dan pemasukan) dibuat seperti Money Manager.** Form sekarang berupa baris isian: Tanggal, Akun, Jumlah, Kategori, Catatan. Panel di bawahnya berganti sesuai baris yang aktif: keypad angka untuk Jumlah, atau daftar kategori yang tinggi untuk Kategori. Memilih kategori cukup satu ketukan, lalu panel kembali ke keypad. Induk yang punya sub membuka daftar sub di panel yang sama, dengan tombol kembali. Tombol *Pilih kategori* di bawah keypad membawa langsung ke daftar kategori. Keypad lebih besar karena tingginya mengisi panel.
+- Tombol *Sembunyikan angka* tidak ada lagi di pengeluaran dan pemasukan, karena panelnya sudah berganti sendiri. Form **transfer** tidak diubah (tetap susunan lama dengan tombol itu).
+- Ketuk baris Tanggal, Akun, atau Catatan membuka pemilih yang sama seperti sebelumnya.
+
+### Belum terbukti
+- Belum dilihat di HP. Susunannya mengikuti ingatan saya tentang Money Manager dan mockup yang Jose setujui, bukan salinan persis.
+
 ## v6.2.3 (19 Okt 2026)
 
 ### Dirapikan

@@ -1687,4 +1687,10 @@ const Map<String, String> kZhStrings = {
   'Tampilan kalender': '日历视图',
   'Sembunyikan angka': '隐藏数字键盘',
   'Tampilkan angka': '显示数字键盘',
+  'TANGGAL': '日期',
+  'AKUN': '账户',
+  'JUMLAH': '金额',
+  'KATEGORI': '分类',
+  'CATATAN': '备注',
+  '+ Tambah catatan atau struk': '+ 添加备注或小票',
 };

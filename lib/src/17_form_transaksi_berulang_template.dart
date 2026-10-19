@@ -1052,7 +1052,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     );
   }
 
-  Widget _numpad() {
+  Widget _numpad({double keyHeight = 42, Color? keyColor}) {
     final dec = hasDecimals(_fromCur);
     final keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', dec ? '.' : '000', '0', 'del'];
     Widget keyBox(String k) {
@@ -1065,14 +1065,14 @@ class _TxFormSheetState extends State<TxFormSheet> {
             label: isDel ? 'Hapus' : (k == '.' ? 'Koma' : k),
             excludeSemantics: true,
             child: Material(
-              color: C.bg,
+              color: keyColor ?? C.bg,
               borderRadius: BorderRadius.circular(14),
               child: InkWell(
                 borderRadius: BorderRadius.circular(14),
                 onTap: () => _key(k),
                 onLongPress: isDel ? _clearAmount : null,
                 child: SizedBox(
-                  height: 42,
+                  height: keyHeight,
                   child: Center(
                     child: isDel
                         ? Icon(Icons.backspace_outlined,
@@ -1191,13 +1191,20 @@ class _TxFormSheetState extends State<TxFormSheet> {
   /// Induk kategori yang sub-nya sedang terbuka di form (null = tertutup).
   String? _openParent;
 
+  /// Panel bawah form (jenis pengeluaran dan pemasukan): false = keypad angka,
+  /// true = daftar kategori. Seperti Money Manager, panelnya berganti.
+  bool _catPanel = false;
+
   String _plainName(String raw) =>
       tr(raw).replaceAll(_emojiRe, '').replaceAll(RegExp(r'\s+'), ' ').trim();
 
   void _tapParent(TxCategory c) {
     if (store.childrenOf(c.id).isEmpty) {
       _chooseCategory1(c.id);
-      setState(() => _openParent = null);
+      setState(() {
+        _openParent = null;
+        _catPanel = false;
+      });
       return;
     }
     HapticFeedback.selectionClick();
@@ -1280,7 +1287,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
         borderRadius: BorderRadius.circular(12),
         onTap: () {
           _chooseCategory1(id);
-          setState(() => _openParent = null);
+          setState(() {
+            _openParent = null;
+            _catPanel = false;
+          });
         },
         child: Semantics(
           button: true,
@@ -1555,7 +1565,13 @@ class _TxFormSheetState extends State<TxFormSheet> {
       final sel = id == _categoryId;
       cells.add(InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => _chooseCategory1(id),
+        onTap: () {
+          _chooseCategory1(id);
+          setState(() {
+            _openParent = null;
+            _catPanel = false;
+          });
+        },
         onLongPress: () => _categoryMenu(id),
         child: Semantics(
           button: true,
@@ -1907,6 +1923,289 @@ class _TxFormSheetState extends State<TxFormSheet> {
     };
   }
 
+  TextStyle get _fieldValue =>
+      TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: C.carbon);
+
+  /// Kotak isian bergaya Money Manager: label kecil di atas, nilai di bawah.
+  Widget _fieldBox(String label, Widget value,
+      {IconData? icon,
+      Widget? trailing,
+      bool active = false,
+      required VoidCallback onTap}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 52),
+        padding: const EdgeInsets.fromLTRB(12, 6, 10, 6),
+        decoration: BoxDecoration(
+          border: Border.all(
+              color: active ? _type.color : C.line, width: active ? 1.6 : 1),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(tr(label),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                          color: C.muted)),
+                  const SizedBox(height: 2),
+                  value,
+                ],
+              ),
+            ),
+            if (trailing != null)
+              trailing
+            else if (icon != null)
+              Icon(icon, size: 18, color: C.muted),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _categoryPath(TxCategory c) {
+    final pid = c.parentId;
+    final parent = pid == null ? null : store.categoryById(pid);
+    if (parent == null) return shortCategoryName(c.name);
+    return '${shortCategoryName(parent.name)} › ${_plainName(c.name)}';
+  }
+
+  void _openCatPanel() => setState(() {
+        _catPanel = true;
+        _openParent = null;
+      });
+
+  /// Bagian atas form (pengeluaran dan pemasukan): jenis, tanggal, akun, jumlah,
+  /// kategori, dan catatan sebagai baris isian. Pengisiannya lewat panel bawah.
+  Widget _mmTop(Color accent,
+      {required String shown, required bool empty, required String title}) {
+    final cid = _categoryId;
+    final c = cid == null ? null : store.categoryById(cid);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Segmented<TxType>(
+          values: const [TxType.expense, TxType.income, TxType.transfer],
+          selected: _type,
+          labelOf: (t) => t.label,
+          colorOf: (t) => t.color,
+          dense: true,
+          onChanged: _changeType,
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _fieldBox('TANGGAL',
+                  Text(_dateLabel(), maxLines: 1, style: _fieldValue),
+                  icon: Icons.calendar_month_rounded, onTap: _pickDate),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _fieldBox(
+                  'AKUN',
+                  Text(store.accountName(_fromId),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _fieldValue),
+                  icon: Icons.expand_more_rounded,
+                  onTap: () => _pickAccount(to: false)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _fieldBox(
+          'JUMLAH',
+          Semantics(
+            label: 'Nominal $shown',
+            excludeSemantics: true,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(currencySymbol(_fromCur),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: C.muted)),
+                  const SizedBox(width: 6),
+                  Text(shown,
+                      style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: empty
+                              ? C.muted.withValues(alpha: 0.45)
+                              : C.carbon)),
+                ],
+              ),
+            ),
+          ),
+          active: !_catPanel,
+          trailing: IconButton(
+            tooltip: tr('Kalkulator'),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            onPressed: _openCalculator,
+            icon: Icon(Icons.calculate_rounded, color: accent),
+          ),
+          onTap: () => setState(() {
+            _catPanel = false;
+            _openParent = null;
+          }),
+        ),
+        const SizedBox(height: 8),
+        if (_splitting && _canSplit)
+          _splitCard(accent)
+        else
+          _fieldBox(
+            'KATEGORI',
+            Row(
+              children: [
+                if (c != null) ...[
+                  CatIcon(
+                      icon: c.iconData,
+                      art: c.art,
+                      color: c.colorValue,
+                      size: 26),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(c == null ? tr('Pilih kategori') : _categoryPath(c),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _fieldValue),
+                ),
+              ],
+            ),
+            icon: Icons.chevron_right_rounded,
+            active: _catPanel,
+            onTap: _openCatPanel,
+          ),
+        const SizedBox(height: 8),
+        _fieldBox(
+          'CATATAN',
+          Text(
+              title.isNotEmpty
+                  ? title
+                  : (_hasDetails ? tr('Detail terisi') : tr('+ Tambah catatan atau struk')),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: title.isEmpty && !_hasDetails
+                      ? FontWeight.w600
+                      : FontWeight.w700,
+                  color: title.isEmpty && !_hasDetails ? C.muted : C.carbon)),
+          icon: _hasDetails ? Icons.edit_note_rounded : null,
+          onTap: () => _openDetails(focusTitle: true),
+        ),
+        const SizedBox(height: 8),
+        if (_amountCtrl.text.isEmpty && !widget.isEditing)
+          _usualAmountChips(accent),
+      ],
+    );
+  }
+
+  /// Panel bawah: keypad angka, atau daftar kategori bila baris Kategori aktif.
+  Widget _mmPanel(Color accent, double height) {
+    return Container(
+      height: height,
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      decoration: BoxDecoration(
+        color: C.bg,
+        border: Border(top: BorderSide(color: C.line)),
+      ),
+      child: _catPanel
+          ? _categoryPanelBody(accent)
+          : _amountPanelBody(height),
+    );
+  }
+
+  Widget _amountPanelBody(double height) {
+    final canNext = !(_splitting && _canSplit);
+    final keyH =
+        ((height - 20 - (canNext ? 50 : 0) - 18) / 4).clamp(38.0, 60.0).toDouble();
+    return Column(
+      children: [
+        _numpad(keyHeight: keyH, keyColor: C.surface),
+        if (canNext) ...[
+          const SizedBox(height: 6),
+          Expanded(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: _openCatPanel,
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: C.surface,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(tr('Pilih kategori'),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: C.carbon)),
+                    Icon(Icons.chevron_right_rounded, color: C.carbon),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _categoryPanelBody(Color accent) {
+    final oid = _openParent;
+    final open = oid == null ? null : store.categoryById(oid);
+    if (open != null) {
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => setState(() => _openParent = null),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.chevron_left_rounded, color: C.muted),
+                    const SizedBox(width: 4),
+                    Text(shortCategoryName(open.name),
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: C.carbon)),
+                  ],
+                ),
+              ),
+            ),
+            _subPanel(open, accent),
+          ],
+        ),
+      );
+    }
+    return SingleChildScrollView(child: _categoryArea(accent));
+  }
+
   Widget _buildOnePage(BuildContext context) {
     final accent = _type.color;
     final isTransfer = _type == TxType.transfer;
@@ -1915,8 +2214,13 @@ class _TxFormSheetState extends State<TxFormSheet> {
     final empty = raw.isEmpty;
     final shown = empty ? '0' : (dec ? raw.replaceAll('.', ',') : raw);
     final title = _titleCtrl.text.trim();
+    final mm = !isTransfer;
+    final panelH =
+        (MediaQuery.of(context).size.height * 0.36).clamp(250.0, 330.0).toDouble();
 
-    final top = Column(
+    final Widget top = mm
+        ? _mmTop(accent, shown: shown, empty: empty, title: title)
+        : Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Segmented<TxType>(
@@ -2124,8 +2428,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
                       child: top,
                     ),
                   ),
+                  if (mm) _mmPanel(accent, panelH),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(17, 4, 17, 14),
+                    padding: const EdgeInsets.fromLTRB(17, 8, 17, 14),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2146,9 +2451,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
                             padding: const EdgeInsets.only(bottom: 8),
                             child: ErrorBox(_error!),
                           ),
-                        _numpadToggle(),
-                        if (_numpadOpen) _numpad(),
-                        const SizedBox(height: 8),
+                        if (!mm) ...[
+                          _numpadToggle(),
+                          if (_numpadOpen) _numpad(),
+                          const SizedBox(height: 8),
+                        ],
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 3),
                           child: Row(

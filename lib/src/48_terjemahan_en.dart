@@ -1688,6 +1688,12 @@ const Map<String, String> kEnStrings = {
   'Tampilan kalender': 'Calendar view',
   'Sembunyikan angka': 'Hide keypad',
   'Tampilkan angka': 'Show keypad',
+  'TANGGAL': 'DATE',
+  'AKUN': 'ACCOUNT',
+  'JUMLAH': 'AMOUNT',
+  'KATEGORI': 'CATEGORY',
+  'CATATAN': 'NOTE',
+  '+ Tambah catatan atau struk': '+ Add a note or receipt',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.
