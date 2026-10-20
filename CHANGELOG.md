@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.3.3)
+## v6.3.3 (20 Okt 2026)
 
 ### Diperbaiki
 - **Nominal yang biasa dipakai ("Biasanya di Jajan: 18.000 ...") tertutup panel keypad** di form Catat v6.3.2 (hanya ujung atas chip yang kelihatan). Sekarang chip itu ada di panel, di atas keypad, dan hilang setelah nominal terisi seperti sebelumnya. Ketahuan dari screenshot Jose.
