@@ -203,6 +203,8 @@ class _Faq {
 const List<_Faq> _faqs = [
   _Faq('Apa arti "Aman dibelanjakan hari ini"?',
       'Kalau anggaran bulanan diatur: sisa anggaran dibagi sisa hari. Kalau belum: saldo e-wallet, tunai, dan bank, dikurangi tagihan kartu kredit, utang jatuh tempo, setoran target tabungan, dan tagihan berulang sampai akhir bulan keuangan, lalu dibagi sisa hari. Ketuk kartunya untuk melihat rinciannya. Akun tabungan bisa dikecualikan lewat edit akun.'),
+  _Faq('Beli sesuatu yang disengaja, apa harus membuat hari itu "lewat jatah"?',
+      'Tidak. Di form Catat pengeluaran, nyalakan "Di luar jatah harian". Transaksinya tetap tercatat dan tetap mengurangi sisa anggaran, tapi tidak dihitung ke jatah hari itu dan tidak membuat maskot berubah jadi Boros. Karena uangnya memang keluar, jatah hari-hari berikutnya turun sedikit, dibagi ke sisa hari.'),
   _Faq('Anggaran, target, dan tagihan pindah ke mana?',
       'Ke tab Rencana (menu bawah, tengah). Isinya anggaran, tagihan & langganan 30 hari, kartu kredit, target tabungan, dan utang piutang. Beranda bisa kamu atur sendiri lewat tombol "Atur Beranda" di bagian bawah Beranda.'),
   _Faq('Bulan mulai tanggal gajian',

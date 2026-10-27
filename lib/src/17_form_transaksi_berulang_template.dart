@@ -44,6 +44,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
 
   /// Acara/tag transaksi (null = tanpa acara).
   String? _eventId;
+
+  /// Pengeluaran di luar jatah harian (hanya untuk pengeluaran biasa).
+  bool _outside = false;
   String? _error;
   String? _info;
 
@@ -120,6 +123,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
         ));
       }
     }
+    _outside = d.outside && d.type == TxType.expense;
     _eventId = store.eventById(d.eventId)?.id ??
         ((widget.mode == FormMode.transaction && !widget.isEditing)
             ? store.autoEventFor(d.date)?.id
@@ -507,6 +511,9 @@ class _TxFormSheetState extends State<TxFormSheet> {
       photos: _photos,
       eventId: widget.mode == FormMode.transaction ? _eventId : null,
       splits: _splitting && _canSplit ? _mergedSplits() : null,
+      outside: widget.mode == FormMode.transaction &&
+          _type == TxType.expense &&
+          _outside,
     );
     final title = _titleCtrl.text.trim();
     draft.title = title.isEmpty ? _defaultTitle(store, draft) : title;
@@ -1980,6 +1987,43 @@ class _TxFormSheetState extends State<TxFormSheet> {
     );
   }
 
+  /// Saklar "Di luar jatah harian": pembelian yang disengaja tidak membuat hari
+  /// itu berstatus lewat jatah. Tetap tercatat dan tetap mengurangi anggaran.
+  Widget _outsideRow() {
+    return InkWell(
+      onTap: () => setState(() => _outside = !_outside),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 62),
+        padding: const EdgeInsets.fromLTRB(14, 6, 8, 6),
+        child: Row(
+          children: [
+            _fIcon(Icons.auto_awesome_rounded, active: _outside),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(tr('Di luar jatah harian'), style: _fieldValue),
+                  const SizedBox(height: 1),
+                  Text(
+                      tr('Tetap tercatat. Jatah hari ini tidak dilewati, jatah besok menyesuaikan.'),
+                      style:
+                          TextStyle(fontSize: 12, height: 1.25, color: C.muted)),
+                ],
+              ),
+            ),
+            Switch(
+              value: _outside,
+              activeColor: C.accentDark,
+              onChanged: (v) => setState(() => _outside = v),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _fDivider() =>
       Divider(height: 1, thickness: 1, indent: 56, color: C.line);
 
@@ -2109,6 +2153,11 @@ class _TxFormSheetState extends State<TxFormSheet> {
                           color: noteEmpty ? C.muted : C.carbon)),
                   onTap: () => _openDetails(focusTitle: true),
                 ),
+                if (widget.mode == FormMode.transaction &&
+                    _type == TxType.expense) ...[
+                  _fDivider(),
+                  _outsideRow(),
+                ],
               ],
             ),
           ),

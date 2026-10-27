@@ -1695,4 +1695,10 @@ const Map<String, String> kZhStrings = {
   '+ Tambah catatan atau struk': '+ 添加备注或小票',
   'SEMUA': '全部',
   'Catatan atau struk': '备注或小票',
+  'Di luar jatah harian': '不计入每日额度',
+  'Tetap tercatat. Jatah hari ini tidak dilewati, jatah besok menyesuaikan.': '仍会记录。不会让今天超额,明天的额度会相应调整。',
+  'Belanja khusus {0}. Di luar jatah hari ini, jatah besok menyesuaikan.': '特殊支出 {0}。不计入今天额度,明天额度会调整。',
+  'Belanja khusus hari ini {0} tidak dihitung ke jatah hari ini. Jatah besok menyesuaikan.': '今天的特殊支出 ({0}) 不计入今天额度,明天额度会调整。',
+  'Beli sesuatu yang disengaja, apa harus membuat hari itu "lewat jatah"?': '特意买东西,当天也一定要算“超额”吗?',
+  'Tidak. Di form Catat pengeluaran, nyalakan "Di luar jatah harian". Transaksinya tetap tercatat dan tetap mengurangi sisa anggaran, tapi tidak dihitung ke jatah hari itu dan tidak membuat maskot berubah jadi Boros. Karena uangnya memang keluar, jatah hari-hari berikutnya turun sedikit, dibagi ke sisa hari.': '不会。在支出表单里打开“不计入每日额度”。这笔交易仍会记录并减少剩余预算,但不计入当天额度,也不会让吉祥物变成“超支”。因为钱确实花出去了,之后几天的额度会稍微降低,平摊到剩余天数。',
 };

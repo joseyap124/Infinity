@@ -907,10 +907,13 @@ class AppStore extends ChangeNotifier {
     return out;
   }
 
-  double sumIDR(TxType type, DateTimeRange r, {String? topCategory}) {
+  /// [outside]: null = semua, false = tanpa pengeluaran "di luar jatah",
+  /// true = hanya yang di luar jatah.
+  double sumIDR(TxType type, DateTimeRange r, {String? topCategory, bool? outside}) {
     var s = 0.0;
     for (final t in transactions) {
       if (t.type != type || !inRange(t.date, r)) continue;
+      if (outside != null && t.outside != outside) continue;
       if (topCategory != null) {
         for (final (cid, v) in categoryParts(t)) {
           if (cid != null && topCategoryId(cid) == topCategory) s += v;

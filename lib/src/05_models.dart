@@ -163,10 +163,15 @@ class Transaction {
     this.photos = const [],
     this.eventId,
     this.splits = const [],
+    this.outside = false,
   });
 
   final String id;
   final String title;
+
+  /// Pengeluaran yang disengaja dan tidak dihitung ke jatah harian hari itu
+  /// (mis. self reward). Tetap masuk laporan dan sisa anggaran.
+  final bool outside;
 
   /// Kalau tidak kosong: nominal dibagi ke beberapa kategori. [categoryId]
   /// berisi kategori bagian terbesar (untuk ikon dan tampilan ringkas).
@@ -211,6 +216,7 @@ class Transaction {
         if (photos.isNotEmpty) 'photos': photos,
         if (eventId != null) 'eventId': eventId,
         if (splits.isNotEmpty) 'splits': splits.map((s) => s.toJson()).toList(),
+        if (outside) 'outside': true,
       };
 
   /// Salinan dengan beberapa kolom diganti.
@@ -231,6 +237,7 @@ class Transaction {
         photos: photos,
         eventId: eventId,
         splits: splits ?? this.splits,
+        outside: outside,
       );
 
   factory Transaction.fromJson(Map<String, dynamic> j) => Transaction(
@@ -254,6 +261,7 @@ class Transaction {
                 .map(TxSplit.fromJson)
                 .whereType<TxSplit>())
             : const [],
+        outside: j['outside'] == true,
       );
 }
 
@@ -416,12 +424,16 @@ class TxDraft {
     List<String>? photos,
     this.eventId,
     List<TxSplit>? splits,
+    this.outside = false,
   })  : date = date ?? DateTime.now(),
         photos = photos ?? [],
         splits = splits ?? [];
 
   /// Bagian per kategori (kosong = satu kategori biasa).
   List<TxSplit> splits;
+
+  /// Di luar jatah harian (hanya berlaku untuk pengeluaran).
+  bool outside;
 
   /// Acara/tag transaksi (boleh kosong).
   String? eventId;
@@ -452,6 +464,7 @@ class TxDraft {
         photos: [...t.photos],
         eventId: t.eventId,
         splits: [...t.splits],
+        outside: t.outside,
       );
 
   factory TxDraft.fromTemplate(TxTemplate t) => TxDraft(
@@ -482,6 +495,7 @@ class TxDraft {
         splits: type == TxType.transfer || splits.length < 2
             ? const []
             : List.unmodifiable(splits),
+        outside: type == TxType.expense && outside,
       );
 
   TxTemplate toTemplate(String id) => TxTemplate(

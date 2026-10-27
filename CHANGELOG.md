@@ -3,6 +3,18 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.4.0)
+
+### Ditambah
+- **Saklar "Di luar jatah harian" di form Catat pengeluaran.** Untuk pembelian yang disengaja (self reward, barang besar). Transaksinya tetap tercatat dan tetap mengurangi sisa anggaran, tapi tidak dihitung ke "terpakai hari ini". Hari itu tidak berstatus *Lewat jatah* dan maskot tidak berubah jadi Boros karenanya. Bawaannya mati, jadi pengeluaran biasa tidak berubah.
+- **Jatah besok menyesuaikan, tidak ada uang yang disembunyikan.** Karena uangnya memang keluar, sisa anggaran berkurang dan jatah hari-hari berikutnya turun, dibagi ke sisa hari. Jatah hari ini tidak berubah. Di cara hitung dari saldo (tanpa anggaran bulanan) berlaku sama.
+- Beranda menampilkan baris "Belanja khusus Rp X" di kartu utama kalau ada transaksi bertanda hari ini, rincian di layar *Aman dibelanjakan* ikut menjelaskannya, dan transaksi bertanda diberi ikon kecil di daftar.
+- Satu entri di Panduan tentang saklar ini.
+
+### Belum terbukti
+- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI (tes baru untuk kedua cara hitung, jatah besok, maskot, dan data lama).
+- Saklar hanya ada di form pengeluaran biasa. Tidak ada di transfer, pemasukan, transaksi berulang, atau template.
+
 ## v6.3.3 (20 Okt 2026)
 
 ### Diperbaiki

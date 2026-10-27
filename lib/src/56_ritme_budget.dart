@@ -147,7 +147,7 @@ String runOutSentence(AppStore store, SafeSpend s, DateTime now) {
   }
   final spent = store.sumIDR(TxType.expense, DateTimeRange(start: start, end: s.periodEnd));
   final out = runOutDate(
-      remaining: s.base - s.spentToday,
+      remaining: s.base - s.spentTodayAll,
       spentSoFar: spent,
       daysElapsed: daysElapsed,
       today: today);

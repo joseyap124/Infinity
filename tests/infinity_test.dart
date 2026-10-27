@@ -718,6 +718,109 @@ void main() {
       expect(r.leftToday, closeTo(210000, 0.01));
     });
 
+    test('v6.4.0 di luar jatah (saldo): tidak masuk terpakai hari ini, jatah hari ini tetap', () {
+      final now = DateTime(2026, 10, 22, 10);
+      final s = storeWith([acc('a', initial: 3100000)], [
+        tx('1', TxType.expense, 100000, 'a', date: DateTime(2026, 10, 22, 8)),
+      ]);
+      s.transactions = [
+        Transaction(
+            id: '1',
+            title: 'x',
+            amount: 100000,
+            type: TxType.expense,
+            accountId: 'a',
+            date: DateTime(2026, 10, 22, 8),
+            outside: true),
+      ];
+      final r = s.safeToSpend(now);
+      expect(r.spentToday, 0);
+      expect(r.outsideToday, 100000);
+      expect(r.spentTodayAll, 100000);
+      expect(r.perDay, closeTo(310000, 0.01));
+      expect(r.leftToday, closeTo(310000, 0.01));
+    });
+
+    test('v6.4.0 di luar jatah (anggaran): hari ini tetap, jatah besok turun dibagi sisa hari', () {
+      final s = storeWith([acc('a', initial: 9000000)], [
+        tx('0', TxType.expense, 1000000, 'a', date: DateTime(2026, 10, 5, 12)),
+        Transaction(
+            id: '1',
+            title: 'hadiah',
+            amount: 500000,
+            type: TxType.expense,
+            accountId: 'a',
+            date: DateTime(2026, 10, 22, 8),
+            outside: true),
+      ]);
+      s.settings.globalBudget = 3000000;
+      final hariIni = s.safeToSpend(DateTime(2026, 10, 22, 10));
+      expect(hariIni.fromBudget, isTrue);
+      expect(hariIni.perDay, closeTo(200000, 0.01)); // (3 juta - 1 juta) / 10 hari
+      expect(hariIni.spentToday, 0);
+      expect(hariIni.leftToday, closeTo(200000, 0.01));
+      final besok = s.safeToSpend(DateTime(2026, 10, 23, 10));
+      expect(besok.perDay, closeTo(1500000 / 9, 0.01)); // belanja khusus ikut mengurangi sisa
+    });
+
+    test('v6.4.0 di luar jatah: maskot tidak masuk Boros karena belanja khusus', () {
+      final now = DateTime(2026, 10, 22, 10);
+      final s = storeWith([acc('a', initial: 3100000)], [
+        Transaction(
+            id: '1',
+            title: 'x',
+            amount: 900000,
+            type: TxType.expense,
+            accountId: 'a',
+            date: DateTime(2026, 10, 22, 8),
+            outside: true),
+      ]);
+      final r = s.safeToSpend(now);
+      expect(
+          mascotMoodFor(
+              leftToday: r.leftToday,
+              perDay: r.perDay,
+              lastTx: now,
+              now: now,
+              hasAccounts: true),
+          MascotMood.happy);
+    });
+
+    test('v6.4.0 di luar jatah: data lama tanpa penanda tetap terbaca, penanda hanya disimpan kalau aktif', () {
+      final lama = Transaction.fromJson({
+        'id': 'x',
+        'title': 't',
+        'amount': 1000.0,
+        'type': 'expense',
+        'accountId': 'a',
+        'date': DateTime(2026, 10, 1).toIso8601String(),
+      });
+      expect(lama.outside, isFalse);
+      expect(lama.toJson().containsKey('outside'), isFalse);
+      final baru = Transaction(
+          id: 'y',
+          title: 't',
+          amount: 1000,
+          type: TxType.expense,
+          accountId: 'a',
+          date: DateTime(2026, 10, 1),
+          outside: true);
+      expect(Transaction.fromJson(baru.toJson()).outside, isTrue);
+      expect(baru.copyWith().outside, isTrue);
+    });
+
+    test('v6.4.0 di luar jatah: hanya untuk pengeluaran, sumIDR bisa memisahkan', () {
+      final d = TxDraft(type: TxType.income, amount: 1000, accountId: 'a', outside: true, date: DateTime(2026, 10, 10));
+      expect(d.toTransaction('i').outside, isFalse);
+      final e = TxDraft(type: TxType.expense, amount: 1000, accountId: 'a', outside: true, date: DateTime(2026, 10, 10));
+      expect(e.toTransaction('e').outside, isTrue);
+      final s = storeWith([acc('a', initial: 100000)], [e.toTransaction('e'), tx('n', TxType.expense, 500, 'a')]);
+      final r = DateTimeRange(start: DateTime(2026, 10, 1), end: DateTime(2026, 11, 1));
+      expect(s.sumIDR(TxType.expense, r), 1500);
+      expect(s.sumIDR(TxType.expense, r, outside: false), 500);
+      expect(s.sumIDR(TxType.expense, r, outside: true), 1000);
+    });
+
     test('langganan terdeteksi dari 3 bulan berturut', () {
       final s = storeWith([acc('a', initial: 1000000)], [
         tx('1', TxType.expense, 54000, 'a', title: 'Netflix', date: DateTime(2026, 7, 5)),

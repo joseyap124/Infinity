@@ -889,6 +889,33 @@ class DashboardTab extends StatelessWidget {
                                     TextStyle(fontSize: 12, color: C.muted)),
                         ],
                       ),
+                      if (!hide && s.outsideToday > 0) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                              color: C.bg,
+                              borderRadius: BorderRadius.circular(14)),
+                          child: Row(
+                            children: [
+                              Icon(Icons.auto_awesome_rounded,
+                                  size: 16, color: C.accentDark),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                    tr('Belanja khusus {0}. Di luar jatah hari ini, jatah besok menyesuaikan.',
+                                        [money(s.outsideToday)]),
+                                    style: TextStyle(
+                                        fontSize: 12.5,
+                                        height: 1.3,
+                                        color: C.carbon)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

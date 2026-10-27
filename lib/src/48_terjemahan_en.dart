@@ -1696,6 +1696,12 @@ const Map<String, String> kEnStrings = {
   '+ Tambah catatan atau struk': '+ Add a note or receipt',
   'SEMUA': 'ALL',
   'Catatan atau struk': 'Note or receipt',
+  'Di luar jatah harian': 'Outside daily allowance',
+  'Tetap tercatat. Jatah hari ini tidak dilewati, jatah besok menyesuaikan.': 'Still recorded. Does not push today past your allowance; tomorrow adjusts.',
+  'Belanja khusus {0}. Di luar jatah hari ini, jatah besok menyesuaikan.': 'Special spending {0}. Outside today\'s allowance; tomorrow adjusts.',
+  'Belanja khusus hari ini {0} tidak dihitung ke jatah hari ini. Jatah besok menyesuaikan.': 'Special spending today ({0}) is not counted in today\'s allowance. Tomorrow adjusts.',
+  'Beli sesuatu yang disengaja, apa harus membuat hari itu "lewat jatah"?': 'If I buy something on purpose, does that day have to count as over my allowance?',
+  'Tidak. Di form Catat pengeluaran, nyalakan "Di luar jatah harian". Transaksinya tetap tercatat dan tetap mengurangi sisa anggaran, tapi tidak dihitung ke jatah hari itu dan tidak membuat maskot berubah jadi Boros. Karena uangnya memang keluar, jatah hari-hari berikutnya turun sedikit, dibagi ke sisa hari.': 'No. In the expense form, turn on "Outside daily allowance". The transaction is still recorded and still reduces your remaining budget, but it is not counted toward that day\'s allowance and does not turn the mascot to Overspent. Because the money did leave, the allowance for the following days drops a little, spread over the remaining days.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

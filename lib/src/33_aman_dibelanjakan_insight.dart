@@ -14,10 +14,18 @@ class SafeSpend {
     required this.fromBudget,
     required this.parts,
     required this.periodEnd,
+    this.outsideToday = 0,
     this.excluded = 0,
     this.installments = 0,
     this.installmentsOn,
   });
+
+  /// Belanja hari ini yang ditandai "di luar jatah harian". Tidak masuk
+  /// [spentToday], tapi tetap mengurangi sisa anggaran mulai besok.
+  final double outsideToday;
+
+  /// Semua pengeluaran hari ini, termasuk yang di luar jatah.
+  double get spentTodayAll => spentToday + outsideToday;
 
   /// Cicilan 0% yang jatuh tempo sebelum akhir periode + 1 hari (sudah dikurangkan).
   final double installments;
@@ -120,8 +128,9 @@ extension InsightStore on AppStore {
   SafeSpend safeToSpend(DateTime now) {
     final today = dayOnly(now);
     final tomorrow = DateTime(today.year, today.month, today.day + 1);
-    final spentToday =
-        sumIDR(TxType.expense, DateTimeRange(start: today, end: tomorrow));
+    final todayRange = DateTimeRange(start: today, end: tomorrow);
+    final spentToday = sumIDR(TxType.expense, todayRange, outside: false);
+    final outsideToday = sumIDR(TxType.expense, todayRange, outside: true);
     final parts = <(String, double)>[];
     double base;
     DateTime end;
@@ -158,8 +167,10 @@ extension InsightStore on AppStore {
       // Belanja hari ini dikembalikan dulu supaya jatah hari ini tidak ikut
       // mengecil karena belanja hari ini sendiri.
       parts.add(('Saldo e-wallet, tunai & bank', liquid));
-      if (spentToday > 0) parts.add(('Belanja hari ini (dihitung terpisah)', spentToday));
-      base = liquid + spentToday;
+      if (spentToday + outsideToday > 0) {
+        parts.add(('Belanja hari ini (dihitung terpisah)', spentToday + outsideToday));
+      }
+      base = liquid + spentToday + outsideToday;
       final inc = upcomingRecurring(TxType.income, now, end);
       if (inc > 0) {
         parts.add(('Pemasukan berulang sebelum akhir bulan', inc));
@@ -217,6 +228,7 @@ extension InsightStore on AppStore {
     return SafeSpend(
       perDay: perDay,
       spentToday: spentToday,
+      outsideToday: outsideToday,
       daysLeft: daysLeft,
       base: base,
       fromBudget: fromBudget,
@@ -799,6 +811,13 @@ class SafeSpendSheet extends StatelessWidget {
           line('Boleh dipakai sampai akhir periode', s.base, bold: true),
           line('Dibagi ${s.daysLeft} hari (termasuk hari ini)', s.perDay, bold: true),
           line('Sudah keluar hari ini', -s.spentToday),
+          if (s.outsideToday > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                  tr('Belanja khusus hari ini {0} tidak dihitung ke jatah hari ini. Jatah besok menyesuaikan.', [money(s.outsideToday)]),
+                  style: TextStyle(fontSize: 12, color: C.muted)),
+            ),
           Divider(color: C.line),
           line(s.leftToday < 0 ? 'Lewat jatah hari ini' : 'Sisa jatah hari ini', s.leftToday, bold: true),
           const SizedBox(height: 10),
