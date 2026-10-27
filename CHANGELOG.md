@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.6.0)
+## v6.6.0 (27 Okt 2026)
 
 ### Diubah
 - **Beranda lebih tenang saat lewat jatah.** Label kartu utama jadi *Melewati jatah hari ini*, angkanya tidak lagi merah, dan bar memakai kuning tua. Ada satu baris netral: *Tercatat. Jatah besok dihitung ulang dari sisa periode.* Angka selisih, terpakai, dan saldo tetap tampil apa adanya.
