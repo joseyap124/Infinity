@@ -1702,6 +1702,18 @@ const Map<String, String> kEnStrings = {
   'Belanja khusus hari ini {0} tidak dihitung ke jatah hari ini. Jatah besok menyesuaikan.': 'Special spending today ({0}) is not counted in today\'s allowance. Tomorrow adjusts.',
   'Beli sesuatu yang disengaja, apa harus membuat hari itu "lewat jatah"?': 'If I buy something on purpose, does that day have to count as over my allowance?',
   'Tidak. Di form Catat pengeluaran, nyalakan "Di luar jatah harian". Transaksinya tetap tercatat dan tetap mengurangi sisa anggaran, tapi tidak dihitung ke jatah hari itu dan tidak membuat maskot berubah jadi Boros. Karena uangnya memang keluar, jatah hari-hari berikutnya turun sedikit, dibagi ke sisa hari.': 'No. In the expense form, turn on "Outside daily allowance". The transaction is still recorded and still reduces your remaining budget, but it is not counted toward that day\'s allowance and does not turn the mascot to Overspent. Because the money did leave, the allowance for the following days drops a little, spread over the remaining days.',
+  'Anggaran khusus': 'Special budget',
+  'Anggaran khusus (di dalam batas total)': 'Special budget (within the total limit)',
+  'Anggaran khusus disisihkan': 'Special budget set aside',
+  'Anggaran khusus (terpakai melebihi)': 'Special budget (overspent)',
+  'Habis, lebih {0}': 'Used up, {0} over',
+  'Pakai anggaran khusus': 'Use special budget',
+  'Anggaran khusus habis. Kelebihannya mengurangi jatah mulai besok.': 'Special budget is used up. The excess reduces your allowance from tomorrow.',
+  'Sisa {0} dari {1}. Tidak menyentuh jatah harian.': '{0} left of {1}. Does not touch your daily allowance.',
+  'Anggaran khusus tidak boleh lebih besar dari batas total, jadi akan dipotong sebesar batas total.': 'The special budget cannot be larger than the total limit, so it will be capped at the total limit.',
+  'Untuk self reward atau barang besar. Belanja yang ditandai "Di luar jatah harian" memakai ini dulu dan tidak menyentuh jatah harian. Kosongkan kalau tidak dipakai.': 'For rewards or big purchases. Spending marked "Outside daily allowance" uses this first and does not touch your daily allowance. Leave empty if unused.',
+  'Jatah harian dihitung dari {0}, di luar anggaran khusus.': 'Daily allowance is calculated from {0}, excluding the special budget.',
+  'Belanja khusus hari ini {0} memakai anggaran khusus dan tidak dihitung ke jatah hari ini.': 'Special spending today ({0}) uses the special budget and is not counted in today\'s allowance.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

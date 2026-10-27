@@ -536,6 +536,11 @@ class AppSettings {
   /// gajian 25). Maks. 28 supaya ada di setiap bulan.
   int periodStartDay = 1;
   double globalBudget = 0;
+
+  /// Anggaran khusus (amplop) di dalam [globalBudget], per periode anggaran.
+  /// Belanja "di luar jatah harian" memakai ini dulu dan tidak menyentuh jatah
+  /// harian. 0 = tidak dipakai.
+  double specialBudget = 0;
   Map<String, double> categoryBudgets = {};
   Map<String, double> rates = Map.of(kDefaultRates);
   String? pin;
@@ -685,6 +690,7 @@ class AppSettings {
         'budgetPeriod': budgetPeriod.name,
         if (periodStartDay != 1) 'periodStartDay': periodStartDay,
         'globalBudget': globalBudget,
+        if (specialBudget > 0) 'specialBudget': specialBudget,
         'categoryBudgets': categoryBudgets,
         'rates': rates,
         if (includeSecrets) 'pin': pin,
@@ -750,6 +756,7 @@ class AppSettings {
         BudgetPeriod.values.byName(_s(j['budgetPeriod']) ?? 'monthly');
     s.periodStartDay = _i(j['periodStartDay'], 1).clamp(1, 28);
     s.globalBudget = _d(j['globalBudget']);
+    s.specialBudget = _d(j['specialBudget']);
     final cb = j['categoryBudgets'];
     if (cb is Map) {
       s.categoryBudgets = {

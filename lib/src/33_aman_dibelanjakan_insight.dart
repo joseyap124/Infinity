@@ -15,6 +15,8 @@ class SafeSpend {
     required this.parts,
     required this.periodEnd,
     this.outsideToday = 0,
+    this.special = 0,
+    this.specialUsed = 0,
     this.excluded = 0,
     this.installments = 0,
     this.installmentsOn,
@@ -23,6 +25,17 @@ class SafeSpend {
   /// Belanja hari ini yang ditandai "di luar jatah harian". Tidak masuk
   /// [spentToday], tapi tetap mengurangi sisa anggaran mulai besok.
   final double outsideToday;
+
+  /// Anggaran khusus (amplop) periode ini; 0 kalau tidak dipakai atau jatah
+  /// dihitung dari saldo.
+  final double special;
+
+  /// Belanja "di luar jatah" sepanjang periode ini, termasuk hari ini.
+  final double specialUsed;
+
+  /// Sisa amplop (tidak minus). Kelebihan [specialUsed] atas [special] mengurangi
+  /// jatah mulai hari berikutnya.
+  double get specialLeft => special > specialUsed ? special - specialUsed : 0;
 
   /// Semua pengeluaran hari ini, termasuk yang di luar jatah.
   double get spentTodayAll => spentToday + outsideToday;
@@ -134,18 +147,36 @@ extension InsightStore on AppStore {
     final parts = <(String, double)>[];
     double base;
     DateTime end;
+    var specialAmount = 0.0;
+    var specialUsed = 0.0;
     final s = settings;
     final fromBudget = s.globalBudget > 0;
     var skipped = 0.0;
     if (fromBudget) {
       final r = s.budgetPeriod.range(now);
       end = r.end;
-      final spentBefore = r.start.isBefore(today)
-          ? sumIDR(TxType.expense, DateTimeRange(start: r.start, end: today))
-          : 0.0;
+      final before = DateTimeRange(start: r.start, end: today);
+      final hasBefore = r.start.isBefore(today);
+      final special = math.min(s.specialBudget, s.globalBudget);
       parts.add(('Anggaran ${s.budgetPeriod.label.toLowerCase()}', s.globalBudget));
-      parts.add(('Sudah terpakai sebelum hari ini', -spentBefore));
-      base = s.globalBudget - spentBefore;
+      if (special > 0) {
+        // Amplop disisihkan dulu. Belanja "di luar jatah" memakai amplop; kalau
+        // sudah melebihi amplop, kelebihannya mengurangi sisa seperti belanja biasa.
+        final normalBefore =
+            hasBefore ? sumIDR(TxType.expense, before, outside: false) : 0.0;
+        final outsideBefore =
+            hasBefore ? sumIDR(TxType.expense, before, outside: true) : 0.0;
+        final held = math.max(special, outsideBefore);
+        parts.add((outsideBefore > special ? 'Anggaran khusus (terpakai melebihi)' : 'Anggaran khusus disisihkan', -held));
+        parts.add(('Sudah terpakai sebelum hari ini', -normalBefore));
+        base = s.globalBudget - held - normalBefore;
+        specialAmount = special;
+        specialUsed = sumIDR(TxType.expense, r, outside: true);
+      } else {
+        final spentBefore = hasBefore ? sumIDR(TxType.expense, before) : 0.0;
+        parts.add(('Sudah terpakai sebelum hari ini', -spentBefore));
+        base = s.globalBudget - spentBefore;
+      }
     } else {
       end = currentPeriod(now).end;
       var liquid = 0.0;
@@ -229,6 +260,8 @@ extension InsightStore on AppStore {
       perDay: perDay,
       spentToday: spentToday,
       outsideToday: outsideToday,
+      special: specialAmount,
+      specialUsed: specialUsed,
       daysLeft: daysLeft,
       base: base,
       fromBudget: fromBudget,
@@ -815,7 +848,9 @@ class SafeSpendSheet extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
-                  tr('Belanja khusus hari ini {0} tidak dihitung ke jatah hari ini. Jatah besok menyesuaikan.', [money(s.outsideToday)]),
+                  s.special > 0
+                      ? tr('Belanja khusus hari ini {0} memakai anggaran khusus dan tidak dihitung ke jatah hari ini.', [money(s.outsideToday)])
+                      : tr('Belanja khusus hari ini {0} tidak dihitung ke jatah hari ini. Jatah besok menyesuaikan.', [money(s.outsideToday)]),
                   style: TextStyle(fontSize: 12, color: C.muted)),
             ),
           Divider(color: C.line),

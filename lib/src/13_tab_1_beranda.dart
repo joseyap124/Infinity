@@ -804,6 +804,55 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
+  /// Baris anggaran khusus (amplop) di kartu utama: sisa dari total dan bar tipis.
+  Widget _specialRow(SafeSpend s) {
+    final used = s.specialUsed;
+    final over = used > s.special;
+    final color = over ? C.amberDark : C.accentDark;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration:
+          BoxDecoration(color: C.bg, borderRadius: BorderRadius.circular(14)),
+      child: Row(
+        children: [
+          Icon(Icons.auto_awesome_rounded, size: 16, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(tr('Anggaran khusus'),
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: C.carbon)),
+                Text(
+                    over
+                        ? tr('Habis, lebih {0}', [money(used - s.special)])
+                        : tr('Sisa {0} dari {1}',
+                            [money(s.specialLeft), money(s.special)]),
+                    style: TextStyle(fontSize: 12, color: C.muted)),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 72,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: s.special > 0 ? (used / s.special).clamp(0.0, 1.0).toDouble() : 0,
+                minHeight: 6,
+                color: color,
+                backgroundColor: C.line,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Kartu utama (v5.11): sisa jatah hari ini dengan bar, jatah per hari, dan
   /// total saldo. Di bawahnya baris dua kartu: Maskot dan Ritme (bisa
   /// dimatikan lewat Atur Beranda).
@@ -889,7 +938,10 @@ class DashboardTab extends StatelessWidget {
                                     TextStyle(fontSize: 12, color: C.muted)),
                         ],
                       ),
-                      if (!hide && s.outsideToday > 0) ...[
+                      if (!hide && s.special > 0) ...[
+                        const SizedBox(height: 8),
+                        _specialRow(s),
+                      ] else if (!hide && s.outsideToday > 0) ...[
                         const SizedBox(height: 8),
                         Container(
                           width: double.infinity,

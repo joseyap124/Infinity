@@ -1990,6 +1990,14 @@ class _TxFormSheetState extends State<TxFormSheet> {
   /// Saklar "Di luar jatah harian": pembelian yang disengaja tidak membuat hari
   /// itu berstatus lewat jatah. Tetap tercatat dan tetap mengurangi anggaran.
   Widget _outsideRow() {
+    final sp = store.safeToSpend(DateTime.now());
+    final hasEnv = sp.fromBudget && sp.special > 0;
+    final hint = hasEnv
+        ? (sp.specialUsed > sp.special
+            ? tr('Anggaran khusus habis. Kelebihannya mengurangi jatah mulai besok.')
+            : tr('Sisa {0} dari {1}. Tidak menyentuh jatah harian.',
+                [money(sp.specialLeft), money(sp.special)]))
+        : tr('Tetap tercatat. Jatah hari ini tidak dilewati, jatah besok menyesuaikan.');
     return InkWell(
       onTap: () => setState(() => _outside = !_outside),
       child: Container(
@@ -2004,10 +2012,10 @@ class _TxFormSheetState extends State<TxFormSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(tr('Di luar jatah harian'), style: _fieldValue),
+                  Text(hasEnv ? tr('Pakai anggaran khusus') : tr('Di luar jatah harian'),
+                      style: _fieldValue),
                   const SizedBox(height: 1),
-                  Text(
-                      tr('Tetap tercatat. Jatah hari ini tidak dilewati, jatah besok menyesuaikan.'),
+                  Text(hint,
                       style:
                           TextStyle(fontSize: 12, height: 1.25, color: C.muted)),
                 ],

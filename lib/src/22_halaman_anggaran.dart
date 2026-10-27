@@ -16,6 +16,7 @@ class _BudgetPageState extends State<BudgetPage> {
   AppStore get store => widget.store;
   late BudgetPeriod _period;
   final _globalCtrl = TextEditingController();
+  final _specialCtrl = TextEditingController();
   final Map<String, TextEditingController> _catCtrls = {};
 
   static String _init(double v) => v > 0 ? _plain.format(v.round()) : '';
@@ -26,6 +27,7 @@ class _BudgetPageState extends State<BudgetPage> {
     final s = store.settings;
     _period = s.budgetPeriod;
     _globalCtrl.text = _init(s.globalBudget);
+    _specialCtrl.text = _init(s.specialBudget);
     for (final c in store.topCategories(TxType.expense)) {
       _catCtrls[c.id] =
           TextEditingController(text: _init(s.categoryBudgets[c.id] ?? 0));
@@ -35,6 +37,7 @@ class _BudgetPageState extends State<BudgetPage> {
   @override
   void dispose() {
     _globalCtrl.dispose();
+    _specialCtrl.dispose();
     for (final c in _catCtrls.values) {
       c.dispose();
     }
@@ -50,7 +53,8 @@ class _BudgetPageState extends State<BudgetPage> {
       final v = parseAmount(ctrl.text);
       if (v > 0) per[id] = v;
     });
-    store.setBudget(_period, parseAmount(_globalCtrl.text), per);
+    store.setBudget(_period, parseAmount(_globalCtrl.text), per,
+        special: parseAmount(_specialCtrl.text));
     Navigator.of(context).pop();
     snack(context, tr('Anggaran {0} disimpan 🎯', [tr(_period.label).toLowerCase()]));
   }
@@ -88,6 +92,38 @@ class _BudgetPageState extends State<BudgetPage> {
             decoration: fieldDeco('Batas total ${_period.label.toLowerCase()}',
                 icon: Icons.account_balance_wallet_rounded, prefix: 'Rp '),
           ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _specialCtrl,
+            keyboardType: TextInputType.number,
+            inputFormatters: [AmountFormatter()],
+            onChanged: (_) => setState(() {}),
+            style: const TextStyle(fontWeight: FontWeight.w800),
+            decoration: fieldDeco('Anggaran khusus (di dalam batas total)',
+                icon: Icons.auto_awesome_rounded, prefix: 'Rp '),
+          ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+                parseAmount(_specialCtrl.text) > global && global > 0
+                    ? tr('Anggaran khusus tidak boleh lebih besar dari batas total, jadi akan dipotong sebesar batas total.')
+                    : tr('Untuk self reward atau barang besar. Belanja yang ditandai "Di luar jatah harian" memakai ini dulu dan tidak menyentuh jatah harian. Kosongkan kalau tidak dipakai.'),
+                style: TextStyle(fontSize: 12, height: 1.35, color: C.muted)),
+          ),
+          if (global > 0 && parseAmount(_specialCtrl.text) > 0 && parseAmount(_specialCtrl.text) <= global) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                  tr('Jatah harian dihitung dari {0}, di luar anggaran khusus.',
+                      [money(global - parseAmount(_specialCtrl.text))]),
+                  style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: C.carbon)),
+            ),
+          ],
           const SizedBox(height: 18),
           const SmallLabel('Batas per kategori'),
           const SizedBox(height: 10),

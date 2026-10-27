@@ -1246,9 +1246,11 @@ class AppStore extends ChangeNotifier {
 
   // ---------------------------------------------------------------- budget
 
-  void setBudget(BudgetPeriod period, double global, Map<String, double> perCat) {
+  void setBudget(BudgetPeriod period, double global, Map<String, double> perCat,
+      {double special = 0}) {
     settings.budgetPeriod = period;
     settings.globalBudget = global;
+    settings.specialBudget = global > 0 ? special.clamp(0.0, global).toDouble() : 0;
     settings.categoryBudgets = perCat;
     _commit();
   }

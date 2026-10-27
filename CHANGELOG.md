@@ -3,6 +3,16 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.5.0)
+
+### Ditambah
+- **Anggaran khusus (amplop) di halaman Anggaran.** Satu kolom baru, *Anggaran khusus (di dalam batas total)*, untuk self reward atau barang besar. Jumlahnya disisihkan dari batas total, jadi jatah harian dihitung dari sisanya. Belanja yang ditandai *Di luar jatah harian* memakai amplop ini dan tidak menyentuh jatah harian, hari ini maupun besok. Kalau amplop habis, kelebihannya mengurangi jatah seperti belanja biasa (mulai besok kalau terjadi hari ini). Amplop yang belum terpakai tetap disisihkan sampai periode berakhir.
+- Beranda menampilkan baris *Anggaran khusus: sisa X dari Y* dengan bar tipis, dan form Catat menampilkan sisa amplop di barisnya (label jadi *Pakai anggaran khusus*). Kosongkan kolomnya untuk kembali ke perilaku v6.4.0.
+
+### Belum terbukti
+- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Amplop hanya berlaku kalau anggaran bulanan diisi; di cara hitung dari saldo diabaikan.
+- Ritme anggaran dan status anggaran tetap menghitung belanja khusus sebagai bagian anggaran terpakai, karena uangnya memang keluar.
+
 ## v6.4.0 (27 Okt 2026)
 
 ### Ditambah

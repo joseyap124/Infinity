@@ -821,6 +821,91 @@ void main() {
       expect(s.sumIDR(TxType.expense, r, outside: true), 1000);
     });
 
+    Transaction khusus(String id, double amount, DateTime date) => Transaction(
+        id: id,
+        title: 'khusus',
+        amount: amount,
+        type: TxType.expense,
+        accountId: 'a',
+        date: date,
+        outside: true);
+
+    test('v6.5.0 anggaran khusus: amplop disisihkan, belanja khusus di dalamnya tidak menyentuh jatah', () {
+      final s = storeWith([acc('a', initial: 9000000)], [
+        tx('0', TxType.expense, 1300000, 'a', date: DateTime(2026, 10, 5, 12)),
+        khusus('1', 500000, DateTime(2026, 10, 10, 12)),
+      ]);
+      s.settings.globalBudget = 3000000;
+      s.settings.specialBudget = 500000;
+      final r = s.safeToSpend(DateTime(2026, 10, 20, 10));
+      expect(r.special, 500000);
+      expect(r.specialUsed, 500000);
+      expect(r.specialLeft, 0);
+      expect(r.perDay, closeTo(100000, 0.01)); // (3 juta - 500 ribu - 1,3 juta) / 12 hari
+    });
+
+    test('v6.5.0 anggaran khusus: amplop yang belum dipakai tetap disisihkan', () {
+      final s = storeWith([acc('a', initial: 9000000)], [
+        tx('0', TxType.expense, 1300000, 'a', date: DateTime(2026, 10, 5, 12)),
+        khusus('1', 200000, DateTime(2026, 10, 10, 12)),
+      ]);
+      s.settings.globalBudget = 3000000;
+      s.settings.specialBudget = 500000;
+      final r = s.safeToSpend(DateTime(2026, 10, 20, 10));
+      expect(r.perDay, closeTo(100000, 0.01)); // masih (3 juta - 500 ribu - 1,3 juta) / 12
+      expect(r.specialLeft, 300000);
+    });
+
+    test('v6.5.0 anggaran khusus: kelebihan di atas amplop mengurangi jatah', () {
+      final s = storeWith([acc('a', initial: 9000000)], [
+        tx('0', TxType.expense, 1300000, 'a', date: DateTime(2026, 10, 5, 12)),
+        khusus('1', 900000, DateTime(2026, 10, 10, 12)),
+      ]);
+      s.settings.globalBudget = 3000000;
+      s.settings.specialBudget = 500000;
+      final r = s.safeToSpend(DateTime(2026, 10, 20, 10));
+      expect(r.specialLeft, 0);
+      expect(r.perDay, closeTo(800000 / 12, 0.01)); // (3 juta - 1,3 juta - 900 ribu) / 12
+    });
+
+    test('v6.5.0 anggaran khusus: belanja khusus hari ini tidak mengubah jatah hari ini', () {
+      final s = storeWith([acc('a', initial: 9000000)], [
+        tx('0', TxType.expense, 1300000, 'a', date: DateTime(2026, 10, 5, 12)),
+        khusus('1', 300000, DateTime(2026, 10, 20, 8)),
+      ]);
+      s.settings.globalBudget = 3000000;
+      s.settings.specialBudget = 500000;
+      final r = s.safeToSpend(DateTime(2026, 10, 20, 10));
+      expect(r.perDay, closeTo(100000, 0.01));
+      expect(r.leftToday, closeTo(100000, 0.01));
+      expect(r.specialLeft, 200000);
+    });
+
+    test('v6.5.0 anggaran khusus: tanpa amplop sama dengan v6.4.0, dan saldo-mode tidak memakainya', () {
+      final s = storeWith([acc('a', initial: 9000000)], [
+        tx('0', TxType.expense, 1300000, 'a', date: DateTime(2026, 10, 5, 12)),
+        khusus('1', 900000, DateTime(2026, 10, 10, 12)),
+      ]);
+      s.settings.globalBudget = 3000000;
+      final r = s.safeToSpend(DateTime(2026, 10, 20, 10));
+      expect(r.special, 0);
+      expect(r.perDay, closeTo(800000 / 12, 0.01));
+      final t = storeWith([acc('a', initial: 3100000)]);
+      t.settings.specialBudget = 500000; // tanpa anggaran bulanan, amplop diabaikan
+      expect(t.safeToSpend(DateTime(2026, 10, 22, 10)).special, 0);
+    });
+
+    test('v6.5.0 anggaran khusus: disimpan hanya kalau diisi, dipotong sebesar batas total', () {
+      final s = storeWith([acc('a')]);
+      s.setBudget(BudgetPeriod.monthly, 1000000, {}, special: 5000000);
+      expect(s.settings.specialBudget, 1000000);
+      s.setBudget(BudgetPeriod.monthly, 0, {}, special: 5000000);
+      expect(s.settings.specialBudget, 0);
+      expect(AppSettings().toJson().containsKey('specialBudget'), isFalse);
+      s.setBudget(BudgetPeriod.monthly, 2000000, {}, special: 300000);
+      expect(AppSettings.fromJson(s.settings.toJson()).specialBudget, 300000);
+    });
+
     test('langganan terdeteksi dari 3 bulan berturut', () {
       final s = storeWith([acc('a', initial: 1000000)], [
         tx('1', TxType.expense, 54000, 'a', title: 'Netflix', date: DateTime(2026, 7, 5)),
