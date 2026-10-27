@@ -7,6 +7,7 @@ on:
     paths-ignore:
       - 'README.md'
       - 'CHANGELOG.md'
+      - 'CLAUDE.md'
       - '.github/workflows/release-notes.yml'
       - '.github/workflows/build-web.yml'
       - 'tool/web_prototype.py'
