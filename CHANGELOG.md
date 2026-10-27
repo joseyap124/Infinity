@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.4.0)
+## v6.4.0 (27 Okt 2026)
 
 ### Ditambah
 - **Saklar "Di luar jatah harian" di form Catat pengeluaran.** Untuk pembelian yang disengaja (self reward, barang besar). Transaksinya tetap tercatat dan tetap mengurangi sisa anggaran, tapi tidak dihitung ke "terpakai hari ini". Hari itu tidak berstatus *Lewat jatah* dan maskot tidak berubah jadi Boros karenanya. Bawaannya mati, jadi pengeluaran biasa tidak berubah.
