@@ -3,6 +3,17 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.6.0)
+
+### Diubah
+- **Beranda lebih tenang saat lewat jatah.** Label kartu utama jadi *Melewati jatah hari ini*, angkanya tidak lagi merah, dan bar memakai kuning tua. Ada satu baris netral: *Tercatat. Jatah besok dihitung ulang dari sisa periode.* Angka selisih, terpakai, dan saldo tetap tampil apa adanya.
+- **Ritme anggaran**: bar di atas 100% dan penanda *Cepat* sekarang kuning tua, bukan merah.
+- **Dua kalimat maskot dilembutkan** di paket gaya: *Aduh kebablasan!* (Kuning Ceria) jadi *Hari ini lewat jatah. Tercatat, besok mulai lagi ya.* dan *Berhenti belanja* (Merah Tegas) jadi *Pikir dulu sebelum belanja*. Nada paket lain tidak diubah.
+
+### Belum terbukti
+- Belum dilihat di HP. Gambar maskot tidak diubah: ekspresi Bahaya dan Boros tetap sama. Kalau tetap mengganggu, maskot bisa dimatikan di Atur beranda, dan nada paket bisa dimatikan di pengaturan gaya.
+- Warna merah untuk pengeluaran, anggaran per kategori yang jebol, dan peringatan lain tidak diubah.
+
 ## v6.5.0 (27 Okt 2026)
 
 ### Ditambah

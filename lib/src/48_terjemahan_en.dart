@@ -1714,6 +1714,10 @@ const Map<String, String> kEnStrings = {
   'Untuk self reward atau barang besar. Belanja yang ditandai "Di luar jatah harian" memakai ini dulu dan tidak menyentuh jatah harian. Kosongkan kalau tidak dipakai.': 'For rewards or big purchases. Spending marked "Outside daily allowance" uses this first and does not touch your daily allowance. Leave empty if unused.',
   'Jatah harian dihitung dari {0}, di luar anggaran khusus.': 'Daily allowance is calculated from {0}, excluding the special budget.',
   'Belanja khusus hari ini {0} memakai anggaran khusus dan tidak dihitung ke jatah hari ini.': 'Special spending today ({0}) uses the special budget and is not counted in today\'s allowance.',
+  'Melewati jatah hari ini': 'Past today\'s allowance',
+  'Tercatat. Jatah besok dihitung ulang dari sisa periode.': 'Recorded. Tomorrow\'s allowance is recalculated from what is left in the period.',
+  'Hari ini lewat jatah. Tercatat, besok mulai lagi ya.': 'Over today\'s allowance. It\'s recorded, let\'s start fresh tomorrow.',
+  'Hampir habis. Pikir dulu sebelum belanja.': 'Almost gone. Think before you shop.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

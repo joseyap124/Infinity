@@ -875,7 +875,9 @@ class DashboardTab extends StatelessWidget {
     void openDetail() =>
         showSheet<void>(context, SafeSpendSheet(store: store));
     final motif = store.settings.packMotif && C.pack != 'classic';
-    final barColor = over ? C.redDark : C.accentDark;
+    // Lewat jatah bukan alarm: warna kuning tua, bukan merah, supaya mencatat
+    // di hari boros tidak terasa dihakimi.
+    final barColor = over ? C.amberDark : C.accentDark;
     final main = Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -899,7 +901,7 @@ class DashboardTab extends StatelessWidget {
                     children: [
                       Text(
                           over
-                              ? 'Lewat jatah hari ini'
+                              ? 'Melewati jatah hari ini'
                               : 'Aman dibelanjakan hari ini',
                           style: TextStyle(fontSize: 12.5, color: C.muted)),
                       FittedBox(
@@ -910,7 +912,7 @@ class DashboardTab extends StatelessWidget {
                             style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.w900,
-                                color: over ? C.redDark : C.carbon)),
+                                color: C.carbon)),
                       ),
                       const SizedBox(height: 10),
                       FunProgressBar(
@@ -938,6 +940,36 @@ class DashboardTab extends StatelessWidget {
                                     TextStyle(fontSize: 12, color: C.muted)),
                         ],
                       ),
+                      if (!hide && over) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                              color: C.bg,
+                              borderRadius: BorderRadius.circular(14)),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 1),
+                                child: Icon(Icons.check_rounded,
+                                    size: 16, color: C.income),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                    tr('Tercatat. Jatah besok dihitung ulang dari sisa periode.'),
+                                    style: TextStyle(
+                                        fontSize: 12.5,
+                                        height: 1.3,
+                                        color: C.carbon)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       if (!hide && s.special > 0) ...[
                         const SizedBox(height: 8),
                         _specialRow(s),
@@ -1169,7 +1201,7 @@ class DashboardTab extends StatelessWidget {
     final end = DateTime(range.end.year, range.end.month, range.end.day);
     final total = end.difference(start).inDays;
     final day = dayOnly(now).difference(start).inDays + 1;
-    final barColor = used > 1 ? C.redDark : C.accentDark;
+    final barColor = used > 1 ? C.amberDark : C.accentDark;
     return Material(
       color: C.surface,
       borderRadius: BorderRadius.circular(20),

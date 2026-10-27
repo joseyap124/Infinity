@@ -22,3 +22,8 @@ t('Anggaran khusus tidak boleh lebih besar dari batas total, jadi akan dipotong 
 t('Untuk self reward atau barang besar. Belanja yang ditandai "Di luar jatah harian" memakai ini dulu dan tidak menyentuh jatah harian. Kosongkan kalau tidak dipakai.', 'For rewards or big purchases. Spending marked "Outside daily allowance" uses this first and does not touch your daily allowance. Leave empty if unused.', '用于奖励自己或大额购物。标记为“不计入每日额度”的支出会先用它,不影响每日额度。不用请留空。')
 t('Jatah harian dihitung dari {0}, di luar anggaran khusus.', 'Daily allowance is calculated from {0}, excluding the special budget.', '每日额度按 {0} 计算,不含专项预算。')
 t('Belanja khusus hari ini {0} memakai anggaran khusus dan tidak dihitung ke jatah hari ini.', 'Special spending today ({0}) uses the special budget and is not counted in today\'s allowance.', '今天的特殊支出 ({0}) 使用专项预算,不计入今天额度。')
+# 6.6.0: Beranda lebih tenang saat lewat jatah
+t('Melewati jatah hari ini', 'Past today\'s allowance', '已超出今日额度')
+t('Tercatat. Jatah besok dihitung ulang dari sisa periode.', 'Recorded. Tomorrow\'s allowance is recalculated from what is left in the period.', '已记录。明天的额度会按本期剩余重新计算。')
+t('Hari ini lewat jatah. Tercatat, besok mulai lagi ya.', 'Over today\'s allowance. It\'s recorded, let\'s start fresh tomorrow.', '今天超出额度了。已记录,明天重新开始吧。')
+t('Hampir habis. Pikir dulu sebelum belanja.', 'Almost gone. Think before you shop.', '快没了。买之前先想一想。')

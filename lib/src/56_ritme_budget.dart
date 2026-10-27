@@ -48,7 +48,7 @@ extension PaceTagText on PaceTag {
         PaceTag.slow => 'Hemat',
       };
   Color get color => switch (this) {
-        PaceTag.fast => C.redDark,
+        PaceTag.fast => C.amberDark,
         PaceTag.even => C.muted,
         PaceTag.slow => C.income,
       };

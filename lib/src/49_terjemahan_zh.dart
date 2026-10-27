@@ -1713,4 +1713,8 @@ const Map<String, String> kZhStrings = {
   'Untuk self reward atau barang besar. Belanja yang ditandai "Di luar jatah harian" memakai ini dulu dan tidak menyentuh jatah harian. Kosongkan kalau tidak dipakai.': '用于奖励自己或大额购物。标记为“不计入每日额度”的支出会先用它,不影响每日额度。不用请留空。',
   'Jatah harian dihitung dari {0}, di luar anggaran khusus.': '每日额度按 {0} 计算,不含专项预算。',
   'Belanja khusus hari ini {0} memakai anggaran khusus dan tidak dihitung ke jatah hari ini.': '今天的特殊支出 ({0}) 使用专项预算,不计入今天额度。',
+  'Melewati jatah hari ini': '已超出今日额度',
+  'Tercatat. Jatah besok dihitung ulang dari sisa periode.': '已记录。明天的额度会按本期剩余重新计算。',
+  'Hari ini lewat jatah. Tercatat, besok mulai lagi ya.': '今天超出额度了。已记录,明天重新开始吧。',
+  'Hampir habis. Pikir dulu sebelum belanja.': '快没了。买之前先想一想。',
 };

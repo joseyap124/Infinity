@@ -49,7 +49,7 @@ String mascotLine(MascotMood m, {String pack = 'classic'}) {
         MascotMood.ok => tr('Aman jaya, lanjut semangat!'),
         MascotMood.warn => tr('Eits, pelan-pelan ya belanjanya.'),
         MascotMood.danger => tr('Wah tinggal sedikit! Hemat dulu yuk.'),
-        MascotMood.over => tr('Aduh kebablasan! Besok hemat lagi ya.'),
+        MascotMood.over => tr('Hari ini lewat jatah. Tercatat, besok mulai lagi ya.'),
         MascotMood.sleepy => tr('Halo? Belum ada catatan nih.'),
       };
     case 'merah':
@@ -57,7 +57,7 @@ String mascotLine(MascotMood m, {String pack = 'classic'}) {
         MascotMood.happy => tr('Longgar. Jangan keburu senang.'),
         MascotMood.ok => tr('Terkendali. Pertahankan.'),
         MascotMood.warn => tr('Rem sedikit. Itu tidak perlu.'),
-        MascotMood.danger => tr('Hampir habis. Berhenti belanja.'),
+        MascotMood.danger => tr('Hampir habis. Pikir dulu sebelum belanja.'),
         MascotMood.over => tr('Lewat jatah. Hitung ulang.'),
         MascotMood.sleepy => tr('Kamu menghilang. Catat yang kemarin.'),
       };
