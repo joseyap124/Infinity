@@ -1724,6 +1724,9 @@ const Map<String, String> kEnStrings = {
   'Notifikasi dari app ini tidak ditangkap lagi. Ketuk Tangkap lagi kalau salah.': 'Notifications from these apps are no longer captured. Tap Capture again if this was a mistake.',
   'Tangkap lagi': 'Capture again',
   'App ini sudah kamu abaikan (Atur di Catat Otomatis)': 'You chose to ignore this app (manage it in Auto-capture)',
+  'Jatah hari ini': 'Today\'s allowance',
+  'Anggaran periode ini sudah terpakai {0}%. Jatah harian kembali saat periode baru, {1}.': 'This period\'s budget is {0}% used. Your daily allowance returns when the new period starts, {1}.',
+  'Sisa anggaran sudah dicadangkan untuk tagihan, cicilan, atau anggaran khusus. Ketuk untuk rincian.': 'What is left of the budget is already set aside for bills, installments, or the special budget. Tap for details.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

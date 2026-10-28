@@ -1723,4 +1723,7 @@ const Map<String, String> kZhStrings = {
   'Notifikasi dari app ini tidak ditangkap lagi. Ketuk Tangkap lagi kalau salah.': '不再捕获这些应用的通知。如果设置错了,请点“重新捕获”。',
   'Tangkap lagi': '重新捕获',
   'App ini sudah kamu abaikan (Atur di Catat Otomatis)': '你已选择忽略此应用(可在自动记账中管理)',
+  'Jatah hari ini': '今日额度',
+  'Anggaran periode ini sudah terpakai {0}%. Jatah harian kembali saat periode baru, {1}.': '本期预算已用 {0}%。新一期开始({1})后,每日额度会恢复。',
+  'Sisa anggaran sudah dicadangkan untuk tagihan, cicilan, atau anggaran khusus. Ketuk untuk rincian.': '剩余预算已预留给账单、分期或专项预算。点按查看明细。',
 };

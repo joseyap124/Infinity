@@ -862,6 +862,9 @@ class DashboardTab extends StatelessWidget {
     final s = store.safeToSpend(now);
     final left = s.leftToday;
     final over = left < 0;
+    // Anggaran sudah habis sebelum hari ini: jatah 0 perlu dijelaskan, bukan
+    // disebut "aman" (v6.8.0).
+    final usedWhenZero = over ? null : store.budgetUsedWhenNoAllowance(s, now);
     final lastTx = lastTransactionDate(store, now);
     final mood = mascotMoodFor(
         leftToday: left,
@@ -902,7 +905,9 @@ class DashboardTab extends StatelessWidget {
                       Text(
                           over
                               ? 'Melewati jatah hari ini'
-                              : 'Aman dibelanjakan hari ini',
+                              : usedWhenZero != null
+                                  ? 'Jatah hari ini'
+                                  : 'Aman dibelanjakan hari ini',
                           style: TextStyle(fontSize: 12.5, color: C.muted)),
                       FittedBox(
                         fit: BoxFit.scaleDown,
@@ -961,6 +966,42 @@ class DashboardTab extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                     tr('Tercatat. Jatah besok dihitung ulang dari sisa periode.'),
+                                    style: TextStyle(
+                                        fontSize: 12.5,
+                                        height: 1.3,
+                                        color: C.carbon)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (!hide && usedWhenZero != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                              color: C.bg,
+                              borderRadius: BorderRadius.circular(14)),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 1),
+                                child: Icon(Icons.info_outline_rounded,
+                                    size: 16, color: C.amberDark),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                    usedWhenZero >= 1
+                                        ? tr('Anggaran periode ini sudah terpakai {0}%. Jatah harian kembali saat periode baru, {1}.', [
+                                            (usedWhenZero * 100).round(),
+                                            DateFormat('d MMM', gDateLoc)
+                                                .format(s.periodEnd)
+                                          ])
+                                        : tr('Sisa anggaran sudah dicadangkan untuk tagihan, cicilan, atau anggaran khusus. Ketuk untuk rincian.'),
                                     style: TextStyle(
                                         fontSize: 12.5,
                                         height: 1.3,

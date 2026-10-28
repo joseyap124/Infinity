@@ -777,6 +777,81 @@ void main() {
       expect(r.leftToday, closeTo(210000, 0.01));
     });
 
+    test('v6.8.0 karakterisasi: tagihan berulang hari ini dicadangkan merata, lalu seluruhnya masuk terpakai hari ini saat diposting', () {
+      final s = storeWith([acc('a', initial: 9000000)]);
+      s.settings.globalBudget = 3000000;
+      final r = RecurringRule(
+          id: 'r1',
+          title: 'Kos',
+          amount: 400000,
+          type: TxType.expense,
+          accountId: 'a',
+          frequency: Frequency.monthly,
+          start: DateTime(2026, 10, 22, 15));
+      s.recurring = [r];
+      // Sebelum jam jatuh tempo: tagihan dikurangkan dari anggaran, dibagi 10 hari.
+      final sebelum = s.safeToSpend(DateTime(2026, 10, 22, 12));
+      expect(sebelum.daysLeft, 10);
+      expect(sebelum.perDay, closeTo(260000, 0.01)); // (3 juta - 400 ribu) / 10
+      expect(sebelum.leftToday, closeTo(260000, 0.01));
+      // Setelah diposting (seperti processRecurring): transaksi bertanggal hari ini, aturan maju.
+      s.transactions = [
+        Transaction(
+            id: 'rec_r1_1',
+            title: 'Kos',
+            amount: 400000,
+            type: TxType.expense,
+            accountId: 'a',
+            date: DateTime(2026, 10, 22, 15),
+            recurringId: 'r1'),
+      ];
+      r.generated = 1;
+      final sesudah = s.safeToSpend(DateTime(2026, 10, 22, 16));
+      expect(sesudah.perDay, closeTo(300000, 0.01)); // tagihan tidak lagi dicadangkan
+      expect(sesudah.spentToday, 400000); // tapi seluruhnya terpakai hari ini
+      // Sisa hari ini melompat dari +260 ribu ke -100 ribu: selisih = tagihan x (1 - 1/10).
+      expect(sesudah.leftToday, closeTo(-100000, 0.01));
+    });
+
+    test('v6.8.0 jatah 0 karena anggaran habis: rasio terpakai dikembalikan untuk dijelaskan di Beranda', () {
+      final now = DateTime(2026, 10, 22, 10);
+      final habis = storeWith([acc('a', initial: 9000000)], [
+        tx('1', TxType.expense, 1740000, 'a', date: DateTime(2026, 10, 5, 12)),
+      ]);
+      habis.settings.globalBudget = 1000000;
+      final sh = habis.safeToSpend(now);
+      expect(sh.perDay, 0);
+      expect(habis.budgetUsedWhenNoAllowance(sh, now), closeTo(1.74, 0.0001));
+
+      // Jatah masih ada: tidak ada penjelasan.
+      final lega = storeWith([acc('a', initial: 9000000)]);
+      lega.settings.globalBudget = 3000000;
+      expect(lega.budgetUsedWhenNoAllowance(lega.safeToSpend(now), now), isNull);
+
+      // Mode saldo (tanpa anggaran): tidak berlaku.
+      final saldo = storeWith([acc('a', initial: 0)]);
+      expect(saldo.budgetUsedWhenNoAllowance(saldo.safeToSpend(now), now), isNull);
+
+      // Jatah 0 karena dicadangkan untuk tagihan, bukan karena anggaran lewat: rasio < 1.
+      final cadang = storeWith([acc('a', initial: 9000000)], [
+        tx('1', TxType.expense, 400000, 'a', date: DateTime(2026, 10, 5, 12)),
+      ]);
+      cadang.settings.globalBudget = 1000000;
+      cadang.recurring = [
+        RecurringRule(
+            id: 'r',
+            title: 'Kos',
+            amount: 700000,
+            type: TxType.expense,
+            accountId: 'a',
+            frequency: Frequency.monthly,
+            start: DateTime(2026, 10, 30, 9)),
+      ];
+      final sc = cadang.safeToSpend(now);
+      expect(sc.perDay, 0);
+      expect(cadang.budgetUsedWhenNoAllowance(sc, now), closeTo(0.4, 0.0001));
+    });
+
     test('v6.4.0 di luar jatah (saldo): tidak masuk terpakai hari ini, jatah hari ini tetap', () {
       final now = DateTime(2026, 10, 22, 10);
       final s = storeWith([acc('a', initial: 3100000)], [

@@ -663,17 +663,18 @@ class DataFile {
       final raw = (f != null && f.existsSync())
           ? f.readAsStringSync()
           : _jmem.join();
-      final lines = raw.split('\n').where((l) => l.trim().isNotEmpty).toList();
+      // Baris pertama file bisa terpotong di tengah (file dipangkas dari depan
+      // saat melebihi 30 KB). Sisa potongan itu dibuang supaya tidak muncul
+      // di paling atas jejak setelah diurutkan.
+      final stamp = RegExp(r'^\d\d-\d\d \d\d:\d\d');
+      final lines = raw.split('\n').where(stamp.hasMatch).toList();
       // Catatan peluncuran dari sisi Android (jendela dibuat/ditutup) digabung
       // berdasarkan jam, supaya urutannya terbaca bersama jejak simpan.
       final dir = _file?.parent;
       if (dir != null) {
         final nf = File('${dir.path}/infinity_launch.log');
         if (nf.existsSync()) {
-          lines.addAll(nf
-              .readAsStringSync()
-              .split('\n')
-              .where((l) => l.trim().isNotEmpty));
+          lines.addAll(nf.readAsStringSync().split('\n').where(stamp.hasMatch));
           lines.sort();
         }
       }

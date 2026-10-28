@@ -273,6 +273,16 @@ extension InsightStore on AppStore {
     );
   }
 
+  /// Jatah harian 0 karena anggaran periode sudah habis atau sudah dicadangkan
+  /// (mode anggaran, belum ada belanja hari ini). Mengembalikan rasio
+  /// pengeluaran periode terhadap anggaran (1,74 = 174%), atau null kalau
+  /// jatah masih ada atau dihitung dari saldo. Dipakai untuk menjelaskan "Rp 0".
+  double? budgetUsedWhenNoAllowance(SafeSpend s, DateTime now) {
+    if (!s.fromBudget || s.perDay > 0 || settings.globalBudget <= 0) return null;
+    final spent = sumIDR(TxType.expense, settings.budgetPeriod.range(now));
+    return spent / settings.globalBudget;
+  }
+
   /// Pengeluaran dengan catatan yang sama muncul >= 3 bulan berbeda dalam
   /// 4 bulan terakhir, nominal mirip (±15%), dan belum jadi transaksi berulang.
   List<SubSuggestion> detectSubscriptions(DateTime now) {

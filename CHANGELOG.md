@@ -3,6 +3,20 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.8.0)
+
+### Diubah
+- **Kartu utama Beranda saat jatah harian Rp 0 karena anggaran sudah habis.** Label "Aman dibelanjakan hari ini" jadi "Jatah hari ini", dan ada satu kalimat penjelas di bawah angka: *Anggaran periode ini sudah terpakai 174%. Jatah harian kembali saat periode baru, 1 Nov.* Kalau Rp 0 itu karena sisa anggaran sudah dicadangkan untuk tagihan, cicilan, atau anggaran khusus (bukan karena anggaran lewat), kalimatnya menjelaskan itu. Angka, warna, bar, dan hitungan jatah tidak berubah. Label lama tetap dipakai selama jatah masih di atas Rp 0, dan "Melewati jatah hari ini" tetap muncul kalau ada belanja hari ini.
+
+### Diperbaiki
+- **Jejak simpan (Laporan error) menampilkan sisa potongan baris di paling atas**, mis. `s ok 92758B, file 92758 B`, yang terlihat seperti tulisan terbaru padahal itu ujung baris lama yang terpotong saat file dipangkas. Sekarang potongan itu dibuang.
+
+### Diketahui, belum diubah
+- **Tagihan berulang yang jatuh tempo hari ini membuat angka "sisa hari ini" melompat.** Sebelum jam jatuh tempo, tagihan dicadangkan merata ke sisa hari. Begitu diposting, seluruh nominalnya masuk "terpakai hari ini". Contoh di tes: anggaran Rp 3 juta, tagihan Rp 400 ribu, sisa 10 hari: sisa hari ini turun dari +Rp 260 ribu jadi -Rp 100 ribu tepat saat tagihan diposting. Tes baru mencatat perilaku ini apa adanya. Mengubahnya adalah keputusan produk, jadi belum disentuh.
+
+### Belum terbukti
+- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Kalimat penjelas bisa terlalu panjang di layar sempit.
+
 ## v6.7.0 (28 Okt 2026)
 
 ### Ditambah
