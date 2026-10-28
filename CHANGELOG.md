@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.8.0)
+## v6.8.0 (28 Okt 2026)
 
 ### Diubah
 - **Kartu utama Beranda saat jatah harian Rp 0 karena anggaran sudah habis.** Label "Aman dibelanjakan hari ini" jadi "Jatah hari ini", dan ada satu kalimat penjelas di bawah angka: *Anggaran periode ini sudah terpakai 174%. Jatah harian kembali saat periode baru, 1 Nov.* Kalau Rp 0 itu karena sisa anggaran sudah dicadangkan untuk tagihan, cicilan, atau anggaran khusus (bukan karena anggaran lewat), kalimatnya menjelaskan itu. Angka, warna, bar, dan hitungan jatah tidak berubah. Label lama tetap dipakai selama jatah masih di atas Rp 0, dan "Melewati jatah hari ini" tetap muncul kalau ada belanja hari ini.

@@ -2,7 +2,7 @@
 
 Daftar kerja yang bisa dicentang. Perbarui setiap rilis: pindahkan yang selesai ke "Selesai", tulis apa yang belum terbukti. Riwayat lengkap tiap rilis ada di [CHANGELOG](../CHANGELOG.md).
 
-Terakhir diperbarui: setelah v6.7.0 (28 Okt 2026).
+Terakhir diperbarui: setelah v6.8.0 (28 Okt 2026).
 
 ## Cara membaca status
 
@@ -16,6 +16,7 @@ Terakhir diperbarui: setelah v6.7.0 (28 Okt 2026).
 - [x] v6.5.0: anggaran khusus (amplop) di halaman Anggaran, tampil di Beranda dan form Catat.
 - [x] v6.6.0: Beranda lebih tenang saat lewat jatah, dua kalimat maskot dilembutkan.
 - [x] v6.7.0: tombol "Jangan tangkap app ini" di kartu Dari Notifikasi (Infinity menangkap notifikasi dari semua app yang memuat "Rp", bukan hanya bank). README bagian itu sudah dikoreksi.
+- [x] v6.8.0: kartu utama menjelaskan Rp 0 saat anggaran habis; jejak simpan dirapikan; tes yang membuktikan lompatan sisa hari ini saat tagihan berulang diposting.
 
 ## Perlu dicek di HP (urutkan dari yang paling mungkin meleset)
 
@@ -29,7 +30,7 @@ Terakhir diperbarui: setelah v6.7.0 (28 Okt 2026).
 
 ### 1. "Jatah hari ini" di Beranda tidak cocok dengan hitungan Jose
 
-Penyebab belum diketahui. **Dugaan dari membaca kode, belum dibuktikan:** transaksi berulang yang jatuh tempo hari ini punya dua keadaan.
+Penyebab ditemukan di v6.8.0 lewat tes (CI hijau). **Terbukti:** transaksi berulang yang jatuh tempo hari ini punya dua keadaan.
 
 - Sebelum diposting, tagihan itu dikurangkan dari `base` lewat `upcomingRecurring`, jadi jatah hari ini turun sebesar tagihan dibagi sisa hari.
 - Setelah diposting (`processRecurring`, saat app dibuka setelah jam jatuh tempo), tagihan itu masuk `spentToday` sebagai pengeluaran biasa, jadi sisa hari ini turun sebesar **seluruh** tagihan.
