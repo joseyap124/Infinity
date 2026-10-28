@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.7.0)
+## v6.7.0 (28 Okt 2026)
 
 ### Ditambah
 - **Tombol "Jangan tangkap app ini" di kartu Dari Notifikasi** untuk notifikasi dari app yang bukan bank atau e-wallet yang dikenal Infinity. Satu ketukan menghapus semua notifikasi app itu dari antrean dan notifikasi berikutnya dari app itu tidak masuk lagi. Ada Urungkan di bar bawah. Daftar app yang diabaikan ada di Catat Otomatis (Atur), dengan tombol *Tangkap lagi*. Riwayat tangkapan mencatat alasannya.

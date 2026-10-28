@@ -2,7 +2,7 @@
 
 Daftar kerja yang bisa dicentang. Perbarui setiap rilis: pindahkan yang selesai ke "Selesai", tulis apa yang belum terbukti. Riwayat lengkap tiap rilis ada di [CHANGELOG](../CHANGELOG.md).
 
-Terakhir diperbarui: setelah v6.6.0 (27 Okt 2026).
+Terakhir diperbarui: setelah v6.7.0 (28 Okt 2026).
 
 ## Cara membaca status
 
@@ -15,9 +15,11 @@ Terakhir diperbarui: setelah v6.6.0 (27 Okt 2026).
 - [x] v6.4.0: saklar "Di luar jatah harian" di form pengeluaran.
 - [x] v6.5.0: anggaran khusus (amplop) di halaman Anggaran, tampil di Beranda dan form Catat.
 - [x] v6.6.0: Beranda lebih tenang saat lewat jatah, dua kalimat maskot dilembutkan.
+- [x] v6.7.0: tombol "Jangan tangkap app ini" di kartu Dari Notifikasi (Infinity menangkap notifikasi dari semua app yang memuat "Rp", bukan hanya bank). README bagian itu sudah dikoreksi.
 
 ## Perlu dicek di HP (urutkan dari yang paling mungkin meleset)
 
+- [ ] v6.7.0: tombol baru di baris Abaikan/Catat di layar sempit, dan apakah notifikasi app non-bank berhenti masuk setelah diabaikan.
 - [ ] v6.5.0: baris amplop di Beranda dan di form Catat; apakah penjelasannya cukup jelas tanpa dibaca dua kali.
 - [ ] v6.6.0: apakah Beranda saat lewat jatah benar-benar terasa tenang. Gambar maskot Bahaya dan Boros **tidak diubah**; kalau tetap mengganggu, matikan maskot di Atur beranda atau matikan nada paket.
 - [ ] v6.3.3: ruang kosong di atas keypad setelah nominal terisi, dan form yang bergeser sekitar 45 dp saat berpindah ke daftar kategori.
