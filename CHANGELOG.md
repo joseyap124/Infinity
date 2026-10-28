@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v7.0.0)
+## v7.0.0 (28 Okt 2026)
 
 Rilis besar: Beranda dan navigasi ditata ulang. Hitungan uang, jatah harian, dan format data tidak berubah.
 
