@@ -54,6 +54,12 @@ extension PaceTagText on PaceTag {
       };
 }
 
+/// Baris Ritme di kartu utama Beranda (v6.9.0) disembunyikan hanya saat anggaran
+/// sudah habis (>= 100%) dan jatah harian 0: catatan di kartu utama sudah
+/// menyebut persennya. [usedWhenZero] = AppStore.budgetUsedWhenNoAllowance.
+bool showRitmeInHero(double? usedWhenZero) =>
+    usedWhenZero == null || usedWhenZero < 1;
+
 /// Kalimat ritme untuk kartu budget: "▲ Lebih cepat Rp400.000 dari ritme".
 /// Selisih di bawah 2% batas dianggap pas.
 String paceSentence(double spent, double limit, double elapsed) {

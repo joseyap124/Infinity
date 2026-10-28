@@ -852,6 +852,39 @@ void main() {
       expect(cadang.budgetUsedWhenNoAllowance(sc, now), closeTo(0.4, 0.0001));
     });
 
+    test('v6.9.0 baris Ritme di kartu utama: hilang hanya saat anggaran habis', () {
+      final now = DateTime(2026, 10, 22, 10);
+      // Anggaran habis (174%): catatan di kartu utama sudah menyebut persennya.
+      final habis = storeWith([acc('a', initial: 9000000)], [
+        tx('1', TxType.expense, 1740000, 'a', date: DateTime(2026, 10, 5, 12)),
+      ]);
+      habis.settings.globalBudget = 1000000;
+      expect(
+          showRitmeInHero(
+              habis.budgetUsedWhenNoAllowance(habis.safeToSpend(now), now)),
+          false);
+
+      // Jatah masih ada: tampil.
+      final lega = storeWith([acc('a', initial: 9000000)]);
+      lega.settings.globalBudget = 3000000;
+      expect(
+          showRitmeInHero(
+              lega.budgetUsedWhenNoAllowance(lega.safeToSpend(now), now)),
+          true);
+
+      // Tanpa anggaran: tampil (baris mengajak mengisi anggaran).
+      final saldo = storeWith([acc('a', initial: 0)]);
+      expect(
+          showRitmeInHero(
+              saldo.budgetUsedWhenNoAllowance(saldo.safeToSpend(now), now)),
+          true);
+
+      // Jatah 0 karena dicadangkan (rasio di bawah 1): tampil.
+      expect(showRitmeInHero(0.4), true);
+      expect(showRitmeInHero(0.999), true);
+      expect(showRitmeInHero(1.0), false);
+    });
+
     test('v6.4.0 di luar jatah (saldo): tidak masuk terpakai hari ini, jatah hari ini tetap', () {
       final now = DateTime(2026, 10, 22, 10);
       final s = storeWith([acc('a', initial: 3100000)], [

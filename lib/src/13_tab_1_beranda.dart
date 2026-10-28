@@ -1044,6 +1044,12 @@ class DashboardTab extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (store.settings.homeRitme &&
+                    showRitmeInHero(usedWhenZero)) ...[
+                  const SizedBox(height: 8),
+                  Divider(height: 1, color: C.line),
+                  _ritmeRow(context),
+                ],
                 const SizedBox(height: 8),
                 Divider(height: 1, color: C.line),
                 InkWell(
@@ -1078,27 +1084,13 @@ class DashboardTab extends StatelessWidget {
         ],
       ),
     );
-    final st = store.settings;
-    final tiles = <Widget>[
-      if (st.homeMaskot)
-        Expanded(
-            flex: 5,
-            child: _maskotTile(context, mood, sleepy, openDetail)),
-      if (st.homeMaskot && st.homeRitme) const SizedBox(width: 10),
-      if (st.homeRitme) Expanded(flex: 6, child: _ritmeTile(context)),
-    ];
+    if (!store.settings.homeMaskot) return main;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         main,
-        if (tiles.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          IntrinsicHeight(
-            child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: tiles),
-          ),
-        ],
+        const SizedBox(height: 10),
+        _maskotRow(context, mood, sleepy, openDetail),
       ],
     );
   }
@@ -1115,9 +1107,10 @@ class DashboardTab extends StatelessWidget {
   String _moodLine(MascotMood m) => mascotLine(m,
       pack: store.settings.packTone ? store.settings.stylePack : 'classic');
 
-  /// Kartu Maskot: gambar maskot pilihan dengan 6 ekspresi sesuai suasana,
-  /// tanpa lingkaran latar.
-  Widget _maskotTile(BuildContext context, MascotMood mood, bool sleepy,
+  /// Baris Maskot (v6.9.0, sebelumnya kartu setengah lebar di samping Ritme):
+  /// gambar maskot pilihan dengan 6 ekspresi sesuai suasana, satu kalimat
+  /// status, dan titik warna.
+  Widget _maskotRow(BuildContext context, MascotMood mood, bool sleepy,
       VoidCallback openDetail) {
     final skin = effectiveMascotSkin(store.settings);
     final name = switch (skin) {
@@ -1133,54 +1126,55 @@ class DashboardTab extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: sleepy ? () => openTxForm(context, store) : openDetail,
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: C.line),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(tr('Status {0}', [name]),
+              // Gambar Burung Hantu gelap: di mode gelap diberi cakram terang tipis.
+              skin == 'owl' && C.isDark
+                  ? Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                          color: mascotBase('owl'), shape: BoxShape.circle),
+                      alignment: Alignment.center,
+                      child: MascotView(mood: mood, size: 34),
+                    )
+                  : MascotView(mood: mood, size: 46),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(tr('Status {0}', [name]),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: C.muted)),
-                  ),
-                  Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                          color: _moodDot(mood), shape: BoxShape.circle)),
-                ],
+                    const SizedBox(height: 2),
+                    Text(_moodLine(mood),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: C.carbon,
+                            height: 1.25)),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              Center(
-                // Gambar Burung Hantu gelap: di mode gelap diberi cakram terang tipis.
-                child: skin == 'owl' && C.isDark
-                    ? Container(
-                        width: 68,
-                        height: 68,
-                        decoration: BoxDecoration(
-                            color: mascotBase('owl'), shape: BoxShape.circle),
-                        alignment: Alignment.center,
-                        child: MascotView(mood: mood, size: 50),
-                      )
-                    : MascotView(mood: mood, size: 60),
-              ),
-              const SizedBox(height: 8),
-              Text(_moodLine(mood),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: C.carbon,
-                      height: 1.25)),
+              const SizedBox(width: 8),
+              Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                      color: _moodDot(mood), shape: BoxShape.circle)),
             ],
           ),
         ),
@@ -1188,48 +1182,33 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
-  /// Kartu Ritme: berapa persen anggaran terpakai dibanding posisi hari di
-  /// periode. Tanpa batas anggaran, kartu mengajak mengisinya.
-  Widget _ritmeTile(BuildContext context) {
+  /// Baris Ritme di dalam kartu utama (v6.9.0, sebelumnya kartu sendiri):
+  /// berapa persen anggaran terpakai dibanding posisi hari di periode. Tanpa
+  /// batas anggaran, baris ini mengajak mengisinya.
+  Widget _ritmeRow(BuildContext context) {
     final s = store.settings;
     final now = DateTime.now();
     final range = s.budgetPeriod.range(now);
-    final hasBudget = s.globalBudget > 0;
     void open() => _push(context, BudgetPage(store: store));
-    if (!hasBudget) {
-      return Material(
-        color: C.surface,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: open,
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: C.line),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(tr('Ritme anggaran'),
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: C.muted)),
-                const SizedBox(height: 8),
-                Text(tr('Isi anggaran untuk melihat ritme pengeluaran.'),
-                    style: TextStyle(
-                        fontSize: 12.5, color: C.carbon, height: 1.3)),
-                const SizedBox(height: 8),
-                Text(tr('Atur'),
-                    style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: C.accentDark)),
-              ],
-            ),
+    if (s.globalBudget <= 0) {
+      return InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: open,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 2),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(tr('Isi anggaran untuk melihat ritme pengeluaran.'),
+                    style: TextStyle(fontSize: 12.5, color: C.muted)),
+              ),
+              const SizedBox(width: 8),
+              Text(tr('Atur'),
+                  style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: C.accentDark)),
+            ],
           ),
         ),
       );
@@ -1243,58 +1222,44 @@ class DashboardTab extends StatelessWidget {
     final total = end.difference(start).inDays;
     final day = dayOnly(now).difference(start).inDays + 1;
     final barColor = used > 1 ? C.amberDark : C.accentDark;
-    return Material(
-      color: C.surface,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: open,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: C.line),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(tr('Ritme anggaran'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: C.muted)),
-                  ),
-                  Text('${tag.symbol} ${tr(tag.label)}',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: tag.color)),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text('${(used * 100).round()}%',
-                  style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: C.carbon)),
-              Text(tr('anggaran terpakai'),
-                  style: TextStyle(fontSize: 12, color: C.muted)),
-              const SizedBox(height: 8),
-              PaceBar(
-                  value: used.clamp(0.0, 1.0).toDouble(),
-                  color: barColor,
-                  marker: elapsed,
-                  height: 8),
-              const SizedBox(height: 4),
-              Text(tr('Hari ke-{0} dari {1}', [day.clamp(1, total), total]),
-                  style: TextStyle(fontSize: 12, color: C.muted)),
-            ],
-          ),
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: open,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 10, bottom: 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text('${(used * 100).round()}%',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: C.carbon)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(tr('anggaran terpakai'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12.5, color: C.muted)),
+                ),
+                Text('${tag.symbol} ${tr(tag.label)}',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: tag.color)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            PaceBar(
+                value: used.clamp(0.0, 1.0).toDouble(),
+                color: barColor,
+                marker: elapsed,
+                height: 6),
+            Text(tr('Hari ke-{0} dari {1}', [day.clamp(1, total), total]),
+                style: TextStyle(fontSize: 12, color: C.muted)),
+          ],
         ),
       ),
     );

@@ -3,6 +3,17 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.9.0)
+
+### Diubah
+- **Kartu Ritme anggaran pindah ke dalam kartu utama Beranda** sebagai satu blok tipis di atas Total saldo, bukan kartu sendiri. Isinya sama: persen anggaran terpakai, penanda Cepat/Pas/Hemat, bar dengan penanda ritme, dan hari ke berapa di periode. Diketuk tetap membuka halaman Anggaran. Hitungan tidak berubah.
+- Baris Ritme disembunyikan hanya saat anggaran sudah habis (100% atau lebih) dan jatah hari ini Rp 0, karena catatan di kartu utama sudah menyebut persennya. Tanpa anggaran, barisnya berisi ajakan "Isi anggaran untuk melihat ritme pengeluaran" dengan tombol Atur.
+- **Maskot jadi satu baris penuh** di bawah kartu utama (gambar kecil, satu kalimat status, titik warna), bukan kartu setengah lebar di samping Ritme. Ketuk tetap membuka rincian jatah, atau form Catat saat maskot mengantuk.
+- Pilihan *Ritme* dan *Maskot* di Atur beranda tetap berlaku seperti sebelumnya.
+
+### Belum terbukti
+- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Ukuran gambar maskot di baris baru (46 dp) dan tinggi baris dengan kalimat maskot panjang (dipotong dua baris) belum pernah dilihat. Tata letak baru hanya sudah dibuat sebagai mockup HTML.
+
 ## v6.8.0 (28 Okt 2026)
 
 ### Diubah
