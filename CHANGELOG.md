@@ -3,6 +3,20 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v6.7.0)
+
+### Ditambah
+- **Tombol "Jangan tangkap app ini" di kartu Dari Notifikasi** untuk notifikasi dari app yang bukan bank atau e-wallet yang dikenal Infinity. Satu ketukan menghapus semua notifikasi app itu dari antrean dan notifikasi berikutnya dari app itu tidak masuk lagi. Ada Urungkan di bar bawah. Daftar app yang diabaikan ada di Catat Otomatis (Atur), dengan tombol *Tangkap lagi*. Riwayat tangkapan mencatat alasannya.
+- Latar belakang: Infinity menangkap notifikasi dari **semua** app yang teksnya memuat "Rp" (kecuali Infinity sendiri), bukan hanya bank dan e-wallet. Notifikasi balasan app Claude yang menyebut nominal ikut masuk antrean di HP Jose. Daftar GoPay, OVO, BCA dan lainnya hanya dipakai untuk menebak akun, dan untuk notifikasi bertombol di luar app.
+
+### Diperbaiki
+- README keliru menyebut notifikasi hanya dibaca dari daftar bank dan e-wallet. Sudah dikoreksi.
+
+### Belum terbukti
+- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Tombol baru ada di baris yang sama dengan *Abaikan* dan *Catat*; di layar sempit tombolnya turun ke baris berikutnya.
+- Tidak ada filter di sisi native (Kotlin), jadi app yang diabaikan tetap "terbaca" oleh layanan notifikasi lalu dibuang saat Infinity memprosesnya. Notifikasi bertombol di luar app memang sudah hanya untuk app yang dikenal.
+- Tombol hanya muncul untuk app yang namanya tidak cocok dengan daftar yang dikenal. Pencocokan memakai potongan nama paket (mis. `bni`, `blu`, `dana`), jadi app lain yang namanya kebetulan memuat potongan itu dianggap bank dan tombolnya tidak muncul.
+
 ## v6.6.0 (27 Okt 2026)
 
 ### Diubah

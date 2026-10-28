@@ -1377,14 +1377,30 @@ class DashboardTab extends StatelessWidget {
                       color: isIncome ? C.income : C.redDark)),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
             children: [
+              if (store.canIgnoreCaptureApp(c.pkg))
+                TextButton(
+                  onPressed: () {
+                    final pkg = c.pkg;
+                    store.ignoreCaptureApp(pkg);
+                    snack(
+                        context,
+                        tr('Notifikasi dari {0} tidak ditangkap lagi.',
+                            [appLabelForPackage(pkg)]),
+                        action: SnackBarAction(
+                            label: tr('Urungkan'),
+                            onPressed: () => store.allowCaptureApp(pkg)));
+                  },
+                  child: const Text('Jangan tangkap app ini'),
+                ),
               TextButton(
                 onPressed: () => store.dismissCapture(c.id),
                 child: const Text('Abaikan'),
               ),
-              const SizedBox(width: 4),
               FilledButton.tonal(
                 onPressed: () async {
                   final saved = await openTxForm(context, store,

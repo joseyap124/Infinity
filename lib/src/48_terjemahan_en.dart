@@ -1718,6 +1718,12 @@ const Map<String, String> kEnStrings = {
   'Tercatat. Jatah besok dihitung ulang dari sisa periode.': 'Recorded. Tomorrow\'s allowance is recalculated from what is left in the period.',
   'Hari ini lewat jatah. Tercatat, besok mulai lagi ya.': 'Over today\'s allowance. It\'s recorded, let\'s start fresh tomorrow.',
   'Hampir habis. Pikir dulu sebelum belanja.': 'Almost gone. Think before you shop.',
+  'Jangan tangkap app ini': 'Stop capturing this app',
+  'Notifikasi dari {0} tidak ditangkap lagi.': 'Notifications from {0} will no longer be captured.',
+  'App yang diabaikan': 'Ignored apps',
+  'Notifikasi dari app ini tidak ditangkap lagi. Ketuk Tangkap lagi kalau salah.': 'Notifications from these apps are no longer captured. Tap Capture again if this was a mistake.',
+  'Tangkap lagi': 'Capture again',
+  'App ini sudah kamu abaikan (Atur di Catat Otomatis)': 'You chose to ignore this app (manage it in Auto-capture)',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

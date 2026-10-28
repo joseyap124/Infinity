@@ -132,6 +132,65 @@ void main() {
       expect(s.balanceOf('bca'), 1000000);
       expect(s.pendingCaptures, hasLength(1));
     });
+
+    group('abaikan app (v6.7.0)', () {
+      const other = 'com.anthropic.claude';
+      Map<String, dynamic> otherNotif(DateTime at, String text) => {
+            'pkg': other,
+            'title': 'Claude',
+            'text': text,
+            'time': at.millisecondsSinceEpoch,
+          };
+
+      test('app tak dikenal masuk antrean, setelah diabaikan antrean dibersihkan dan tidak masuk lagi', () {
+        final s = setup();
+        final t0 = DateTime.now();
+        s.ingestCaptured([otherNotif(t0, 'Total pembayaran Rp 50.000,00')]);
+        expect(s.pendingCaptures.where((c) => c.pkg == other), hasLength(1));
+        s.ingestCaptured([notif(t0)]);
+        final bankTx = s.transactions.length;
+
+        expect(s.canIgnoreCaptureApp(other), true);
+        s.ignoreCaptureApp(other);
+        expect(s.settings.ignoredCapturePkgs, [other]);
+        expect(s.pendingCaptures.where((c) => c.pkg == other), isEmpty);
+
+        // Notifikasi baru dari app itu (isi berbeda supaya tidak dianggap dobel) tidak masuk.
+        s.ingestCaptured([
+          otherNotif(t0.add(const Duration(minutes: 10)), 'Struk Rp 75.000,00 selesai')
+        ]);
+        expect(s.pendingCaptures.where((c) => c.pkg == other), isEmpty);
+        expect(s.transactions.length, bankTx);
+        // Log mencatat alasannya.
+        expect(s.captureLog.any((e) => e.code == 'ignoredapp'), true);
+      });
+
+      test('app bank/e-wallet yang dikenal tidak bisa diabaikan dari kartu', () {
+        final s = setup();
+        const bca = 'com.bca.mybca.omni.android';
+        expect(s.canIgnoreCaptureApp(bca), false);
+        s.ignoreCaptureApp(bca);
+        expect(s.settings.ignoredCapturePkgs, isEmpty);
+        expect(s.ingestCaptured([notif(DateTime.now())]), 1);
+      });
+
+      test('Tangkap lagi mengembalikan, dan pengaturan tersimpan di JSON', () {
+        final s = setup();
+        s.ignoreCaptureApp(other);
+        final back = AppSettings.fromJson(s.settings.toJson());
+        expect(back.ignoredCapturePkgs, [other]);
+
+        s.allowCaptureApp(other);
+        expect(s.settings.ignoredCapturePkgs, isEmpty);
+        s.ingestCaptured([otherNotif(DateTime.now(), 'Total pembayaran Rp 90.000,00')]);
+        expect(s.pendingCaptures.where((c) => c.pkg == other), hasLength(1));
+      });
+
+      test('data lama tanpa field ini tetap terbaca, dan field tidak ditulis saat kosong', () {
+        expect(AppSettings.fromJson(<String, dynamic>{}).ignoredCapturePkgs, isEmpty);
+        expect(AppSettings().toJson().containsKey('ignoredCapturePkgs'), false);
+      });
+    });
   });
 
   group('v4.3 tombol notifikasi', () {

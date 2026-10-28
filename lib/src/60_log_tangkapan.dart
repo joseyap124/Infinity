@@ -12,7 +12,9 @@ enum CaptureOutcome { auto, queued, dropped }
 
 CaptureOutcome captureOutcomeOf(String code) {
   if (code == 'auto') return CaptureOutcome.auto;
-  if (code == 'promo' || code == 'noamount') return CaptureOutcome.dropped;
+  if (code == 'promo' || code == 'noamount' || code == 'ignoredapp') {
+    return CaptureOutcome.dropped;
+  }
   return CaptureOutcome.queued;
 }
 
@@ -76,6 +78,8 @@ String captureReasonText(CaptureLogEntry e) {
       return tr('Terdeteksi sebagai promo');
     case 'noamount':
       return tr('Nominal tidak terbaca dari teks notifikasi');
+    case 'ignoredapp':
+      return tr('App ini sudah kamu abaikan (Atur di Catat Otomatis)');
   }
   return e.code;
 }

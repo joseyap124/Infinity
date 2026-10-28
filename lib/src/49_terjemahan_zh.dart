@@ -1717,4 +1717,10 @@ const Map<String, String> kZhStrings = {
   'Tercatat. Jatah besok dihitung ulang dari sisa periode.': '已记录。明天的额度会按本期剩余重新计算。',
   'Hari ini lewat jatah. Tercatat, besok mulai lagi ya.': '今天超出额度了。已记录,明天重新开始吧。',
   'Hampir habis. Pikir dulu sebelum belanja.': '快没了。买之前先想一想。',
+  'Jangan tangkap app ini': '不再捕获此应用',
+  'Notifikasi dari {0} tidak ditangkap lagi.': '不再捕获来自 {0} 的通知。',
+  'App yang diabaikan': '已忽略的应用',
+  'Notifikasi dari app ini tidak ditangkap lagi. Ketuk Tangkap lagi kalau salah.': '不再捕获这些应用的通知。如果设置错了,请点“重新捕获”。',
+  'Tangkap lagi': '重新捕获',
+  'App ini sudah kamu abaikan (Atur di Catat Otomatis)': '你已选择忽略此应用(可在自动记账中管理)',
 };

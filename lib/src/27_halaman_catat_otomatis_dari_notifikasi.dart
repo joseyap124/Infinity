@@ -69,6 +69,29 @@ extension CaptureNativeConfig on AppStore {
   }
 }
 
+/// App yang notifikasinya tidak ditangkap lagi. Hanya app yang bukan
+/// bank/e-wallet dikenal (lihat [_knownApps]) yang bisa diabaikan dari sini.
+extension CaptureIgnore on AppStore {
+  /// true kalau Infinity menampilkan tombol "Jangan tangkap app ini" untuk [pkg].
+  bool canIgnoreCaptureApp(String pkg) =>
+      pkg.isNotEmpty && _appInfo(pkg) == null;
+
+  void ignoreCaptureApp(String pkg) {
+    if (!canIgnoreCaptureApp(pkg)) return;
+    pendingCaptures.removeWhere((c) => c.pkg == pkg);
+    updateSettings((x) {
+      if (!x.ignoredCapturePkgs.contains(pkg)) {
+        x.ignoredCapturePkgs = [...x.ignoredCapturePkgs, pkg];
+      }
+    });
+  }
+
+  void allowCaptureApp(String pkg) => updateSettings((x) {
+        x.ignoredCapturePkgs =
+            x.ignoredCapturePkgs.where((p) => p != pkg).toList();
+      });
+}
+
 class AutoCapturePage extends StatefulWidget {
   const AutoCapturePage({super.key, required this.store});
   final AppStore store;
@@ -369,6 +392,49 @@ class _AutoCapturePageState extends State<AutoCapturePage>
                   ],
                 ),
               ),
+              if (store.settings.ignoredCapturePkgs.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SectionTitle('App yang diabaikan'),
+                      const SizedBox(height: 6),
+                      Text(
+                          'Notifikasi dari app ini tidak ditangkap lagi. Ketuk Tangkap lagi kalau salah.',
+                          style: TextStyle(fontSize: 12.5, color: C.muted)),
+                      for (final pkg in store.settings.ignoredCapturePkgs)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    m.Text(appLabelForPackage(pkg),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 14)),
+                                    m.Text(pkg,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 11.5, color: C.muted)),
+                                  ],
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => store.allowCaptureApp(pkg),
+                                child: const Text('Tangkap lagi'),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               PrimaryButton(
                 label: 'Cek notifikasi sekarang',

@@ -2147,6 +2147,10 @@ class AppStore extends ChangeNotifier {
       final lower = '$title $text'.toLowerCase();
       final c = CapturedNotif(
           id: newId(), pkg: pkg, title: title, text: text, time: time);
+      if (settings.ignoredCapturePkgs.contains(pkg)) {
+        logCapture(c, 'ignoredapp');
+        continue;
+      }
       if (_promoWords.any(lower.contains)) {
         logCapture(c, 'promo');
         continue;

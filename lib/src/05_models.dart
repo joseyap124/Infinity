@@ -623,6 +623,10 @@ class AppSettings {
   /// Langganan terdeteksi yang ditolak user (kunci judul).
   List<String> dismissedSubs = [];
 
+  /// Nama paket app yang notifikasinya tidak ditangkap lagi (dipilih user dari
+  /// kartu "Dari Notifikasi"). Hanya untuk app yang bukan bank/e-wallet dikenal.
+  List<String> ignoredCapturePkgs = [];
+
   /// Insight yang ditutup hari ini (id -> yyyy-MM-dd).
   Map<String, String> dismissedInsights = {};
 
@@ -720,6 +724,7 @@ class AppSettings {
         'defaultAccountId': defaultAccountId,
         'balanceSetAt': balanceSetAt,
         'dismissedSubs': dismissedSubs,
+        if (ignoredCapturePkgs.isNotEmpty) 'ignoredCapturePkgs': ignoredCapturePkgs,
         'dismissedInsights': dismissedInsights,
         'reportedBalance': reportedBalance,
         'autoBackup': autoBackup,
@@ -835,6 +840,8 @@ class AppSettings {
     s.defaultAccountId = _s(j['defaultAccountId']);
     final ds = j['dismissedSubs'];
     if (ds is List) s.dismissedSubs = ds.whereType<String>().toList();
+    final ic = j['ignoredCapturePkgs'];
+    if (ic is List) s.ignoredCapturePkgs = ic.whereType<String>().toList();
     final di = j['dismissedInsights'];
     if (di is Map) {
       s.dismissedInsights = {

@@ -79,7 +79,7 @@ Gaji, kos, langganan, cicilan: harian, mingguan, bulanan, tahunan. Tercatat otom
 Nominal di notifikasi disembunyikan secara bawaan.
 
 ### Catat otomatis dari notifikasi bank & e-wallet
-Infinity membaca notifikasi yang berisi nominal "Rp" dari GoPay, OVO, DANA, ShopeePay, LinkAja, myBCA/BCA, Jago, BRImo, Livin Mandiri, BNI, SeaBank, blu, dan Flip, lalu:
+Infinity membaca notifikasi yang berisi nominal "Rp" dari semua app. Akunnya hanya bisa ditebak untuk GoPay, OVO, DANA, ShopeePay, LinkAja, myBCA/BCA, Jago, BRImo, Livin Mandiri, BNI, SeaBank, blu, dan Flip; notifikasi dari app lain masuk kartu **Dari Notifikasi**, dan app yang bukan bank bisa dimatikan dengan tombol *Jangan tangkap app ini*. Lalu:
 - **Langsung catat** kalau akunnya bisa ditebak (beri nama akun yang memuat nama aplikasinya, mis. "GoPay", "BCA").
 - Masuk ke kartu **Dari Notifikasi** di Beranda kalau akunnya tidak jelas atau sepertinya sudah kamu catat manual (nominal dan akun sama dalam 10 menit).
 - **Isi saldo / top up** e-wallet tidak dicatat sebagai pengeluaran, tapi masuk ke *Dari Notifikasi* sebagai transfer dari rekening bank ke e-wallet.
