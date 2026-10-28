@@ -516,6 +516,26 @@ class _BackupPageState extends State<BackupPage> {
           const SizedBox(height: 12),
           ExportExcelCard(store: store),
           const SizedBox(height: 12),
+          AppCard(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => MoneyManagerImportPage(store: store))),
+            child: Row(
+              children: [
+                CatIcon(
+                    icon: Icons.upload_file_rounded,
+                    color: C.accentDark,
+                    size: 40),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text('Impor dari Money Manager',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 14)),
+                ),
+                Icon(Icons.chevron_right_rounded, color: C.muted),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           _snapshotsCard(),
           AppCard(
             child: Column(

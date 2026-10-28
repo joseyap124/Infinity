@@ -355,8 +355,6 @@ class ProfileSheet extends StatefulWidget {
 
 class _ProfileSheetState extends State<ProfileSheet> {
   late final TextEditingController _name;
-  late final TextEditingController _text;
-  late String _mode;
   String? _avatar;
   bool _busy = false;
 
@@ -367,15 +365,12 @@ class _ProfileSheetState extends State<ProfileSheet> {
     super.initState();
     _name = TextEditingController(
         text: _s.displayName == 'Infinity' ? '' : _s.displayName);
-    _text = TextEditingController(text: _s.greetingText);
-    _mode = _s.greetingMode;
     _avatar = _s.avatarPath;
   }
 
   @override
   void dispose() {
     _name.dispose();
-    _text.dispose();
     super.dispose();
   }
 
@@ -398,17 +393,12 @@ class _ProfileSheetState extends State<ProfileSheet> {
     widget.store.updateSettings((x) {
       x.displayName = name.isEmpty ? 'Infinity' : name;
       x.avatarPath = _avatar;
-      x.greetingMode = _mode;
-      x.greetingText = _text.text.trim();
     });
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final preview = AppSettings()
-      ..greetingMode = _mode
-      ..greetingText = _text.text;
     return SheetFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -416,7 +406,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
           Row(
             children: [
               const Expanded(
-                child: Text('Atur beranda',
+                child: Text('Profil',
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ),
@@ -462,47 +452,8 @@ class _ProfileSheetState extends State<ProfileSheet> {
             controller: _name,
             textCapitalization: TextCapitalization.words,
             maxLength: 30,
-            decoration: fieldDeco('Nama di Beranda', icon: Icons.badge_rounded)
+            decoration: fieldDeco('Nama', icon: Icons.badge_rounded)
                 .copyWith(hintText: tr('Infinity'), counterText: ''),
-          ),
-          const SizedBox(height: 14),
-          const SmallLabel('Kalimat di bawah nama'),
-          const SizedBox(height: 8),
-          Segmented<String>(
-            values: const ['time', 'custom', 'motivation'],
-            selected: _mode,
-            labelOf: (v) => switch (v) {
-              'custom' => 'Tulis sendiri',
-              'motivation' => 'Motivasi',
-              _ => 'Sapaan jam',
-            },
-            dense: true,
-            onChanged: (v) => setState(() => _mode = v),
-          ),
-          if (_mode == 'custom') ...[
-            const SizedBox(height: 10),
-            TextField(
-              controller: _text,
-              maxLength: 80,
-              textCapitalization: TextCapitalization.sentences,
-              onChanged: (_) => setState(() {}),
-              decoration: fieldDeco('Kalimatmu', icon: Icons.edit_rounded)
-                  .copyWith(hintText: tr('mis. Semangat nabung buat nikah 💍')),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: C.bg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: C.line),
-            ),
-            child: Text(
-                _mode == 'motivation'
-                    ? tr('Contoh hari ini: "{0}"\nBerganti otomatis setiap hari.', [greetingFor(preview)])
-                    : greetingFor(preview),
-                style: TextStyle(fontSize: 13, color: C.muted)),
           ),
           const SizedBox(height: 16),
           PrimaryButton(label: 'Simpan', onPressed: _save),
@@ -602,6 +553,41 @@ class AccentPickerSheet extends StatelessWidget {
 int periodTxCount(AppStore store, DateTimeRange r) =>
     store.transactions.where((t) => inRange(t.date, r)).length;
 
+/// Berapa kali petunjuk Catat cepat ditampilkan sebelum disembunyikan.
+const int kQuickHintMax = 3;
+
+/// Petunjuk di bawah Catat cepat. Dihitung sekali per pembukaan app: setelah
+/// [kQuickHintMax] kali, petunjuknya hilang.
+class _QuickHint extends StatefulWidget {
+  const _QuickHint({required this.store});
+  final AppStore store;
+  @override
+  State<_QuickHint> createState() => _QuickHintState();
+}
+
+class _QuickHintState extends State<_QuickHint> {
+  late final bool _show = widget.store.settings.quickHintSeen < kQuickHintMax;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_show) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => widget.store.bumpQuickHint());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_show) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 2),
+      child: Text('Ketuk untuk langsung catat, tahan untuk ubah dulu.',
+          style: TextStyle(fontSize: 12, color: C.muted)),
+    );
+  }
+}
+
 class DashboardTab extends StatelessWidget {
   const DashboardTab(
       {super.key, required this.store, required this.onSeeAll, this.onOpenPlan});
@@ -610,8 +596,6 @@ class DashboardTab extends StatelessWidget {
 
   /// Pindah ke tab Rencana.
   final VoidCallback? onOpenPlan;
-
-  String _greeting() => greetingFor(store.settings);
 
   void _push(BuildContext context, Widget page) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
@@ -640,12 +624,16 @@ class DashboardTab extends StatelessWidget {
                   height: MediaQuery.sizeOf(context).width * 300 / 390,
                   child: const PackBackdrop(),
                 ),
-              _header(context),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                    16, MediaQuery.paddingOf(context).top + 12, 16, 4),
+                child: _heroCard(context),
+              ),
             ],
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               BackupHealthCard(store: store),
@@ -658,7 +646,7 @@ class DashboardTab extends StatelessWidget {
                 _capturesCard(context),
                 const SizedBox(height: 12),
               ],
-              // Kartu pilihan user (Lainnya → Pengaturan → Atur Beranda).
+              // Kartu pilihan user (Beranda → gerigi → Preferensi → Atur Beranda).
               for (final id in store.settings.homeCards)
                 ..._homeCard(context, id, credits, upcoming, recent),
               Center(
@@ -737,71 +725,6 @@ class DashboardTab extends StatelessWidget {
         ];
     }
     return const [];
-  }
-
-  Widget _header(BuildContext context) {
-    final hide = store.settings.hideBalance;
-    // Tanpa pita warna: latar Beranda sama dengan latar app (v3.6.1).
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-          16, MediaQuery.paddingOf(context).top + 8, 16, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => showSheet<void>(
-                      context, ProfileSheet(store: store)),
-                  child: Row(
-                    children: [
-                      Avatar(path: store.settings.avatarPath, size: 38),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(store.settings.displayName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    color: C.carbon,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900)),
-                            Text(_greeting(),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    color: C.muted,
-                                    fontSize: 12,
-                                    height: 1.25)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: store.toggleHideBalance,
-                tooltip: hide ? 'Tampilkan saldo' : 'Sembunyikan saldo',
-                icon: Icon(
-                    hide
-                        ? Icons.visibility_off_rounded
-                        : Icons.visibility_rounded,
-                    color: C.carbon),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          _heroCard(context),
-          const SizedBox(height: 8),
-          _shortcuts(context),
-        ],
-      ),
-    );
   }
 
   /// Baris anggaran khusus (amplop) di kartu utama: sisa dari total dan bar tipis.
@@ -902,13 +825,31 @@ class DashboardTab extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                          over
-                              ? 'Melewati jatah hari ini'
-                              : usedWhenZero != null
-                                  ? 'Jatah hari ini'
-                                  : 'Aman dibelanjakan hari ini',
-                          style: TextStyle(fontSize: 12.5, color: C.muted)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                                over
+                                    ? 'Melewati jatah hari ini'
+                                    : usedWhenZero != null
+                                        ? 'Jatah hari ini'
+                                        : 'Aman dibelanjakan hari ini',
+                                style:
+                                    TextStyle(fontSize: 12.5, color: C.muted)),
+                          ),
+                          _heroIcon(
+                              hide
+                                  ? Icons.visibility_off_rounded
+                                  : Icons.visibility_rounded,
+                              hide ? 'Tampilkan saldo' : 'Sembunyikan saldo',
+                              store.toggleHideBalance),
+                          _heroIcon(
+                              Icons.settings_rounded,
+                              'Pengaturan',
+                              () => _push(
+                                  context, MoreTab(store: store))),
+                        ],
+                      ),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
@@ -965,7 +906,7 @@ class DashboardTab extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                    tr('Tercatat. Jatah besok dihitung ulang dari sisa periode.'),
+                                    tr('Tercatat. Jatah besok menyesuaikan.'),
                                     style: TextStyle(
                                         fontSize: 12.5,
                                         height: 1.3,
@@ -996,12 +937,12 @@ class DashboardTab extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                     usedWhenZero >= 1
-                                        ? tr('Anggaran periode ini sudah terpakai {0}%. Jatah harian kembali saat periode baru, {1}.', [
+                                        ? tr('Anggaran sudah terpakai {0}%. Jatah kembali {1}.', [
                                             (usedWhenZero * 100).round(),
                                             DateFormat('d MMM', gDateLoc)
                                                 .format(s.periodEnd)
                                           ])
-                                        : tr('Sisa anggaran sudah dicadangkan untuk tagihan, cicilan, atau anggaran khusus. Ketuk untuk rincian.'),
+                                        : tr('Sisa anggaran dicadangkan untuk tagihan dan cicilan.'),
                                     style: TextStyle(
                                         fontSize: 12.5,
                                         height: 1.3,
@@ -1030,7 +971,7 @@ class DashboardTab extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                    tr('Belanja khusus {0}. Di luar jatah hari ini, jatah besok menyesuaikan.',
+                                    tr('Belanja khusus {0}, di luar jatah hari ini.',
                                         [money(s.outsideToday)]),
                                     style: TextStyle(
                                         fontSize: 12.5,
@@ -1094,6 +1035,16 @@ class DashboardTab extends StatelessWidget {
       ],
     );
   }
+
+  Widget _heroIcon(IconData icon, String tip, VoidCallback onTap) =>
+      IconButton(
+        onPressed: onTap,
+        tooltip: tr(tip),
+        visualDensity: VisualDensity.compact,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+        icon: Icon(icon, size: 22, color: C.carbon),
+      );
 
   /// Warna titik status maskot. Teks di bawahnya tetap menjelaskan kondisinya,
   /// jadi status tidak bergantung pada warna.
@@ -1262,64 +1213,6 @@ class DashboardTab extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  /// Pintasan bulat di bawah kartu utama. Yang fiturnya dimatikan tidak tampil.
-  Widget _shortcuts(BuildContext context) {
-    final items = <(IconData, String, Color, VoidCallback, PackGlyph)>[
-      (Icons.receipt_long_rounded, 'Tagihan', C.amberDark,
-          () => _push(context, RecurringPage(store: store)), PackGlyph.bill),
-      (Icons.track_changes_rounded, 'Anggaran', C.redDark,
-          () => _push(context, BudgetPage(store: store)), PackGlyph.budget),
-      if (store.feature('patungan'))
-        (Icons.groups_rounded, 'Patungan', C.blueDark,
-            () => showSheet<void>(context, PatunganSheet(store: store)),
-            PackGlyph.split),
-      if (store.feature('utang'))
-        (Icons.handshake_rounded, 'Utang', C.income,
-            () => _push(context, DebtsPage(store: store)), PackGlyph.debt),
-    ];
-    final themed = C.pack != 'classic';
-    return Row(
-      children: [
-        for (final (icon, label, color, onTap, glyph) in items)
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (themed)
-                      PackIcon(glyph: glyph, size: 52)
-                    else
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                            color: C.accentDark.withValues(alpha: 0.12),
-                            shape: BoxShape.circle),
-                        alignment: Alignment.center,
-                        // Satu warna aksen untuk keempat pintasan.
-                        child: ArtIcon(icon, color: C.accentDark, size: 24),
-                      ),
-                    const SizedBox(height: 5),
-                    Text(label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: C.carbon)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 
@@ -1597,7 +1490,7 @@ class DashboardTab extends StatelessWidget {
                             style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w900,
-                                color: remaining < 0 ? C.redDark : C.carbon)),
+                                color: remaining < 0 ? C.amberDark : C.carbon)),
                       ),
                     ],
                   ),
@@ -1605,7 +1498,7 @@ class DashboardTab extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('${(used.clamp(0.0, 1.0) * 100).round()}%',
+                    Text('${(used * 100).round()}%',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
@@ -1695,7 +1588,7 @@ class DashboardTab extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: st == BudgetStatus.broke
-                                ? C.redDark
+                                ? C.amberDark
                                 : C.muted)),
                     const SizedBox(width: 6),
                     Text('${tag.symbol} ${tr(tag.label)}',
@@ -1707,7 +1600,7 @@ class DashboardTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 PaceBar(
-                    value: spent / limit,
+                    value: (spent / limit).clamp(0.0, 1.0).toDouble(),
                     color: st.color,
                     marker: elapsed,
                     height: 8),
@@ -1765,12 +1658,7 @@ class DashboardTab extends StatelessWidget {
             ],
           ],
         ),
-        if (list.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 2),
-            child: Text('Ketuk untuk langsung catat, tahan untuk ubah dulu.',
-                style: TextStyle(fontSize: 12, color: C.muted)),
-          ),
+        if (list.isNotEmpty) _QuickHint(store: store),
       ],
     );
   }

@@ -1,7 +1,8 @@
 part of '../main.dart';
 
 // =============================================================================
-// TAB 4: LAINNYA
+// PENGATURAN (v7.0.0): dulu tab Lainnya, sekarang halaman yang dibuka dari
+// ikon gerigi di kartu utama Beranda.
 // =============================================================================
 
 class MoreTab extends StatelessWidget {
@@ -55,15 +56,22 @@ class MoreTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+        listenable: store,
+        builder: (context, _) => Scaffold(
+              appBar: pageBar('Pengaturan'),
+              body: _body(context),
+            ));
+  }
+
+  Widget _body(BuildContext context) {
     final s = store.settings;
     return SafeArea(
+      top: false,
       bottom: false,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        padding: pagePad(context, 32),
         children: [
-          const Text('Lainnya',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
           AppCard(
             onTap: () => showSheet<void>(context, ProfileSheet(store: store)),
             child: Row(
@@ -97,15 +105,14 @@ class MoreTab extends StatelessWidget {
                 _tile(context,
                     icon: Icons.settings_rounded,
                     color: C.carbon,
-                    title: 'Pengaturan',
-                    subtitle:
-                        'Tampilan, Beranda, gajian, kurs, catat otomatis, keamanan',
+                    title: 'Preferensi',
+                    subtitle: 'Tampilan, gajian, kurs, keamanan',
                     onTap: () => _push(context, SettingsPage(store: store))),
                 _tile(context,
                     icon: Icons.backup_rounded,
                     color: Colors.indigo,
                     title: 'Backup & pindah HP',
-                    subtitle: 'Download, Google Drive, Excel',
+                    subtitle: 'Drive, Excel, impor Money Manager',
                     onTap: () => _push(context, BackupPage(store: store))),
               ],
             ),
@@ -127,7 +134,7 @@ class MoreTab extends StatelessWidget {
                     icon: Icons.category_rounded,
                     color: Colors.pink,
                     title: 'Kategori',
-                    subtitle: tr('{0} kategori & sub-kategori', [store.categories.length]),
+                    subtitle: tr('{0} kategori', [store.categories.length]),
                     onTap: () => _push(context, CategoriesPage(store: store))),
                 _tile(context,
                     icon: Icons.bolt_rounded,
@@ -142,13 +149,6 @@ class MoreTab extends StatelessWidget {
                     subtitle:
                         tr('{0} aktif', [store.recurring.where((r) => r.active).length]),
                     onTap: () => _push(context, RecurringPage(store: store))),
-                _tile(context,
-                    icon: Icons.upload_file_rounded,
-                    color: Colors.redAccent,
-                    title: 'Impor dari Money Manager',
-                    subtitle: 'Dari file Excel hasil ekspor',
-                    onTap: () => _push(
-                        context, MoneyManagerImportPage(store: store))),
               ],
             ),
           ),
@@ -163,7 +163,7 @@ class MoreTab extends StatelessWidget {
                     icon: Icons.insights_rounded,
                     color: C.accentDark,
                     title: 'Tinjauan minggu lalu',
-                    subtitle: 'Total, hari terbesar, dan tiga temuan',
+                    subtitle: 'Ringkasan 7 hari',
                     onTap: () => _push(context, WeekReviewPage(store: store))),
                 if (store.feature('tunda'))
                   _tile(context,
@@ -171,7 +171,7 @@ class MoreTab extends StatelessWidget {
                       color: C.amberDark,
                       title: 'Tunda beli',
                       subtitle: store.waitingItems.isEmpty
-                          ? 'Tunggu dulu sebelum membeli yang tidak mendesak'
+                          ? 'Tunda belanja tidak mendesak'
                           : tr('{0} menunggu', [store.waitingItems.length]),
                       onTap: () => _push(context, WaitlistPage(store: store))),
                 if (store.feature('acara'))
@@ -180,7 +180,7 @@ class MoreTab extends StatelessWidget {
                       color: Colors.purple,
                       title: 'Acara',
                       subtitle: store.events.isEmpty
-                          ? 'Mis. trip, Lebaran: total & anggaran per acara'
+                          ? 'Mis. trip, Lebaran'
                           : '${store.events.length} acara',
                       onTap: () => _push(context, EventsPage(store: store))),
               ],
@@ -190,7 +190,7 @@ class MoreTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 10),
             child: Text(
-                'Anggaran, target tabungan, tagihan, utang & piutang ada di tab Rencana.',
+                'Anggaran, tagihan, target, dan utang ada di tab Rencana.',
                 style: TextStyle(fontSize: 12, color: C.muted)),
           ),
           const SmallLabel('Bantuan'),
@@ -203,13 +203,13 @@ class MoreTab extends StatelessWidget {
                     icon: Icons.help_rounded,
                     color: C.blueDark,
                     title: 'Bantuan',
-                    subtitle: 'Pindah HP, catat otomatis, backup, lupa PIN',
+                    subtitle: 'Panduan dan tanya jawab',
                     onTap: () => _push(context, HelpPage(store: store))),
                 _tile(context,
                     icon: Icons.health_and_safety_rounded,
                     color: Colors.green,
                     title: 'Cek kesehatan data',
-                    subtitle: 'Cari transaksi dobel, kategori hilang, backup lama',
+                    subtitle: 'Transaksi dobel, kategori hilang',
                     onTap: () => _push(context, DataHealthPage(store: store))),
                 _tile(context,
                     icon: Icons.bug_report_rounded,
@@ -229,7 +229,7 @@ class MoreTab extends StatelessWidget {
                 icon: Icons.restart_alt_rounded,
                 color: C.redDark,
                 title: 'Reset semua data',
-                subtitle: 'Mulai dari nol, harus ketik HAPUS dulu',
+                subtitle: 'Mulai dari nol (ketik HAPUS)',
                 onTap: () => confirmResetAll(context, store)),
           ),
           const SizedBox(height: 24),

@@ -110,7 +110,8 @@ enum BudgetStatus {
   Color get color => switch (this) {
         BudgetStatus.safe => C.income,
         BudgetStatus.tight => C.amberDark,
-        BudgetStatus.broke => C.redDark,
+        // Jebol bukan alarm: kuning tua seperti jatah harian (v7.0.0).
+        BudgetStatus.broke => C.amberDark,
       };
 
   /// remaining = sisa / limit. >50% aman, 10%-50% seret, <10% atau minus jebol.

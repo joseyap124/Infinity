@@ -7,7 +7,7 @@ part of '../main.dart';
 /// Pilihan tampilan dari setelan, format "mode:aksen", mis. "system:0".
 final ValueNotifier<String> themePref = ValueNotifier<String>('system:0');
 
-/// Ukuran huruf pilihan di app (Lainnya → Pengaturan → Tampilan).
+/// Ukuran huruf pilihan di app (Beranda → gerigi → Preferensi → Tampilan).
 final ValueNotifier<double> appTextScale = ValueNotifier<double>(1.0);
 
 /// Batas ukuran huruf efektif (HP x app). Di atas ini tata letak mulai
@@ -240,7 +240,7 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
       }
       _lastSaveWarn = now;
       snack(context,
-          'Perubahan terakhir GAGAL disimpan. Buka Lainnya, Laporan error, lalu kirim Jejak penyimpanan.');
+          'Perubahan terakhir GAGAL disimpan. Buka gerigi di Beranda, Laporan error, lalu kirim Jejak penyimpanan.');
     };
     store.addListener(_syncTheme);
     store.addListener(_scheduleNotifications);
@@ -526,7 +526,6 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
           HistoryTab(store: store),
           PlanTab(store: store),
           StatsTab(store: store),
-          MoreTab(store: store),
         ];
         return AnnotatedRegion<SystemUiOverlayStyle>(
           // Beranda tidak lagi punya pita warna, jadi ikon status bar sama
@@ -544,49 +543,118 @@ class _RootPageState extends State<RootPage> with WidgetsBindingObserver {
                 child: IndexedStack(index: _tab, children: pages),
               ),
             ),
-            floatingActionButton: _tab <= 2
-                ? FloatingActionButton.extended(
-                    onPressed: () => openTxForm(context, store),
-                    backgroundColor: C.accentDark,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(22)),
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Catat',
-                        style: TextStyle(fontWeight: FontWeight.w800)),
-                  )
-                : null,
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: _tab,
-              onDestinationSelected: (i) => setState(() => _tab = i),
-              backgroundColor: C.surface,
-              indicatorColor: C.accent.withValues(alpha: 0.18),
-              destinations: [
-                NavigationDestination(
-                    icon: navIcon('home', Icons.home_outlined, Icons.home_rounded, false),
-                    selectedIcon: navIcon('home', Icons.home_outlined, Icons.home_rounded, true),
-                    label: tr('Beranda')),
-                NavigationDestination(
-                    icon: navIcon('receipt', Icons.receipt_long_outlined, Icons.receipt_long_rounded, false),
-                    selectedIcon: navIcon('receipt', Icons.receipt_long_outlined, Icons.receipt_long_rounded, true),
-                    label: tr('Riwayat')),
-                NavigationDestination(
-                    icon: navIcon('target', Icons.track_changes_outlined, Icons.track_changes_rounded, false),
-                    selectedIcon: navIcon('target', Icons.track_changes_outlined, Icons.track_changes_rounded, true),
-                    label: tr('Rencana')),
-                NavigationDestination(
-                    icon: navIcon('pie', Icons.pie_chart_outline, Icons.pie_chart_rounded, false),
-                    selectedIcon: navIcon('pie', Icons.pie_chart_outline, Icons.pie_chart_rounded, true),
-                    label: tr('Statistik')),
-                NavigationDestination(
-                    icon: navIcon('grid', Icons.grid_view_outlined, Icons.grid_view_rounded, false),
-                    selectedIcon: navIcon('grid', Icons.grid_view_outlined, Icons.grid_view_rounded, true),
-                    label: tr('Lainnya')),
-              ],
+            bottomNavigationBar: _BottomBar(
+              tab: _tab,
+              onTab: (i) => setState(() => _tab = i),
+              onAdd: () => openTxForm(context, store),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// Bar bawah (v7.0.0): empat tab dan tombol Catat bulat di tengah yang selalu
+/// tampil, tidak lagi tombol melayang yang menutupi isi. Lainnya jadi halaman
+/// Pengaturan yang dibuka dari ikon gerigi di Beranda.
+class _BottomBar extends StatelessWidget {
+  const _BottomBar(
+      {required this.tab, required this.onTab, required this.onAdd});
+  final int tab;
+  final ValueChanged<int> onTab;
+  final VoidCallback onAdd;
+
+  Widget _item(int i, String glyph, IconData out, IconData fill, String label) {
+    final sel = tab == i;
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: sel,
+        label: label,
+        child: InkWell(
+          onTap: () => onTab(i),
+          child: IconTheme(
+            data: IconThemeData(color: sel ? C.carbon : C.muted, size: 26),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 56,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: sel
+                        ? C.accent.withValues(alpha: 0.18)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  alignment: Alignment.center,
+                  child: navIcon(glyph, out, fill, sel),
+                ),
+                const SizedBox(height: 2),
+                ExcludeSemantics(
+                  child: m.Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+                          color: sel ? C.carbon : C.muted)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: C.surface,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 68,
+          child: Row(
+            children: [
+              _item(0, 'home', Icons.home_outlined, Icons.home_rounded,
+                  tr('Beranda')),
+              _item(1, 'receipt', Icons.receipt_long_outlined,
+                  Icons.receipt_long_rounded, tr('Riwayat')),
+              SizedBox(
+                width: 76,
+                child: Center(
+                  child: Semantics(
+                    button: true,
+                    label: tr('Catat'),
+                    child: Material(
+                      color: C.accentDark,
+                      shape: const CircleBorder(),
+                      elevation: 3,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: onAdd,
+                        child: const SizedBox(
+                          width: 54,
+                          height: 54,
+                          child: Icon(Icons.add_rounded,
+                              color: Colors.white, size: 30),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              _item(2, 'target', Icons.track_changes_outlined,
+                  Icons.track_changes_rounded, tr('Rencana')),
+              _item(3, 'pie', Icons.pie_chart_outline,
+                  Icons.pie_chart_rounded, tr('Statistik')),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

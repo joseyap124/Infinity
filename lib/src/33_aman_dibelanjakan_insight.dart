@@ -69,6 +69,37 @@ class SafeSpend {
       perDay <= 0 ? (spentToday > 0 ? 1 : 0) : (spentToday / perDay).clamp(0.0, 1.0);
 }
 
+/// Kartu informasi yang terikat satu kejadian (rekap bulan, tagihan tertentu,
+/// belanja tinggi bulan ini) cukup ditutup sekali (v7.0.0). Id lain (backup
+/// gagal, antrean penuh, kurs, utang, target) tetap muncul lagi besok.
+const List<String> kInsightDismissOnce = [
+  'recap_', 'proj_', 'event_', 'bill_', 'inst_', 'cc_', 'unusual_',
+];
+
+/// Apakah kartu [id] sedang disembunyikan. [dismissed] = id -> tanggal tutup
+/// (yyyy-MM-dd), [todayKey] = tanggal hari ini dalam format yang sama.
+bool insightHidden(Map<String, String> dismissed, String id, String todayKey) {
+  final day = dismissed[id];
+  if (day == null) return false;
+  if (kInsightDismissOnce.any(id.startsWith)) return true;
+  return day == todayKey;
+}
+
+/// Buang catatan tutup yang sudah lebih dari [days] hari supaya tidak menumpuk.
+Map<String, String> pruneDismissedInsights(
+    Map<String, String> dismissed, DateTime now,
+    {int days = 62}) {
+  final cut = DateTime(now.year, now.month, now.day - days);
+  return {
+    for (final e in dismissed.entries)
+      if (DateTime.tryParse(e.value)?.isBefore(cut) != true) e.key: e.value
+  };
+}
+
+/// Id kartu belanja tinggi: per kategori per bulan, jadi ditutup sekali per bulan.
+String unusualInsightId(String cat, DateTime now) =>
+    'unusual_${cat}_${now.year}_${now.month}';
+
 enum InsightKind { capture, recap, balance, projection, rates, event, debt, bill, subscription, unusual, goal, backup, installment }
 
 /// Saldo di notifikasi bank/e-wallet berbeda dengan hitungan Infinity.
@@ -426,7 +457,10 @@ extension InsightStore on AppStore {
 
   void dismissInsight(String id) {
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    settings.dismissedInsights = {...settings.dismissedInsights, id: today};
+    settings.dismissedInsights = {
+      ...pruneDismissedInsights(settings.dismissedInsights, DateTime.now()),
+      id: today
+    };
     _commit();
   }
 
@@ -463,7 +497,8 @@ extension InsightStore on AppStore {
     final out = <Insight>[];
     final today = dayOnly(now);
     final todayKey = DateFormat('yyyy-MM-dd').format(now);
-    bool hidden(String id) => settings.dismissedInsights[id] == todayKey;
+    bool hidden(String id) =>
+        insightHidden(settings.dismissedInsights, id, todayKey);
     final df = DateFormat('d MMM', gDateLoc);
     final tf = DateFormat('d MMM HH:mm', gDateLoc);
 
@@ -666,7 +701,7 @@ extension InsightStore on AppStore {
       ));
     }
     for (final (cat, w, avg) in unusualSpending(now).take(2)) {
-      final id = 'unusual_$cat';
+      final id = unusualInsightId(cat, now);
       if (hidden(id)) continue;
       final name = categoryById(cat)?.name ?? 'Pengeluaran';
       out.add(Insight(
@@ -1026,6 +1061,72 @@ class InsightStrip extends StatelessWidget {
     }
   }
 
+  /// Satu baris daftar (v7.0.0): ikon, judul, keterangan, tombol aksi dan tutup.
+  Widget _row(BuildContext context, Insight i, {required bool last}) {
+    return InkWell(
+      onTap: i.action != null ? () => _act(context, i) : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          border: last ? null : Border(bottom: BorderSide(color: C.line)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                  color: i.color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: Icon(i.icon, color: i.color, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(i.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13.5,
+                          color: C.carbon)),
+                  Text(i.body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 12, color: C.muted, height: 1.25)),
+                ],
+              ),
+            ),
+            if (i.action != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: Text(i.action!,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: i.color)),
+              ),
+            if (i.kind != InsightKind.capture)
+              InkWell(
+                onTap: () => _dismiss(i),
+                customBorder: const CircleBorder(),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(Icons.close_rounded, size: 18, color: C.muted),
+                ),
+              )
+            else
+              const SizedBox(width: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final k = kinds;
@@ -1042,73 +1143,18 @@ class InsightStrip extends StatelessWidget {
           child: Text('${tr(title)} (${list.length})',
               style: TextStyle(fontWeight: FontWeight.w800, color: C.carbon)),
         ),
-        SizedBox(
-          height: 128,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, k) {
-              final i = list[k];
-              return Container(
-                width: 262,
-                padding: const EdgeInsets.fromLTRB(12, 10, 6, 8),
-                decoration: BoxDecoration(
-                  color: C.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: i.color.withValues(alpha: 0.35)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(i.icon, color: i.color, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(i.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 13.5,
-                                  color: C.carbon)),
-                        ),
-                        if (i.kind != InsightKind.capture)
-                          InkWell(
-                            onTap: () => _dismiss(i),
-                            customBorder: const CircleBorder(),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Icon(Icons.close_rounded,
-                                  size: 16, color: C.muted),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Expanded(
-                      child: Text(i.body,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12, color: C.muted, height: 1.3)),
-                    ),
-                    if (i.action != null)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => _act(context, i),
-                          style: TextButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              foregroundColor: i.color),
-                          child: Text(i.action!,
-                              style: const TextStyle(fontWeight: FontWeight.w800)),
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            },
+        Container(
+          decoration: BoxDecoration(
+            color: C.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: C.line),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
+            children: [
+              for (var n = 0; n < list.length; n++)
+                _row(context, list[n], last: n == list.length - 1),
+            ],
           ),
         ),
       ],

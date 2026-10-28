@@ -187,9 +187,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
 /// Langkah pindah HP (dipakai di Bantuan dan Backup & Pulihkan).
 const List<String> kMoveSteps = [
-  'Di HP lama: Lainnya → Backup & pindah HP. Atur kata sandi backup kalau belum, lalu tekan "Simpan backup ke Drive…" (atau "Backup sekarang" lalu kirim file .infb dari folder Download/Infinity ke HP baru).',
+  'Di HP lama: Beranda → gerigi → Backup & pindah HP. Atur kata sandi backup kalau belum, lalu tekan "Simpan backup ke Drive…" (atau "Backup sekarang" lalu kirim file .infb dari folder Download/Infinity ke HP baru).',
   'Di HP baru: pasang APK Infinity versi terbaru dari halaman Releases.',
-  'Buka Infinity → Lainnya → Backup & pindah HP → "Pulihkan dari file", pilih file .infb, masukkan kata sandi backup.',
+  'Buka Infinity → Beranda → gerigi → Backup & pindah HP → "Pulihkan dari file", pilih file .infb, masukkan kata sandi backup.',
   'Atur ulang PIN, sidik jari, dan izin Catat Otomatis di HP baru (setelan keamanan sengaja tidak ikut backup).',
   'Cek saldo tiap akun. Kalau sudah cocok, data di HP lama boleh dihapus.',
 ];
@@ -206,9 +206,9 @@ const List<_Faq> _faqs = [
   _Faq('Beli sesuatu yang disengaja, apa harus membuat hari itu "lewat jatah"?',
       'Tidak. Di form Catat pengeluaran, nyalakan "Di luar jatah harian". Transaksinya tetap tercatat dan tetap mengurangi sisa anggaran, tapi tidak dihitung ke jatah hari itu dan tidak membuat maskot berubah jadi Boros. Karena uangnya memang keluar, jatah hari-hari berikutnya turun sedikit, dibagi ke sisa hari.'),
   _Faq('Anggaran, target, dan tagihan pindah ke mana?',
-      'Ke tab Rencana (menu bawah, tengah). Isinya anggaran, tagihan & langganan 30 hari, kartu kredit, target tabungan, dan utang piutang. Beranda bisa kamu atur sendiri lewat tombol "Atur Beranda" di bagian bawah Beranda.'),
+      'Ke tab Rencana (menu bawah). Isinya anggaran, tagihan & langganan 30 hari, kartu kredit, target tabungan, dan utang piutang. Beranda bisa kamu atur sendiri lewat tombol "Atur Beranda" di bagian bawah Beranda.'),
   _Faq('Bulan mulai tanggal gajian',
-      'Lainnya → Pengaturan → Awal bulan keuangan (atau Rencana → Anggaran → Atur). Misalnya gajian tanggal 25: "Oktober" dihitung 25 Sep sampai 24 Okt. Berlaku untuk anggaran, Aman dibelanjakan, Statistik bulanan, rekap & saran, dan filter "Bulan ini". Kalender di Riwayat tetap bulan kalender.'),
+      'Beranda → gerigi → Preferensi → Awal bulan keuangan (atau Rencana → Anggaran → Atur). Misalnya gajian tanggal 25: "Oktober" dihitung 25 Sep sampai 24 Okt. Berlaku untuk anggaran, Aman dibelanjakan, Statistik bulanan, rekap & saran, dan filter "Bulan ini". Kalender di Riwayat tetap bulan kalender.'),
   _Faq('Kategori terisi sendiri',
       'Kalau judul yang sama (mis. "Kopi Kenangan") sudah minimal 2 kali kamu taruh di kategori yang sama, Infinity memilih kategori itu otomatis, termasuk untuk notifikasi. Kategori yang kamu pilih sendiri tidak pernah ditimpa.'),
   _Faq('Cara mencari transaksi',
@@ -216,9 +216,9 @@ const List<_Faq> _faqs = [
   _Faq('Satu belanja, beberapa kategori',
       'Di form transaksi, ketuk "Bagi" di sebelah kategori, lalu tambah kategori dan isi nominalnya. Baris pertama otomatis berisi sisanya, jadi totalnya selalu sama dengan nominal transaksi. Di Riwayat tetap satu transaksi; di Statistik dan Anggaran masuk ke kategori masing-masing.'),
   _Faq('Huruf terlalu kecil',
-      'Lainnya → Pengaturan → Tampilan → Ukuran huruf: Besar atau Sangat besar. Ini dikalikan dengan ukuran huruf HP, dibatasi supaya tampilan tidak berantakan.'),
+      'Beranda → gerigi → Preferensi → Tampilan → Ukuran huruf: Besar atau Sangat besar. Ini dikalikan dengan ukuran huruf HP, dibatasi supaya tampilan tidak berantakan.'),
   _Faq('Catat otomatis tidak jalan',
-      '1) Pastikan izin akses notifikasi aktif (Lainnya → Pengaturan → Catat otomatis). Di Android 13+ perlu "Izinkan setelan terbatas" di Info aplikasi. 2) Di Xiaomi/Oppo/Vivo/Realme, atur Baterai Infinity ke "Tanpa batasan" dan izinkan Mulai otomatis. 3) Beri nama akun yang memuat nama aplikasinya ("GoPay", "BCA"). 4) Notifikasi yang tidak yakin akunnya masuk ke kartu "Dari Notifikasi" di Beranda untuk dicek.'),
+      '1) Pastikan izin akses notifikasi aktif (Beranda → gerigi → Preferensi → Catat otomatis). Di Android 13+ perlu "Izinkan setelan terbatas" di Info aplikasi. 2) Di Xiaomi/Oppo/Vivo/Realme, atur Baterai Infinity ke "Tanpa batasan" dan izinkan Mulai otomatis. 3) Beri nama akun yang memuat nama aplikasinya ("GoPay", "BCA"). 4) Notifikasi yang tidak yakin akunnya masuk ke kartu "Dari Notifikasi" di Beranda untuk dicek.'),
   _Faq('Nominal dari notifikasi salah',
       'Pembacaan notifikasi memakai pola umum dan bisa meleset untuk format bank tertentu. Koreksi transaksinya, lalu kirim contoh teks notifikasinya (tanpa nomor rekening) ke yang merawat Infinity supaya polanya diperbaiki.'),
   _Faq('Bagaimana backup bekerja?',
@@ -228,13 +228,13 @@ const List<_Faq> _faqs = [
   _Faq('Lupa PIN',
       'Kalau sidik jari/wajah aktif, pakai itu lalu ganti PIN di Keamanan. Kalau tidak, PIN tidak bisa dibuka; satu-satunya jalan adalah hapus data app (Info aplikasi → Penyimpanan → Hapus data) lalu pulihkan dari backup. Karena itu backup rutin penting.'),
   _Faq('Kurs mata uang asing',
-      'Kurs tidak update otomatis karena Infinity tidak memakai internet. Cek kurs di app bank atau bi.go.id sebulan sekali, lalu ubah di Lainnya → Pengaturan → Mata uang & kurs. Kalau kurs sudah lebih dari 30 hari, muncul pengingat di Beranda.'),
+      'Kurs tidak update otomatis karena Infinity tidak memakai internet. Cek kurs di app bank atau bi.go.id sebulan sekali, lalu ubah di Beranda → gerigi → Preferensi → Mata uang & kurs. Kalau kurs sudah lebih dari 30 hari, muncul pengingat di Beranda.'),
   _Faq('Apa itu akun "Talangan Patungan"?',
       'Dibuat otomatis saat pertama kali memakai Patungan. Saldonya adalah uang teman yang kamu talangi dan belum dibayar. Saat teman membayar, uangnya pindah dari akun ini ke akun penerima.'),
   _Faq('Kenapa tidak ada sinkron cloud atau login bank?',
       'Supaya data keuangan tidak pernah keluar dari HP. Untuk cadangan, pakai backup terkunci ke Google Drive.'),
   _Faq('Ada yang aneh atau error',
-      'Buka Lainnya → Cek kesehatan data untuk mencari transaksi dobel atau kategori hilang. Untuk error, buka Lainnya → Laporan error, simpan ke Download, lalu kirim filenya.'),
+      'Buka Beranda → gerigi → Cek kesehatan data untuk mencari transaksi dobel atau kategori hilang. Untuk error, buka Beranda → gerigi → Laporan error, simpan ke Download, lalu kirim filenya.'),
 ];
 
 class HelpPage extends StatelessWidget {

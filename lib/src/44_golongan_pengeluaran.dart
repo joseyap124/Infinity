@@ -120,6 +120,16 @@ extension SpendKindStore on AppStore {
   }
 }
 
+/// Catatan kalau total golongan melewati pemasukan (v7.0.0): kembalikan
+/// (persen total, apakah selisihnya karena Tabungan). Null kalau tidak melewati
+/// atau tidak ada pemasukan. [save] = bagian Tabungan dari [spent].
+(int, bool)? spendKindOver(double income, double spent, double save) {
+  if (income <= 0) return null;
+  final pct = (spent / income * 100).round();
+  if (pct <= 100) return null;
+  return (pct, spent - save <= income);
+}
+
 class SpendKindCard extends StatelessWidget {
   const SpendKindCard(
       {super.key, required this.store, required this.range, required this.prev});
@@ -142,6 +152,7 @@ class SpendKindCard extends StatelessWidget {
     final kinds = SpendKind.values.where((k) => (now[k] ?? 0) > 0).toList();
     final total = math.max(base, spent);
     final left = byIncome && income > spent ? income - spent : 0.0;
+    final over = spendKindOver(income, spent, now[SpendKind.save] ?? 0);
 
     String delta(SpendKind k) {
       if (baseBefore <= 0 || (before[k] ?? 0) <= 0) return '';
@@ -250,11 +261,22 @@ class SpendKindCard extends StatelessWidget {
                 ],
               ),
             ),
+          if (over != null) ...[
+            const SizedBox(height: 6),
+            Text(
+                over.$2
+                    ? tr('Total {0}%: tabungan memakai saldo lama.', [over.$1])
+                    : tr('Total {0}%: pengeluaran melebihi pemasukan.', [over.$1]),
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: C.amberDark)),
+          ],
           const SizedBox(height: 6),
           Text(
               byIncome
-                  ? 'Persen dari pemasukan periode ini. Transfer ke akun yang tidak ikut Aman dibelanjakan dihitung sebagai tabungan. Setoran Target belum dihitung.'
-                  : 'Belum ada pemasukan di periode ini, jadi persen dihitung dari total pengeluaran.',
+                  ? 'Persen dari pemasukan. Transfer ke akun tabungan dihitung sebagai tabungan; setoran Target belum.'
+                  : 'Belum ada pemasukan, persen dari total pengeluaran.',
               style: TextStyle(fontSize: 12, color: C.muted)),
         ],
       ),

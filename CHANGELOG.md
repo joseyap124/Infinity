@@ -3,16 +3,34 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v6.9.0)
+## Berikutnya (v7.0.0)
+
+Rilis besar: Beranda dan navigasi ditata ulang. Hitungan uang, jatah harian, dan format data tidak berubah.
+
+### Ditambah
+- **Tombol Catat bulat di tengah bar bawah**, selalu terlihat di semua tab. Menggantikan tombol Catat melayang di kanan bawah yang menutupi isi Beranda, Riwayat, dan Rencana.
+- **Ikon gerigi di kartu utama Beranda** (di samping ikon mata) untuk membuka Pengaturan.
+- Catatan di Statistik kalau total golongan melewati pemasukan, mis. *Total 104%: tabungan memakai saldo lama.* Kalau penyebabnya pengeluaran biasa, kalimatnya *Total 130%: pengeluaran melebihi pemasukan.*
+- Impor dari Money Manager sekarang ada di halaman Backup & pindah HP.
 
 ### Diubah
-- **Kartu Ritme anggaran pindah ke dalam kartu utama Beranda** sebagai satu blok tipis di atas Total saldo, bukan kartu sendiri. Isinya sama: persen anggaran terpakai, penanda Cepat/Pas/Hemat, bar dengan penanda ritme, dan hari ke berapa di periode. Diketuk tetap membuka halaman Anggaran. Hitungan tidak berubah.
-- Baris Ritme disembunyikan hanya saat anggaran sudah habis (100% atau lebih) dan jatah hari ini Rp 0, karena catatan di kartu utama sudah menyebut persennya. Tanpa anggaran, barisnya berisi ajakan "Isi anggaran untuk melihat ritme pengeluaran" dengan tombol Atur.
-- **Maskot jadi satu baris penuh** di bawah kartu utama (gambar kecil, satu kalimat status, titik warna), bukan kartu setengah lebar di samping Ritme. Ketuk tetap membuka rincian jatah, atau form Catat saat maskot mengantuk.
-- Pilihan *Ritme* dan *Maskot* di Atur beranda tetap berlaku seperti sebelumnya.
+- **Ritme masuk ke kartu utama** sebagai blok tipis di atas Total saldo (persen terpakai, Cepat/Pas/Hemat, bar dengan penanda ritme, hari ke berapa). Hilang hanya saat anggaran sudah habis dan jatah hari ini Rp 0, karena catatan kartu sudah menyebut persennya. Tanpa anggaran, isinya ajakan mengisi anggaran dengan tombol Atur.
+- **Maskot jadi satu baris penuh** di bawah kartu utama (gambar kecil, satu kalimat status, titik warna). Pilihan Ritme dan Maskot di Atur beranda tetap berlaku.
+- **Bar bawah jadi empat tab**: Beranda, Riwayat, Rencana, Statistik. Tab Lainnya jadi halaman **Pengaturan** (panah kembali, tanpa bar bawah) yang dibuka dari gerigi. Isinya sama; baris "Pengaturan" di dalamnya diganti nama jadi **Preferensi**.
+- **Daftar "Perlu perhatian" jadi baris ringkas** (ikon, judul, keterangan, tutup), bukan kartu tinggi tetap yang digeser menyamping.
+- **Kartu informasi cukup ditutup sekali** untuk yang terikat satu kejadian: rekap bulan, proyeksi saldo, acara, tagihan, cicilan, kartu kredit, dan belanja tinggi (id sekarang per kategori per bulan). Yang tetap muncul lagi besok: gagal simpan, antrean penuh, kurs lama, utang, target. Catatan tutup yang lebih dari 62 hari dibersihkan otomatis.
+- Petunjuk "Ketuk untuk langsung catat, tahan untuk ubah dulu" di Catat cepat tampil 3 kali buka app saja.
+- Anggaran di Rencana menampilkan persen sebenarnya (mis. 174%, tidak lagi berhenti di 100%). Warna "Jebol" dan sisa kuota minus jadi kuning tua, bukan merah, sama seperti jatah harian. "Lebih boros dari bulan lalu" di Statistik juga kuning tua.
+- **Keterangan dipersingkat** di Pengaturan, kartu utama, dan Statistik. Contoh: Preferensi "Tampilan, gajian, kurs, keamanan"; Backup "Drive, Excel, impor Money Manager"; catatan kartu utama "Anggaran sudah terpakai 174%. Jatah kembali 1 Nov."
+- Sheet profil jadi "Profil": hanya nama dan foto. Teks petunjuk "Lainnya → ..." di Bantuan dan pesan error diganti ke "Beranda → gerigi → ...". FAQ Rencana tidak lagi menyebut "menu bawah, tengah".
+
+### Dihapus
+- **Header Beranda** (foto, nama, kalimat sapaan atau motivasi). Mata dan gerigi pindah ke kartu utama. Pengaturan sapaan dan motivasi hilang dari sheet profil; datanya tetap tersimpan di berkas, hanya tidak dipakai.
+- **Empat pintasan Beranda** (Tagihan, Anggaran, Patungan, Utang). Semuanya ada di tab Rencana.
 
 ### Belum terbukti
-- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Ukuran gambar maskot di baris baru (46 dp) dan tinggi baris dengan kalimat maskot panjang (dipotong dua baris) belum pernah dilihat. Tata letak baru hanya sudah dibuat sebagai mockup HTML.
+- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Yang belum pernah dilihat: bar bawah baru (tinggi 68 dp, ukuran tombol Catat, label tab di layar sempit dan huruf besar), letak mata dan gerigi di kartu utama, baris "Perlu perhatian" dengan judul atau keterangan panjang, baris maskot dan Ritme di kartu yang lebih tinggi, halaman Pengaturan, dan warna kuning tua di Rencana. Semuanya baru ada sebagai mockup HTML.
+- Hint Catat cepat dihitung per pembukaan app (bukan per ketukan); belum dicoba bahwa hitungannya benar di HP.
 
 ## v6.8.0 (28 Okt 2026)
 

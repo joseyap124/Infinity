@@ -111,7 +111,7 @@ Future<bool> typedConfirmDialog(
   return r ?? false;
 }
 
-/// Reset total: dipakai dari Lainnya dan dari Backup.
+/// Reset total: dipakai dari Pengaturan dan dari Backup.
 Future<void> confirmResetAll(BuildContext context, AppStore store) async {
   final ok = await typedConfirmDialog(context,
       title: 'Reset semua data?',

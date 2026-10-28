@@ -2,7 +2,7 @@
 
 Daftar kerja yang bisa dicentang. Perbarui setiap rilis: pindahkan yang selesai ke "Selesai", tulis apa yang belum terbukti. Riwayat lengkap tiap rilis ada di [CHANGELOG](../CHANGELOG.md).
 
-Terakhir diperbarui: setelah v6.8.0 (28 Okt 2026).
+Terakhir diperbarui: v7.0.0 (28 Okt 2026).
 
 ## Cara membaca status
 
@@ -17,9 +17,11 @@ Terakhir diperbarui: setelah v6.8.0 (28 Okt 2026).
 - [x] v6.6.0: Beranda lebih tenang saat lewat jatah, dua kalimat maskot dilembutkan.
 - [x] v6.7.0: tombol "Jangan tangkap app ini" di kartu Dari Notifikasi (Infinity menangkap notifikasi dari semua app yang memuat "Rp", bukan hanya bank). README bagian itu sudah dikoreksi.
 - [x] v6.8.0: kartu utama menjelaskan Rp 0 saat anggaran habis; jejak simpan dirapikan; tes yang membuktikan lompatan sisa hari ini saat tagihan berulang diposting.
+- [x] v7.0.0: Beranda baru dan navigasi baru. Ritme di kartu utama, maskot satu baris, header dan empat pintasan dihapus, mata dan gerigi di kartu utama, bar bawah empat tab dengan Catat di tengah, Lainnya jadi Pengaturan, daftar Perlu perhatian ringkas, kartu informasi cukup ditutup sekali, anggaran 174% dan warna kuning tua di Rencana, catatan golongan di Statistik, keterangan dipersingkat.
 
 ## Perlu dicek di HP (urutkan dari yang paling mungkin meleset)
 
+- [ ] v7.0.0: seluruh tampilan baru belum pernah dilihat di HP. Paling mungkin meleset: bar bawah (tinggi, tombol Catat, label di layar sempit atau huruf besar), letak mata dan gerigi di kartu utama, baris Perlu perhatian, baris maskot, halaman Pengaturan.
 - [ ] v6.7.0: tombol baru di baris Abaikan/Catat di layar sempit, dan apakah notifikasi app non-bank berhenti masuk setelah diabaikan.
 - [ ] v6.5.0: baris amplop di Beranda dan di form Catat; apakah penjelasannya cukup jelas tanpa dibaca dua kali.
 - [ ] v6.6.0: apakah Beranda saat lewat jatah benar-benar terasa tenang. Gambar maskot Bahaya dan Boros **tidak diubah**; kalau tetap mengganggu, matikan maskot di Atur beranda atau matikan nada paket.
@@ -57,12 +59,14 @@ Ada 73 branch di remote; sebagian besar branch rilis lama (`v3`, `v5.x`, dan set
 
 Aturan kerja: perubahan tampilan selalu mockup dulu, lalu kode.
 
-- [ ] **Beranda baru**: tombol Catat di kartu utama, template cepat, strip kebiasaan mencatat 7 hari, maskot jadi ikon kecil. Mockup ada (artifact "Beranda Baru"), belum disetujui.
+- [x] **Beranda baru**: disetujui dan dikerjakan di v7.0.0. Yang ditolak atau ditunda: pemilih bank dan e-wallet (nilainya kecil, tidak boleh memakai logo asli), strip kebiasaan 7 hari, "mode sederhana", maskot jadi ikon kecil.
 - [ ] **Merapikan fitur yang tumpang tindih**: tiga ukuran status (jatah, ritme, maskot), lima rekap, empat sistem ikon (kartun, flat, klasik, mono). Perlu keputusan mana yang dipertahankan sebelum ada yang dihapus. Hapus berarti data pengaturan lama harus tetap terbaca (lihat aturan kompatibilitas di [TEKNIS](TEKNIS.md)).
+
+- [ ] **Keputusan Jose: tagihan berulang yang diposting hari ini.** Usulan: tagihan yang sudah dicadangkan tidak dihitung lagi sebagai belanja hari itu, supaya "sisa hari ini" tidak melompat (lihat Masalah terbuka 1). Mengubah hitungan jatah, jadi perlu persetujuan.
 
 ## Dokumentasi
 
 - [x] Dokumen produk, teknis, rencana, dan aturan kerja AI (`CLAUDE.md`).
 - [ ] README masih menyebut "14 warna", versi rilis `v1.6, v1.7, ...`, dan belum memuat fitur v5 sampai v6 (maskot, ritme, amplop, Rencana). Perlu disegarkan.
 - [ ] Komentar pembuka `lib/main.dart` menyebut "single-file" dan "Flutter 3.38.1+", sudah tidak sesuai (sekarang banyak `part`, Flutter 3.47.6).
-- [ ] `tool/i18n/README.md` menyebut `/tmp/claude-0/i18n` untuk import, dan contoh perintahnya hanya sampai `tr5` (sekarang sampai `tr35`); perlu disesuaikan.
+- [ ] `tool/i18n/README.md` menyebut `/tmp/claude-0/i18n` untuk import, dan contoh perintahnya hanya sampai `tr5` (sekarang sampai `tr38`); perlu disesuaikan.

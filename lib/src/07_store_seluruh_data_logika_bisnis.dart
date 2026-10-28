@@ -2356,6 +2356,13 @@ class AppStore extends ChangeNotifier {
     _commit();
   }
 
+  /// Petunjuk "Catat cepat" tampil beberapa kali saja (v7.0.0).
+  void bumpQuickHint() {
+    if (settings.quickHintSeen >= kQuickHintMax) return;
+    settings.quickHintSeen++;
+    _commit();
+  }
+
   void toggleHideBalance() {
     settings.hideBalance = !settings.hideBalance;
     _commit();

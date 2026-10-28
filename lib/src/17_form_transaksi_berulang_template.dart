@@ -3542,7 +3542,7 @@ class _CategoryPanelState extends State<CategoryPanel> {
             Expanded(
               child: tops.isEmpty
                   ? Center(
-                      child: Text('Belum ada kategori. Tambah di Lainnya > Kategori.',
+                      child: Text('Belum ada kategori. Tambah di Beranda > gerigi > Kategori.',
                           style: TextStyle(color: C.muted)))
                   : (open == null ? _grid(tops) : _split(tops, open)),
             ),

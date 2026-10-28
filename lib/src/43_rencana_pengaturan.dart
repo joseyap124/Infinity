@@ -73,10 +73,10 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
             ],
           ),
           Text(
-              'Centang kartu yang mau tampil, tahan dan geser untuk mengubah urutan. Aman dibelanjakan, saldo, dan hal yang perlu dicek selalu tampil paling atas.',
+              'Centang kartu yang tampil, tahan dan geser untuk mengubah urutan.',
               style: TextStyle(fontSize: 12.5, color: C.muted)),
           const SizedBox(height: 8),
-          Text(tr('Baris di bawah kartu utama'),
+          Text(tr('Di kartu utama'),
               style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,
@@ -98,7 +98,7 @@ class _HomeCardsSheetState extends State<HomeCardsSheet> {
             activeColor: C.accentDark,
             title: Text(tr('Ritme'),
                 style: const TextStyle(fontWeight: FontWeight.w800)),
-            subtitle: Text(tr('Anggaran terpakai dibanding hari di periode')),
+            subtitle: Text(tr('Anggaran terpakai dan hari di periode')),
             value: widget.store.settings.homeRitme,
             onChanged: (v) => setState(
                 () => widget.store.updateSettings((s) => s.homeRitme = v == true)),
@@ -395,7 +395,7 @@ class _PlanTabState extends State<PlanTab> {
     return SafeArea(
       bottom: false,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
           const Text('Rencana',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
@@ -553,7 +553,7 @@ class SettingsPage extends StatelessWidget {
           _ => 'Otomatis',
         };
         return Scaffold(
-          appBar: pageBar('Pengaturan'),
+          appBar: pageBar('Preferensi'),
           body: ListView(
             padding: pagePad(context, 32),
             children: [
@@ -952,7 +952,7 @@ class AppearancePage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Nama, foto & sapaan',
+                          const Text('Nama dan foto',
                               style: TextStyle(
                                   fontSize: 14, fontWeight: FontWeight.w800)),
                           Text(s.displayName,

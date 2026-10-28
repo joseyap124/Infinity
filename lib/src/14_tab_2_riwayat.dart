@@ -285,7 +285,7 @@ class _HistoryTabState extends State<HistoryTab> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             sliver: SliverList(delegate: SliverChildListDelegate(body)),
           ),
         ],

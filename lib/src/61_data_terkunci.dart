@@ -65,7 +65,7 @@ class _DataLockedScreenState extends State<DataLockedScreen> {
       builder: (ctx) => AlertDialog(
         title: Text(tr('Mulai dari awal?')),
         content: Text(tr(
-            'Infinity akan mulai kosong. File data yang tidak bisa dibuka disimpan terpisah di HP ini, tidak dihapus. Setelah itu pulihkan dari file backup lewat Lainnya, Backup & pindah HP, Pulihkan.')),
+            'Infinity akan mulai kosong. File data yang tidak bisa dibuka disimpan terpisah di HP ini, tidak dihapus. Setelah itu pulihkan dari file backup lewat Beranda, gerigi, Backup & pindah HP, Pulihkan.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),

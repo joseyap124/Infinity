@@ -172,7 +172,7 @@ class _StatsTabState extends State<StatsTab> {
                     fontWeight: FontWeight.w800,
                     color: pct.abs() < 0.5
                         ? C.muted
-                        : (pct < 0 ? C.income : C.redDark))),
+                        : (pct < 0 ? C.income : C.amberDark))),
           ],
           const SizedBox(height: 14),
           Divider(height: 1, color: C.line),

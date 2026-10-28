@@ -18,7 +18,7 @@ const double kRiseMin = 50000;
 const double kRiseMinRatio = 0.2;
 
 /// Kartu di Beranda tampil Senin sampai Rabu (sesudah itu tinjauan tetap bisa
-/// dibuka dari Lainnya).
+/// dibuka dari Pengaturan).
 const int kWeekCardLastWeekday = DateTime.wednesday;
 
 /// Hari catatan yang dibutuhkan sebelum tinjauan pertama (dua minggu penuh).

@@ -852,7 +852,7 @@ void main() {
       expect(cadang.budgetUsedWhenNoAllowance(sc, now), closeTo(0.4, 0.0001));
     });
 
-    test('v6.9.0 baris Ritme di kartu utama: hilang hanya saat anggaran habis', () {
+    test('v7.0.0 baris Ritme di kartu utama: hilang hanya saat anggaran habis', () {
       final now = DateTime(2026, 10, 22, 10);
       // Anggaran habis (174%): catatan di kartu utama sudah menyebut persennya.
       final habis = storeWith([acc('a', initial: 9000000)], [
@@ -4021,6 +4021,93 @@ void main() {
       expect(s.mergeCategory('tidak-ada', 'makan'), isNotNull);
       expect(s.categories.length, 5);
       expect(s.categoryTxCounts()['cafe'], 2);
+    });
+  });
+
+  group('Beranda baru (v7.0.0)', () {
+    test('kartu terikat kejadian ditutup sekali, kartu lain muncul lagi besok', () {
+      const closed = '2026-10-01';
+      const later = '2026-10-20';
+      final d = {
+        for (final id in [
+          'recap_2026_9',
+          'proj_a1_10',
+          'event_e1_80',
+          'bill_r1_123',
+          'inst_456',
+          'cc_a2_789',
+          'unusual_cafe_2026_10',
+          'save_fail',
+          'pend_full',
+          'rates',
+          'debt_d1',
+          'goal_g1',
+        ])
+          id: closed
+      };
+      for (final id in [
+        'recap_2026_9',
+        'proj_a1_10',
+        'event_e1_80',
+        'bill_r1_123',
+        'inst_456',
+        'cc_a2_789',
+        'unusual_cafe_2026_10',
+      ]) {
+        expect(insightHidden(d, id, later), true, reason: id);
+        expect(insightHidden(d, id, closed), true, reason: id);
+      }
+      for (final id in ['save_fail', 'pend_full', 'rates', 'debt_d1', 'goal_g1']) {
+        expect(insightHidden(d, id, later), false, reason: id);
+        expect(insightHidden(d, id, closed), true, reason: id);
+      }
+      expect(insightHidden(<String, String>{}, 'recap_2026_9', later), false);
+    });
+
+    test('belanja tinggi punya id per kategori per bulan', () {
+      expect(unusualInsightId('cafe', DateTime(2026, 10, 3)), 'unusual_cafe_2026_10');
+      expect(unusualInsightId('cafe', DateTime(2026, 11, 3)), 'unusual_cafe_2026_11');
+      expect(unusualInsightId('cafe', DateTime(2026, 10, 28)),
+          unusualInsightId('cafe', DateTime(2026, 10, 3)));
+    });
+
+    test('catatan tutup lama dibuang, yang baru tetap', () {
+      final out = pruneDismissedInsights({
+        'recap_2026_7': '2026-07-01',
+        'rates': '2026-10-27',
+        'bill_x_1': '2026-09-10',
+      }, DateTime(2026, 10, 28));
+      expect(out.containsKey('recap_2026_7'), false);
+      expect(out.keys.toSet(), {'rates', 'bill_x_1'});
+    });
+
+    test('dismissInsight menyimpan tutup sekali dan ikut ke JSON', () {
+      final s = storeWith([acc('a', initial: 1000)]);
+      s.settings.dismissedInsights = {'recap_2026_1': '2020-01-01'};
+      s.dismissInsight('recap_2026_9');
+      expect(s.settings.dismissedInsights.containsKey('recap_2026_9'), true);
+      expect(s.settings.dismissedInsights.containsKey('recap_2026_1'), false);
+      final back = AppSettings.fromJson(s.settings.toJson());
+      expect(insightHidden(back.dismissedInsights, 'recap_2026_9', '2099-01-01'), true);
+    });
+
+    test('hitungan petunjuk Catat cepat: data lama terbaca, tidak ditulis saat 0', () {
+      expect(AppSettings.fromJson(<String, dynamic>{}).quickHintSeen, 0);
+      expect(AppSettings().toJson().containsKey('quickHintSeen'), false);
+      final s = storeWith([acc('a', initial: 1000)]);
+      for (var i = 0; i < 6; i++) {
+        s.bumpQuickHint();
+      }
+      expect(s.settings.quickHintSeen, kQuickHintMax);
+      expect(AppSettings.fromJson(s.settings.toJson()).quickHintSeen, kQuickHintMax);
+    });
+
+    test('catatan golongan melewati pemasukan', () {
+      expect(spendKindOver(1000000, 1040000, 300000), (104, true));
+      expect(spendKindOver(1000000, 1300000, 100000), (130, false));
+      expect(spendKindOver(1000000, 900000, 100000), isNull);
+      expect(spendKindOver(1000000, 1003000, 0), isNull);
+      expect(spendKindOver(0, 500000, 0), isNull);
     });
   });
 }

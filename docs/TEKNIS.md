@@ -35,7 +35,9 @@ Kode Dart adalah **satu library**: `lib/main.dart` memuat `lib/src/NN_nama.dart`
 | Terjemahan | `47_bahasa.dart` (mesin), `48_terjemahan_en.dart` dan `49_terjemahan_zh.dart` (hasil generate, jangan diedit tangan) |
 | Notifikasi bank dan e-wallet | `27_...catat_otomatis...dart`, `60_log_tangkapan.dart`, Kotlin `NotificationCaptureService.kt` |
 
-Tab bawah: Beranda, Riwayat, Rencana, Statistik, Lainnya, dengan tombol **Catat** di tengah (`09_app_shell.dart`).
+Bar bawah (v7.0.0): empat tab (Beranda, Riwayat, Rencana, Statistik) dan tombol **Catat** bulat di tengah, widget `_BottomBar` di `09_app_shell.dart`. Pengaturan (dulu tab Lainnya, kelas `MoreTab` di `16_tab_4_lainnya.dart`) adalah halaman yang dibuka dari ikon gerigi di kartu utama Beranda; baris Preferensi di dalamnya membuka `SettingsPage` (`43_rencana_pengaturan.dart`).
+
+Kartu informasi "Perlu perhatian" (`InsightStrip`, `33_...insight.dart`): id yang berawalan `kInsightDismissOnce` (recap, proj, event, bill, inst, cc, unusual) disembunyikan selamanya setelah ditutup; id lain (save_fail, pend_full, rates, debt, goal) muncul lagi besok. Aturannya di `insightHidden`; `pruneDismissedInsights` membuang catatan lebih dari 62 hari. Petunjuk Catat cepat dihitung di `AppSettings.quickHintSeen` (opsional, ditulis hanya kalau > 0).
 
 ## Data
 

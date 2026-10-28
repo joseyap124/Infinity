@@ -93,7 +93,7 @@ Widget friendlyErrorWidget(FlutterErrorDetails d) {
       borderRadius: BorderRadius.circular(16),
     ),
     child: const Text(
-      'Bagian ini gagal ditampilkan. Error sudah dicatat; kirim lewat Lainnya → Laporan error.',
+      'Bagian ini gagal ditampilkan. Error sudah dicatat; kirim lewat Beranda → gerigi → Laporan error.',
       style: TextStyle(fontSize: 12.5, color: Color(0xFFC62828)),
     ),
   );

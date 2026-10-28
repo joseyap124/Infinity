@@ -627,7 +627,11 @@ class AppSettings {
   /// kartu "Dari Notifikasi"). Hanya untuk app yang bukan bank/e-wallet dikenal.
   List<String> ignoredCapturePkgs = [];
 
-  /// Insight yang ditutup hari ini (id -> yyyy-MM-dd).
+  /// Berapa kali petunjuk "Catat cepat" sudah ditampilkan (v7.0.0).
+  int quickHintSeen = 0;
+
+  /// Insight yang ditutup (id -> yyyy-MM-dd). Kartu yang terikat satu kejadian
+  /// tetap tersembunyi; yang lain muncul lagi besok (lihat [insightHidden]).
   Map<String, String> dismissedInsights = {};
 
   /// Saldo terakhir yang disebut notifikasi bank/e-wallet
@@ -732,6 +736,7 @@ class AppSettings {
         if (lastBackupSig != null) 'lastBackupSig': lastBackupSig,
         'lastDriveSave': lastDriveSave?.toIso8601String(),
         if (droppedCaptures > 0) 'droppedCaptures': droppedCaptures,
+        if (quickHintSeen > 0) 'quickHintSeen': quickHintSeen,
         'ratesUpdatedAt': ratesUpdatedAt?.toIso8601String(),
         'displayName': displayName,
         'avatarPath': avatarPath,
@@ -867,6 +872,7 @@ class AppSettings {
     s.lastBackupSig = _s(j['lastBackupSig']);
     s.lastDriveSave = DateTime.tryParse(_s(j['lastDriveSave']) ?? '');
     s.droppedCaptures = _i(j['droppedCaptures'], 0);
+    s.quickHintSeen = _i(j['quickHintSeen'], 0);
     s.ratesUpdatedAt = DateTime.tryParse(_s(j['ratesUpdatedAt']) ?? '');
     final dn = _s(j['displayName'])?.trim();
     s.displayName = (dn == null || dn.isEmpty) ? 'Infinity' : dn;
