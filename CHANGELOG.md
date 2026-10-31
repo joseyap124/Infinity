@@ -3,7 +3,7 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
-## Berikutnya (v7.0.1)
+## v7.0.1 (31 Okt 2026)
 
 ### Diubah
 - **Form Catat boleh memilih tanggal ke depan**, sampai 60 hari. Dulu pilihan tanggal berhenti di hari ini, jadi gaji yang cair tanggal 1 tidak bisa dicatat tanggal 31. Transaksinya biasa saja, bukan jadwal: langsung menambah atau mengurangi saldo (Total saldo ikut berubah hari itu juga), tapi baru masuk statistik, anggaran, dan jatah di periode tanggalnya. Transaksi berulang tidak berubah.
