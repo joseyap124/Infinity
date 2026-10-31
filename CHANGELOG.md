@@ -3,6 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v7.0.1)
+
+### Diubah
+- **Form Catat boleh memilih tanggal ke depan**, sampai 60 hari. Dulu pilihan tanggal berhenti di hari ini, jadi gaji yang cair tanggal 1 tidak bisa dicatat tanggal 31. Transaksinya biasa saja, bukan jadwal: langsung menambah atau mengurangi saldo (Total saldo ikut berubah hari itu juga), tapi baru masuk statistik, anggaran, dan jatah di periode tanggalnya. Transaksi berulang tidak berubah.
+- Panduan: satu pertanyaan baru, "Bisa mencatat untuk tanggal ke depan?".
+
+### Belum terbukti
+- Belum dilihat di HP, hanya lolos kompilasi dan tes di CI. Efek ke angka lain belum diperiksa satu per satu di layar: jatah harian di mode saldo (saldo ikut naik, jadi jatah ikut naik), grafik kekayaan bersih, dan daftar Riwayat dengan transaksi bertanggal besok.
+
 ## v7.0.0 (28 Okt 2026)
 
 Rilis besar: Beranda dan navigasi ditata ulang. Hitungan uang, jatah harian, dan format data tidak berubah.

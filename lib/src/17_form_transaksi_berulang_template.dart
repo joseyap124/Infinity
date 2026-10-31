@@ -424,7 +424,7 @@ class _TxFormSheetState extends State<TxFormSheet> {
     final first = DateTime(now.year - 10);
     final last = widget.mode == FormMode.recurring
         ? DateTime(now.year + 5)
-        : now;
+        : latestTxDate(now);
     var initial = _date;
     if (initial.isAfter(last)) initial = last;
     if (initial.isBefore(first)) initial = first;

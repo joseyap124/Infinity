@@ -4110,4 +4110,28 @@ void main() {
       expect(spendKindOver(0, 500000, 0), isNull);
     });
   });
+
+  group('Tanggal ke depan (v7.0.1)', () {
+    test('batas tanggal transaksi biasa: 60 hari dari hari ini', () {
+      final last = latestTxDate(DateTime(2026, 10, 31, 18, 2));
+      expect(last, DateTime(2026, 12, 30));
+      expect(DateTime(2026, 11, 1).isAfter(last), false);
+      expect(DateTime(2027, 1, 5).isAfter(last), true);
+    });
+
+    test('pemasukan bertanggal 1 Nov: tidak masuk Oktober, masuk November, tetap menambah saldo', () {
+      final now = DateTime(2026, 10, 31, 18);
+      final s = storeWith([acc('a', initial: 1000000)], [
+        tx('g', TxType.income, 7500000, 'a', date: DateTime(2026, 11, 1, 18)),
+      ]);
+      final oct = DateTimeRange(start: DateTime(2026, 10, 1), end: DateTime(2026, 11, 1));
+      final nov = DateTimeRange(start: DateTime(2026, 11, 1), end: DateTime(2026, 12, 1));
+      expect(s.sumIDR(TxType.income, oct), 0);
+      expect(s.sumIDR(TxType.income, nov), 7500000);
+      // Aturan lama tidak berubah: saldo menghitung semua transaksi.
+      expect(s.balanceOf('a'), 8500000);
+      // Jatah hari ini tidak tersentuh oleh transaksi esok hari.
+      expect(s.safeToSpend(now).spentToday, 0);
+    });
+  });
 }

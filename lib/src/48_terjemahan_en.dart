@@ -1760,6 +1760,8 @@ const Map<String, String> kEnStrings = {
   'Total {0}%: pengeluaran melebihi pemasukan.': 'Total {0}%: spending exceeded income.',
   'Persen dari pemasukan. Transfer ke akun tabungan dihitung sebagai tabungan; setoran Target belum.': 'Percent of income. Transfers to savings accounts count as savings; Goal deposits do not yet.',
   'Belum ada pemasukan, persen dari total pengeluaran.': 'No income yet, percent of total spending.',
+  'Bisa mencatat untuk tanggal ke depan?': 'Can I record something for a future date?',
+  'Bisa, sampai 60 hari ke depan: pilih tanggalnya di form Catat. Transaksinya langsung menambah atau mengurangi saldo, tapi baru masuk statistik dan anggaran periode tanggalnya. Cocok untuk gaji yang cair tanggal 1 tapi sudah mau dicatat tanggal 31.': 'Yes, up to 60 days ahead: pick the date in the Add form. The transaction changes your balance right away, but only counts in statistics and the budget of the period it falls in. Handy when payday is on the 1st and you want to enter it on the 31st.',
 };
 
 /// Pola untuk teks berangka. $1, $2 diisi dari grup yang cocok.

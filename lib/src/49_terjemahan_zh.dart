@@ -1759,4 +1759,6 @@ const Map<String, String> kZhStrings = {
   'Total {0}%: pengeluaran melebihi pemasukan.': '合计 {0}%:支出超过收入。',
   'Persen dari pemasukan. Transfer ke akun tabungan dihitung sebagai tabungan; setoran Target belum.': '占收入的百分比。转入储蓄账户计为储蓄;目标存入暂未计入。',
   'Belum ada pemasukan, persen dari total pengeluaran.': '暂无收入,按总支出计算百分比。',
+  'Bisa mencatat untuk tanggal ke depan?': '可以记录未来日期的交易吗?',
+  'Bisa, sampai 60 hari ke depan: pilih tanggalnya di form Catat. Transaksinya langsung menambah atau mengurangi saldo, tapi baru masuk statistik dan anggaran periode tanggalnya. Cocok untuk gaji yang cair tanggal 1 tapi sudah mau dicatat tanggal 31.': '可以,最多提前 60 天:在“记一笔”表单里选择日期。它会立即改变余额,但只计入该日期所在周期的统计和预算。适合发薪日是 1 号、想在 31 号就先记下的情况。',
 };

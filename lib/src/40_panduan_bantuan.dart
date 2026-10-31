@@ -207,6 +207,8 @@ const List<_Faq> _faqs = [
       'Tidak. Di form Catat pengeluaran, nyalakan "Di luar jatah harian". Transaksinya tetap tercatat dan tetap mengurangi sisa anggaran, tapi tidak dihitung ke jatah hari itu dan tidak membuat maskot berubah jadi Boros. Karena uangnya memang keluar, jatah hari-hari berikutnya turun sedikit, dibagi ke sisa hari.'),
   _Faq('Anggaran, target, dan tagihan pindah ke mana?',
       'Ke tab Rencana (menu bawah). Isinya anggaran, tagihan & langganan 30 hari, kartu kredit, target tabungan, dan utang piutang. Beranda bisa kamu atur sendiri lewat tombol "Atur Beranda" di bagian bawah Beranda.'),
+  _Faq('Bisa mencatat untuk tanggal ke depan?',
+      'Bisa, sampai 60 hari ke depan: pilih tanggalnya di form Catat. Transaksinya langsung menambah atau mengurangi saldo, tapi baru masuk statistik dan anggaran periode tanggalnya. Cocok untuk gaji yang cair tanggal 1 tapi sudah mau dicatat tanggal 31.'),
   _Faq('Bulan mulai tanggal gajian',
       'Beranda → gerigi → Preferensi → Awal bulan keuangan (atau Rencana → Anggaran → Atur). Misalnya gajian tanggal 25: "Oktober" dihitung 25 Sep sampai 24 Okt. Berlaku untuk anggaran, Aman dibelanjakan, Statistik bulanan, rekap & saran, dan filter "Bulan ini". Kalender di Riwayat tetap bulan kalender.'),
   _Faq('Kategori terisi sendiri',

@@ -652,3 +652,12 @@ List<Widget> groupedTxWidgets(
   });
   return widgets;
 }
+
+/// Hari-hari ke depan yang boleh dipilih di form Catat (v7.0.1), mis. gaji
+/// yang cair tanggal 1 dicatat tanggal 31. Dibatasi supaya salah ketik tahun
+/// tidak menyembunyikan transaksi jauh di masa depan.
+const int kMaxFutureTxDays = 60;
+
+/// Tanggal terakhir yang boleh dipilih untuk transaksi biasa.
+DateTime latestTxDate(DateTime now) =>
+    DateTime(now.year, now.month, now.day + kMaxFutureTxDays);
