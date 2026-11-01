@@ -3,6 +3,15 @@
 Setiap rilis mencatat apa yang **ditambah**, **diubah**, **dihapus**, dan **diperbaiki**.
 Bagian *Berikutnya* berisi perubahan yang akan masuk rilis selanjutnya.
 
+## Berikutnya (v7.0.2)
+
+### Diperbaiki
+- **Pengenal app bank dan e-wallet salah menebak.** Kata kunci dulu dicocokkan sebagai potongan teks di nama paket, jadi `com.lenovo.*` dianggap OVO, `id.co.danamon.*` dianggap DANA, dan `com.android.bluetooth` dianggap blu. Akibatnya app itu tidak bisa dipakaikan tombol "Jangan tangkap app ini" dan tebakan akunnya keliru. Sekarang kata kunci harus sama dengan satu segmen nama paket (dipisah titik); kata 5 huruf atau lebih boleh jadi awalan segmen. Contoh yang tetap cocok: `id.dana`, `com.gojek.gopay`, `com.bca.mybca.omni.android`, `id.co.bri.brimo`, `id.bmri.livin`.
+- Fungsi yang tidak terpakai (`_weekRangeLabel`) dihapus; itu satu-satunya peringatan analyzer.
+
+### Belum terbukti
+- Nama paket asli tiap bank dan e-wallet tidak bisa saya verifikasi (pencarian web tidak menemukan daftarnya). Tes memakai nama yang sudah ada di tes lama dan tebakan yang umum. Kalau ada bank yang nama paketnya tidak punya segmen berisi kata kunci, notifikasinya tetap masuk tapi dianggap app biasa: tombol "Jangan tangkap app ini" muncul, tebakan akun tidak jalan. Cek di Beranda → Perlu dicek, apakah notifikasi bankmu masih dikenali.
+
 ## v7.0.1 (31 Okt 2026)
 
 ### Diubah

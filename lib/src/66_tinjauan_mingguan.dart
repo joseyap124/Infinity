@@ -244,12 +244,6 @@ class _SmallGroup {
 
 // ----------------------------------------------------------------- teks
 
-String _weekRangeLabel(DateTimeRange r) {
-  final f = DateFormat('d MMM', gDateLoc);
-  final last = DateTime(r.end.year, r.end.month, r.end.day - 1);
-  return tr('{0} sampai {1}', [f.format(r.start), f.format(last)]);
-}
-
 String _changeLabel(WeekReview w) {
   final c = w.change;
   if (c == null) return tr('Minggu sebelumnya tanpa pengeluaran');

@@ -4134,4 +4134,36 @@ void main() {
       expect(s.safeToSpend(now).spentToday, 0);
     });
   });
+
+  group('Pengenal app bank per segmen paket (v7.0.2)', () {
+    test('app bank dan e-wallet yang dikenal tetap cocok', () {
+      expect(appLabelForPackage('com.gojek.gopay'), 'GoPay');
+      expect(appLabelForPackage('com.gojek.app'), 'GoPay');
+      expect(appLabelForPackage('id.dana'), 'DANA');
+      expect(appLabelForPackage('ovo.id'), 'OVO');
+      expect(appLabelForPackage('com.shopee.id'), 'ShopeePay');
+      expect(appLabelForPackage('com.bca.mybca.omni.android'), 'myBCA');
+      expect(appLabelForPackage('com.bca'), 'BCA');
+      expect(appLabelForPackage('com.jago.digitalBanking'), 'Jago');
+      expect(appLabelForPackage('id.co.bri.brimo'), 'BRImo');
+      expect(appLabelForPackage('id.bmri.livin'), 'Livin Mandiri');
+      expect(appLabelForPackage('com.telkom.mwallet'), 'LinkAja');
+    });
+
+    test('nama paket yang hanya memuat kata kunci di tengah kata tidak dianggap bank', () {
+      // Dulu: lenovo -> OVO, danamon -> DANA, bluetooth -> blu.
+      expect(appLabelForPackage('com.lenovo.vantage'), 'vantage');
+      expect(appLabelForPackage('id.co.danamon.mobile'), 'mobile');
+      expect(appLabelForPackage('com.android.bluetooth'), 'bluetooth');
+      expect(appLabelForPackage('com.flipboard.app'), 'app');
+    });
+
+    test('app non-bank bisa diabaikan, app bank tidak', () {
+      final s = storeWith([acc('a', initial: 1000)]);
+      expect(s.canIgnoreCaptureApp('com.lenovo.vantage'), true);
+      expect(s.canIgnoreCaptureApp('id.co.danamon.mobile'), true);
+      expect(s.canIgnoreCaptureApp('id.dana'), false);
+      expect(s.canIgnoreCaptureApp('com.gojek.gopay'), false);
+    });
+  });
 }

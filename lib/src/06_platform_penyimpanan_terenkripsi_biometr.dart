@@ -313,10 +313,21 @@ const List<List<String>> _knownApps = [
   ['flip', 'Flip', 'flip'],
 ];
 
+/// Cocok kalau [kata] sama dengan satu segmen nama paket (dipisah titik).
+/// Kata 5 huruf atau lebih boleh jadi awalan segmen (mis. "shopee" di
+/// "shopeepay"). Kata pendek harus persis, supaya "ovo" tidak cocok dengan
+/// "lenovo", "dana" dengan "danamon", dan "blu" dengan "bluetooth" (v7.0.2).
+bool _pkgHasWord(String pkg, String kata) {
+  for (final seg in pkg.toLowerCase().split('.')) {
+    if (seg == kata) return true;
+    if (kata.length >= 5 && seg.startsWith(kata)) return true;
+  }
+  return false;
+}
+
 List<String>? _appInfo(String pkg) {
-  final p = pkg.toLowerCase();
   for (final e in _knownApps) {
-    if (p.contains(e[0])) return e;
+    if (_pkgHasWord(pkg, e[0])) return e;
   }
   return null;
 }
