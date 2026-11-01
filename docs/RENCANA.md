@@ -2,7 +2,7 @@
 
 Daftar kerja yang bisa dicentang. Perbarui setiap rilis: pindahkan yang selesai ke "Selesai", tulis apa yang belum terbukti. Riwayat lengkap tiap rilis ada di [CHANGELOG](../CHANGELOG.md).
 
-Terakhir diperbarui: v7.0.1 (31 Okt 2026).
+Terakhir diperbarui: v7.0.2 (1 Nov 2026).
 
 ## Cara membaca status
 
@@ -19,6 +19,7 @@ Terakhir diperbarui: v7.0.1 (31 Okt 2026).
 - [x] v6.8.0: kartu utama menjelaskan Rp 0 saat anggaran habis; jejak simpan dirapikan; tes yang membuktikan lompatan sisa hari ini saat tagihan berulang diposting.
 - [x] v7.0.0: Beranda baru dan navigasi baru. Ritme di kartu utama, maskot satu baris, header dan empat pintasan dihapus, mata dan gerigi di kartu utama, bar bawah empat tab dengan Catat di tengah, Lainnya jadi Pengaturan, daftar Perlu perhatian ringkas, kartu informasi cukup ditutup sekali, anggaran 174% dan warna kuning tua di Rencana, catatan golongan di Statistik, keterangan dipersingkat.
 - [x] v7.0.1: form Catat boleh memilih tanggal sampai 60 hari ke depan (transaksi biasa, langsung masuk saldo). Opsi "jadwal sekali" (saldo naik di tanggalnya) sempat dimockup, tidak dipilih karena gaji berubah tiap bulan.
+- [x] v7.0.2: pengenal app bank cocok per segmen nama paket (lenovo tidak lagi dianggap OVO, danamon bukan DANA); fungsi tak terpakai dihapus.
 
 ## Perlu dicek di HP (urutkan dari yang paling mungkin meleset)
 
