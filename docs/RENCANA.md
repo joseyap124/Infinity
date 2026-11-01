@@ -55,7 +55,7 @@ Belum dibuktikan di HP. Cara cek: ketuk widget atau pintasan *Catat pengeluaran*
 
 ### 4. Branch lama di remote
 
-Ada 73 branch di remote; sebagian besar branch rilis lama (`v3`, `v5.x`, dan seterusnya) yang sudah digabung. Nilai membersihkannya kecil. Kalau dilakukan, cek dulu bahwa tiap branch sudah masuk `main`, dan jangan hapus `main`, `ci-logs`, `ci-out`.
+Per 1 Nov 2026 ada 80 branch di remote. 75 di antaranya sudah masuk `main` (diperiksa dengan `git merge-base --is-ancestor`), jadi menghapusnya tidak menghilangkan kode; commit-nya tetap ada di `main`. Dua branch belum masuk dan **tidak boleh dihapus tanpa keputusan Jose**: `teks-kategori` (v6.2.4, kategori di form Catat jadi chip teks dua kolom tanpa ikon) dan `v6.2.2` (hapus pintasan di ikon app; berbeda dari rilis v6.2.2 yang sebenarnya). Jangan hapus `main`, `ci-logs`, `ci-out`. Penghapusan massal lewat sesi AI diblokir oleh pemeriksa izin, jadi perlu dijalankan Jose atau diizinkan secara eksplisit.
 
 ## Ditunda sampai Jose menyetujui mockup
 
@@ -69,6 +69,6 @@ Aturan kerja: perubahan tampilan selalu mockup dulu, lalu kode.
 ## Dokumentasi
 
 - [x] Dokumen produk, teknis, rencana, dan aturan kerja AI (`CLAUDE.md`).
-- [ ] README masih menyebut "14 warna", versi rilis `v1.6, v1.7, ...`, dan belum memuat fitur v5 sampai v6 (maskot, ritme, amplop, Rencana). Perlu disegarkan.
-- [ ] Komentar pembuka `lib/main.dart` menyebut "single-file" dan "Flutter 3.38.1+", sudah tidak sesuai (sekarang banyak `part`, Flutter 3.47.6).
-- [ ] `tool/i18n/README.md` menyebut `/tmp/claude-0/i18n` untuk import, dan contoh perintahnya hanya sampai `tr5` (sekarang sampai `tr38`); perlu disesuaikan.
+- [x] README disegarkan (v7.0.2+): navigasi baru, Rencana, Ritme dan Maskot, tanggal ke depan, jalur "Beranda → gerigi", backup harian (14 salinan). Catatan: klaim lama "README salah menyebut 14 warna" ternyata keliru, jumlahnya memang 14 (8 + 6 pastel).
+- [x] Komentar pembuka `lib/main.dart` diperbarui (satu library dengan banyak `part`, Flutter 3.47.6).
+- [x] `tool/i18n/README.md` diperbarui dengan perintah yang benar.

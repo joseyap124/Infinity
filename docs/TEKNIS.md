@@ -118,7 +118,7 @@ CI (GitHub Actions) adalah **satu-satunya** tempat kode dikompilasi dan dites. T
 
 Hal yang menentukan hasil:
 - **Tes memblokir**. `flutter analyze` tidak memblokir untuk warning dan info (`--no-fatal-infos --no-fatal-warnings`).
-- Semua tes ada di satu berkas, `tests/infinity_test.dart` (266 tes saat ini), dikelompokkan dengan `group(...)`. Tes jatah harian ada di grup `Aman dibelanjakan & insight`.
+- Semua tes ada di satu berkas, `tests/infinity_test.dart` (sekitar 285 tes saat ini), dikelompokkan dengan `group(...)`. Tes jatah harian ada di grup `Aman dibelanjakan & insight`.
 - Perubahan hanya di `README.md`, `CHANGELOG.md`, `docs/**`, dan beberapa berkas pendukung **tidak** memicu build APK (`paths-ignore` di `build-apk.yml`).
 
 ## Alur rilis

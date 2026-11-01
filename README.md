@@ -19,7 +19,7 @@ Aplikasi catatan keuangan Android yang cara catatnya meniru **Money Manager** (b
 3. Buka file itu. Kalau Android bertanya, izinkan **"Instal aplikasi tidak dikenal"** untuk browser/Files. Kalau Play Protect memperingatkan, pilih **Tetap instal** (wajar untuk APK di luar Play Store).
 4. Pertama kali dibuka, izinkan notifikasi supaya pengingat dan pintasan muncul.
 
-Setiap kali `main` diperbarui, GitHub Actions otomatis membangun APK baru dan menerbitkannya di Releases. Nomor versinya naik satu per rilis (v1.6, v1.7, ..., v2.0, v2.1, ...), dan tiap rilis mencantumkan apa yang ditambah, diubah, dihapus, dan diperbaiki (sumbernya [CHANGELOG.md](CHANGELOG.md)).
+Setiap kali `main` diperbarui, GitHub Actions otomatis membangun APK baru dan menerbitkannya di Releases. Nomor versinya naik tiap rilis (mis. v7.0.0, v7.0.1, v7.0.2), dan tiap rilis mencantumkan apa yang ditambah, diubah, dihapus, dan diperbaiki (sumbernya [CHANGELOG.md](CHANGELOG.md)).
 
 ### Update tanpa kehilangan data
 
@@ -27,18 +27,25 @@ Semua APK ditandatangani dengan **kunci yang sama** (secret `DEBUG_KEYSTORE_BASE
 
 ## Fitur
 
+### Navigasi
+Empat tab di bar bawah, **Beranda, Riwayat, Rencana, Statistik**, dengan tombol **Catat** bulat di tengah yang selalu terlihat. **Pengaturan** dibuka lewat ikon gerigi di kartu utama Beranda (di samping ikon mata untuk menyembunyikan saldo).
+
 ### Beranda: yang penting langsung terlihat
-- **Aman dibelanjakan hari ini**: angka pertama yang muncul saat app dibuka. Kalau anggaran diatur, sisa anggaran dibagi sisa hari. Kalau belum, dihitung dari saldo e-wallet, tunai, dan bank, dikurangi tagihan kartu kredit, utang jatuh tempo, setoran target tabungan, serta tagihan berulang sampai akhir bulan. Ketuk untuk melihat rinciannya.
-- **Perlu perhatian**: kartu untuk tagihan dan utang yang jatuh tempo ≤3 hari, target tabungan yang tenggatnya dekat, pengeluaran yang sedang tidak biasa (7 hari terakhir > 2× rata-rata mingguan), **langganan yang terdeteksi** (nominal mirip 3 bulan berturut, bisa dijadikan transaksi berulang), dan **saldo yang tidak cocok** dengan notifikasi bank/e-wallet.
-- **Ringkasan bulanan**: pengeluaran bulan ini dibanding bulan lalu pada tanggal yang sama, plus kategori yang naik paling banyak.
+- **Aman dibelanjakan hari ini**: angka pertama yang muncul saat app dibuka. Kalau anggaran diatur, sisa anggaran dibagi sisa hari. Kalau belum, dihitung dari saldo e-wallet, tunai, dan bank, dikurangi tagihan kartu kredit, utang jatuh tempo, setoran target tabungan, serta tagihan berulang sampai akhir bulan. Ketuk untuk melihat rinciannya. Belanja yang disengaja bisa ditandai **Di luar jatah harian**, dan **anggaran khusus** (amplop) menyisihkan sebagian anggaran untuk keperluan tertentu.
+- **Ritme** di kartu yang sama: persen anggaran terpakai dibanding hari ke berapa di periode (Cepat, Pas, Hemat). **Maskot** (bisa dimatikan) memberi satu kalimat status.
+- **Perlu perhatian**: daftar ringkas untuk tagihan dan utang yang jatuh tempo ≤3 hari, target tabungan yang tenggatnya dekat, pengeluaran yang sedang tidak biasa (7 hari terakhir > 2× rata-rata mingguan), **langganan yang terdeteksi** (nominal mirip 3 bulan berturut, bisa dijadikan transaksi berulang), dan **saldo yang tidak cocok** dengan notifikasi bank/e-wallet. Kartu yang terikat satu kejadian (rekap bulan, tagihan, belanja tinggi) cukup ditutup sekali.
+- **Catat cepat**: template sekali ketuk. **Ringkasan bulanan**: pengeluaran bulan ini dibanding bulan lalu pada tanggal yang sama, plus kategori yang naik paling banyak.
 
 ### Catat transaksi (ala Money Manager)
-- Tab **Pemasukan · Pengeluaran · Transfer**, lalu baris **Tanggal, Jumlah, Kategori, Akun, Catatan, Deskripsi**.
+- Tab **Pemasukan · Pengeluaran · Transfer**, lalu baris **Tanggal, Jumlah, Kategori, Akun, Catatan, Deskripsi**. Tanggal boleh sampai 60 hari ke depan (langsung masuk saldo, tapi baru masuk statistik dan anggaran periode tanggalnya).
 - Selesai mengisi nominal, panel **kategori** langsung terbuka di bawah (dekat jempol, tanpa animasi). Grid 3 kolom; kategori yang punya sub membelah layar: induk di kiri, sub di kanan. Cukup 2 ketukan.
 - **Kalkulator** di kolom Jumlah, **template catat cepat** (mis. "Kopi pagi"), dan **Tempel struk**: salin teks struk/notifikasi, nominal, akun, dan kategorinya ditebak otomatis.
 - **Foto struk**: dari kamera atau galeri. Kalau nominal masih kosong, struknya **dibaca otomatis di HP** (Google ML Kit, tanpa internet) untuk mengisi total, nama toko, dan kategori.
 - **Saran dari ketikan sebelumnya** di Catatan dan Deskripsi (ketik "pot", muncul "Potong rambut").
 - Setelah tersimpan: **edit, duplikat, salin teks transaksi**, atau hapus (geser) dengan tombol Urungkan.
+
+### Rencana
+Tab **Rencana** memuat anggaran (total dan per kategori), tagihan dan langganan 30 hari ke depan, cicilan, target tabungan, serta utang dan piutang.
 
 ### Akun & transfer
 - Akun **E-Wallet, Tunai, Rekening Bank, Kartu Kredit** (limit + tanggal jatuh tempo), **Investasi**.
@@ -63,7 +70,8 @@ Bawaannya kategori Money Manager yang biasa dipakai, misalnya Kebutuhan Pokok �
 - **Rekap tahunan** (Statistik): total setahun, porsi yang ditabung, bulan paling boros/hemat, kategori terbesar, pengeluaran terbesar, dan kekayaan bersih awal vs akhir tahun.
 - **Riwayat**: cari, filter Hari Ini / Minggu Ini / Bulan Ini / Semua, total per hari.
 - **Kalender**: pemasukan dan pengeluaran per tanggal.
-- **Statistik**: mingguan/bulanan/tahunan, donut per kategori, selisih bersih, rata-rata pengeluaran per hari.
+- **Statistik**: mingguan/bulanan/tahunan, donut per kategori, selisih bersih, rata-rata pengeluaran per hari, dan porsi Kebutuhan, Keinginan, Tabungan terhadap pemasukan.
+- **Rekap**: tinjauan minggu lalu, rekap dan saran bulanan, cerita bulan, dan rekap tahunan.
 - **Anggaran**: total dan per kategori, dengan status *Aman*, *Mulai Seret*, atau *Jebol*.
 
 ### Transaksi berulang & notifikasi
@@ -89,16 +97,17 @@ Infinity membaca notifikasi yang berisi nominal "Rp" dari semua app. Akunnya han
 Android 13+ memblokir akses notifikasi untuk APK di luar Play Store. Caranya: coba aktifkan sekali, lalu buka **Info aplikasi Infinity → ⋮ → Izinkan setelan terbatas**, dan aktifkan lagi. Panduannya ada di halaman Catat Otomatis.
 
 ### Pintasan & widget
-- **Pintasan di panel notifikasi** (seperti Money Manager): ikon **Riwayat, Cari, Template, ＋**. Bisa dimatikan di Lainnya → Notifikasi.
+- **Pintasan di panel notifikasi** (seperti Money Manager): ikon **Riwayat, Cari, Template, ＋**. Bisa dimatikan di Beranda → gerigi → Preferensi → Notifikasi.
 - **Widget 4×2** di layar utama: saldo bersih, masuk/keluar bulan ini, sisa anggaran, dan tombol **Keluar · Masuk · Transfer**. Ikut mode gelap HP.
 
 ### Tampilan & Beranda
 - **Ikut HP / Terang / Gelap**. Warna di mode gelap dihitung ulang supaya teks tetap terbaca (kontras teks minimal 4,5:1).
 - **Warna utama**: Hijau, Tosca, Biru, Indigo, Ungu, Oranye, Pink, Grafit, dan pastel Sage, Lavender, Rose, Peach, Langit, Mint. Pemasukan tetap hijau dan pengeluaran tetap merah apa pun warnanya.
-- **Atur Beranda** (ketuk logo/nama): foto dari galeri, nama, dan kalimat di bawah nama: sapaan sesuai jam, tulis sendiri, atau **motivasi harian** (30 kalimat, berganti tiap hari, tanpa internet).
+- **Atur beranda** (Pengaturan → Preferensi): pilih kartu yang tampil dan urutannya, serta nyalakan atau matikan baris Ritme dan Maskot. Nama dan foto profil diatur dari Pengaturan.
+- **Gaya ikon**: kartun, flat, klasik, atau monokrom, plus paket gaya dan maskot pilihan.
 
 ### Import dari Money Manager
-Lainnya → **Import dari Money Manager** → pilih file `.xlsx` hasil *Money Manager › Backup › Ekspor ke Excel*.
+Beranda → gerigi → **Backup & pindah HP** → **Impor dari Money Manager** → pilih file `.xlsx` hasil *Money Manager › Backup › Ekspor ke Excel*.
 - Pratinjau dulu: rentang tanggal, jumlah pengeluaran/pemasukan/transfer, akun dan kategori baru.
 - Akun dan kategori dicocokkan berdasarkan nama, tanpa peduli emoji, spasi, atau keterangan dalam kurung ("Health (Obat , Vitamin)💊" = "Health (Obat, Vitamin) 💊"). Yang belum ada dibuat otomatis.
 - `Transfer-Out` jadi transfer antar akun. Import file yang sama dua kali **tidak** membuat transaksi dobel.
@@ -115,8 +124,8 @@ Lainnya → **Import dari Money Manager** → pilih file `.xlsx` hasil *Money Ma
 
 ## Backup & pulihkan
 
-Lainnya → **Backup & Pulihkan**:
-- **Backup otomatis mingguan** ke `Download/Infinity/`. File ini tetap ada walau app di-uninstall. Disimpan 8 backup terakhir, dan setiap backup dicoba dibuka dulu sebelum disimpan. Bisa dimatikan, atau tekan **Backup sekarang**.
+Beranda → gerigi → **Backup & pindah HP**:
+- **Backup otomatis harian** (kalau ada perubahan) ke `Download/Infinity/`. File ini tetap ada walau app di-uninstall. Disimpan 14 backup terakhir, dan setiap backup dicoba dibuka dulu sebelum disimpan. Bisa dimatikan, atau tekan **Backup sekarang**.
 - **Kata sandi backup**: kalau diatur, backup jadi file `.infb` terenkripsi (AES-256) yang ikut menyimpan foto struk. Tanpa kata sandi, backup berupa `.json` biasa.
 - **Simpan ke Google Drive**: lewat layar simpan Android (Drive yang meng-upload, Infinity tetap tanpa internet). Selalu `.infb` terkunci kata sandi.
 - **Pulihkan dari file**: pilih `.infb` atau `.json` dari HP atau Google Drive.
@@ -128,7 +137,7 @@ Lainnya → **Backup & Pulihkan**:
 
 ## Perawatan
 
-Lainnya → bagian bawah:
+Beranda → gerigi:
 - **Bantuan**: FAQ (catat otomatis, backup, lupa PIN, kurs, patungan) dan langkah pindah HP.
 - **Cek kesehatan data**: mencari transaksi dobel, kategori yang sudah dihapus (bisa diperbaiki sekali tekan), saldo minus yang tidak wajar, talangan patungan yang tidak cocok, dan backup yang sudah lama.
 - **Laporan error**: error app dicatat ke file lokal (tidak dikirim ke mana pun). Simpan ke Download lalu kirim filenya kalau ada masalah.
@@ -168,6 +177,7 @@ Di PC: butuh Flutter 3.47.6 dan Android SDK. Jalankan `bash tool/ci_setup.sh and
 
 ## Belum dites di HP sungguhan
 
+- Tampilan versi 6.3.3 sampai 7.0.x (form Catat, kartu utama, bar bawah, halaman Pengaturan) hanya dicek lewat tes dan kompilasi di CI, belum lewat tangkapan layar dari HP. Daftarnya ada di [docs/RENCANA.md](docs/RENCANA.md).
 - Pembacaan notifikasi bank/e-wallet masih tebakan berdasarkan pola umum. Kalau ada notifikasi yang salah terbaca, kirim contoh teksnya.
 - Tampilan widget dan pintasan notifikasi bisa sedikit berbeda antar merek HP (Xiaomi/Oppo/Vivo juga perlu Baterai: *Tanpa batasan* supaya pengingat tepat waktu).
 

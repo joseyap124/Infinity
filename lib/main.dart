@@ -1,19 +1,20 @@
 // =============================================================================
-// INFINITY - Personal Finance Manager (single-file Flutter app)
+// INFINITY - Personal Finance Manager (Flutter, Android, offline)
 // -----------------------------------------------------------------------------
-// Kebutuhan:
-//   - Flutter 3.38.1+ (syarat flutter_local_notifications v22)
-//   - flutter pub add intl flutter_secure_storage local_auth \
-//       flutter_local_notifications timezone home_widget
-//   - Setup Android (notifikasi, biometrik, catat otomatis, widget): README.md
+// Satu library Dart yang dipecah per bagian: setiap `part 'src/NN_*.dart'` di
+// bawah ini masuk ke library ini, jadi semua bagian saling akses.
 //
-// Fitur: multi-akun (e-wallet, tunai, bank, kartu kredit, investasi), multi mata
-// uang, transfer antar akun, edit/hapus/duplikat transaksi, kategori & sub-
-// kategori kustom, anggaran mingguan/bulanan/tahunan (global & per kategori),
-// transaksi berulang, template, kalender, pencarian, kalkulator, statistik &
-// tren, backup/restore JSON, kunci PIN + biometrik, penyimpanan terenkripsi,
-// notifikasi pengingat, catat otomatis dari notifikasi bank/e-wallet, dan
-// widget layar utama.
+// Kebutuhan:
+//   - Flutter dan paket dikunci di tool/versions.env (Flutter 3.47.6).
+//   - Proyek Android dibuat oleh tool/ci_setup.sh dan tool/setup_android.py
+//     (tidak ada pubspec.yaml atau folder android di repo). Panduan: README.md
+//
+// Fitur: multi-akun, multi mata uang, transfer, kategori & sub-kategori,
+// anggaran (global, per kategori, khusus), aman dibelanjakan hari ini dengan
+// ritme dan maskot, transaksi berulang, cicilan, utang, target tabungan,
+// patungan, acara, statistik dan rekap, backup/restore terenkripsi, kunci PIN +
+// biometrik, catat otomatis dari notifikasi bank/e-wallet, baca struk offline,
+// dan widget layar utama.
 // =============================================================================
 
 import 'dart:async';
